@@ -1,4 +1,4 @@
-# Household Wealth Dashboard — Reference
+# Household Wealth Dashboard Reference
 
 The detailed material behind the [README](README.md): how importing works, how every number is calculated, where it runs, how to share it, and how to customise it.
 
