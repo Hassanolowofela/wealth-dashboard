@@ -1218,7 +1218,7 @@ function viewSettings() {
     <h3>Data</h3>
     <div class="sub" style="margin-bottom:12px">
       Everything is stored in this browser only (localStorage). Clearing site data, using a different
-      browser, or a different Windows user account means a different, empty dashboard.
+      browser, or a different device means a different, empty dashboard.
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn primary" data-act="export-json">Download backup</button>

@@ -125,7 +125,10 @@ label.f > span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px
 .tile .lbl{font-size:12px;color:var(--ink-2);font-weight:520}
 .tile .val{font-size:26px;font-weight:640;letter-spacing:-.02em;line-height:1.15}
 .tile .val.hero{font-size:clamp(26px,3.1vw + 12px,40px)}
-.tile .delta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:2px}
+/* Flowing text, not flex: as flex items the coloured span and the trailing
+   words wrap independently and end up as two ragged columns on a narrow tile. */
+.tile .delta{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.45}
+.tile .delta > span{white-space:nowrap}
 .tile .delta b{font-weight:620}
 .up{color:var(--good-ink)} .down{color:var(--crit-ink)} .flat{color:var(--muted)}
 .tile .spark{margin-top:8px;height:34px}
