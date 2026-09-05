@@ -1,0 +1,18 @@
+# Build output. The app itself lives at the repo root, so dist/web would be a
+# duplicate of it. The single-file build IS committed, because it is the thing
+# people download and run.
+dist/web/
+dist.zip
+*.zip
+
+# Anything containing a real household. These must never be committed.
+.private-names
+my-household-starter.json
+*household-backup*.json
+
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+Thumbs.db
+desktop.ini

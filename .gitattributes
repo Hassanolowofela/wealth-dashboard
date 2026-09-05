@@ -1,0 +1,22 @@
+# core.autocrlf is on for this machine, which would rewrite line endings inside
+# binary files and corrupt them on checkout. Declare them explicitly.
+* text=auto eol=lf
+
+*.png binary
+*.pdf binary
+*.docx binary
+*.doc  binary
+*.zip  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+
+# keep the app text files as LF everywhere
+*.js   text eol=lf
+*.html text eol=lf
+*.css  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.py   text eol=lf
+*.csv  text eol=lf
+*.webmanifest text eol=lf
