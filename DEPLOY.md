@@ -11,13 +11,15 @@ never seen this before.
 
 Current version: **1.4.0**
 
-Live at **https://hassanolowofela.github.io/wealth-dashboard/**, served by GitHub Pages from the
-`main` branch root. Every push updates it within a minute or two.
+Live at **https://householdfinancemanager.netlify.app/**, served by Netlify.
 
-> **Storage on that address is shared with every other project on the same
-> GitHub account**, because browsers separate data by domain and not by folder.
-> Host it somewhere with its own subdomain before anyone puts real figures in.
-> [SECURITY.md](SECURITY.md) explains it and lists the options.
+Netlify serves it from its own subdomain, so its stored data is isolated from
+every other site. That was a deliberate move away from GitHub Pages, which puts
+all of an account's projects on one domain and therefore one storage area.
+[SECURITY.md](SECURITY.md) has the detail.
+
+Netlify also reads the `_headers` file in this folder, which sets the security
+headers a meta tag cannot express. GitHub Pages ignores it.
 
 ---
 

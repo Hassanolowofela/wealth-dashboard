@@ -2,20 +2,17 @@
 
 A private, offline spending tracker and financial planner for your whole household.
 
-### [Open the dashboard](https://hassanolowofela.github.io/wealth-dashboard/)
+### [Open the dashboard](https://householdfinancemanager.netlify.app/)
 
-**https://hassanolowofela.github.io/wealth-dashboard/**
+**https://householdfinancemanager.netlify.app/**
 
 Works on Windows, Mac, Android, iPhone and iPad. Nothing to install, no account,
 no fee. Add it to your home screen or Start menu and it runs offline.
 
 **Your data never leaves your device.** No server, no account, no internet needed.
 
-> **Before you enter real figures, read [SECURITY.md](SECURITY.md).** Short
-> version: GitHub Pages puts every project of an account on one domain, and
-> browsers share stored data across a whole domain. Any other project published
-> there could read this one's data. For real numbers, use a copy on its own
-> address or the single file on your own computer.
+The app is hosted on its own address, so its stored data is isolated from every
+other site. [SECURITY.md](SECURITY.md) explains the full picture.
 
 ## Getting started
 

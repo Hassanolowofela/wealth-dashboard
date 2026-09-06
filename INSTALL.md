@@ -8,7 +8,7 @@ password, and no fee.
 
 ### The link
 
-**https://hassanolowofela.github.io/wealth-dashboard/**
+**https://householdfinancemanager.netlify.app/**
 
 Open that on any device to begin. Everything below explains what to do next.
 
@@ -39,7 +39,7 @@ Find your device below.
 | Android phone or tablet | [Section 4](#4-install-on-android) |
 | Windows or Mac | [Section 2](#2-install-on-windows-or-mac) |
 
-Everyone uses the same link: **https://hassanolowofela.github.io/wealth-dashboard/**
+Everyone uses the same link: **https://householdfinancemanager.netlify.app/**
 
 > **On a phone, use the link, not a downloaded file.** Phones have no good way
 > to open a saved HTML file. On a computer either works.
@@ -50,7 +50,7 @@ Everyone uses the same link: **https://hassanolowofela.github.io/wealth-dashboar
 
 ### The quick way: open the link
 
-**Step 1.** Go to **https://hassanolowofela.github.io/wealth-dashboard/**
+**Step 1.** Go to **https://householdfinancemanager.netlify.app/**
 
 **Step 2.** The dashboard opens and is already running. That is all.
 
@@ -122,7 +122,7 @@ Now go to [Section 5](#5-set-up-your-household).
 You must use **Safari** for this. Chrome on iPhone cannot add apps to the home
 screen.
 
-**Step 1.** Open **https://hassanolowofela.github.io/wealth-dashboard/** in Safari.
+**Step 1.** Open **https://householdfinancemanager.netlify.app/** in Safari.
 
 **Step 2.** The dashboard appears and is already working.
 
@@ -159,7 +159,7 @@ Now go to [Section 5](#5-set-up-your-household).
 
 Use **Chrome**, **Edge** or **Samsung Internet**.
 
-**Step 1.** Open **https://hassanolowofela.github.io/wealth-dashboard/** in Chrome.
+**Step 1.** Open **https://householdfinancemanager.netlify.app/** in Chrome.
 
 **Step 2.** The dashboard appears and is already working.
 

@@ -16,7 +16,8 @@ Version 1.4.0.
   compromise.
 - **Your data lives in one browser on one device**, unencrypted, in that
   browser's local storage.
-- **The one real caveat is hosting.** See below. It matters.
+- **It is served from its own subdomain**, so its stored data is isolated from
+  every other site. That matters, and the Hosting section explains why.
 
 ---
 
@@ -42,34 +43,30 @@ spreadsheet on your desktop, not like a bank vault.
 
 ---
 
-## The hosting caveat, which is the important one
+## Hosting, and why the address matters
 
-**Browsers separate stored data by domain, not by folder.**
+**Browsers separate stored data by domain, not by folder.** Every site on one
+domain shares one storage area, whatever folder it sits in.
 
-GitHub Pages puts every project of an account on one domain. So
-`yourname.github.io/wealth-dashboard/` and `yourname.github.io/anything-else/`
-are the same domain as far as the browser is concerned, and share one storage
-area.
+This app is served from **householdfinancemanager.netlify.app**, its own
+subdomain, so its data is isolated from every other site.
 
-Any other project you publish there can read everything this dashboard has
-saved. This was verified, not assumed: from an unrelated project site on the
-same account, the entire ledger was readable, including every transaction,
-account name, and card balance.
+That was a deliberate move. It was previously on GitHub Pages, which puts every
+project of an account on one domain. In that arrangement any other project
+published by the same account could read this one's data. That was verified
+rather than assumed: from an unrelated project site on the same account, the
+entire ledger was readable, including every transaction, account name and card
+balance. After the move, the same test from the same site returns nothing.
 
-This is a property of the hosting, not a flaw in the app. The app detects it and
-shows a warning under **Settings, Storage and durability**.
+The app still detects the risky arrangement and warns under **Settings, Storage
+and durability**, in case a copy is ever hosted somewhere that shares a domain.
 
-### What to do about it
-
-| Option | Isolation |
+| Host | Isolation |
 |---|---|
-| **Netlify or Cloudflare Pages** | Each site gets its own subdomain, so storage is fully isolated. Free. |
-| **A custom domain**, e.g. `wealth.yourdomain.com` | Fully isolated. |
-| **The single file, run locally** | Fully isolated, and never touches a server. |
-| GitHub Pages project site | **Shared** with every other project on that account |
-
-If you keep it on GitHub Pages, use it as a demo and a download point, and enter
-real figures only in a copy on its own address or the local single-file build.
+| **Netlify, Cloudflare Pages** | Own subdomain per site. Isolated. |
+| **A custom domain** | Isolated. |
+| **The single file, run locally** | Isolated, and never touches a server. |
+| A GitHub Pages project site | **Shared** with every other project on that account |
 
 ---
 
@@ -118,8 +115,16 @@ style attributes. Scripts get no such allowance. The single-file build inlines
 its scripts, so the build computes a SHA-256 hash for each one and lists those
 instead, rather than weakening the policy.
 
-`frame-ancestors` is deliberately absent: browsers ignore it in a meta tag, and
-claiming it would be false comfort. Set it as a real header if your host allows.
+A meta tag cannot express `frame-ancestors`, so the policy above omits it rather
+than claiming protection it does not have. The `_headers` file supplies it as a
+real HTTP header on hosts that support them, along with `X-Frame-Options`,
+`nosniff`, `no-referrer`, cross-origin isolation, and a `Permissions-Policy`
+switching off camera, microphone, geolocation and the rest, none of which this
+app uses. GitHub Pages cannot set headers and ignores the file.
+
+Where both a meta policy and a header policy are present, a browser enforces the
+stricter of the two, so a directive in one but not the other silently breaks the
+app. The build compares them and refuses to ship on a mismatch.
 
 ---
 
