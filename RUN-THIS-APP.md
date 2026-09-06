@@ -2,6 +2,8 @@
 
 A step by step guide. No technical knowledge needed.
 
+The app lives at **https://hassanolowofela.github.io/wealth-dashboard/**
+
 It runs on a **Windows PC, a Mac, an Android phone or tablet, and an iPhone or
 iPad**. Start at Part 1 if you are on a computer, or Part 1B if you are on a
 phone.
@@ -29,7 +31,7 @@ need to create an account or a password.
 ## Part 1B: Open it on a phone or tablet
 
 A phone cannot open a downloaded file the way a computer can, so on a phone you
-open a **web link** instead. Whoever sent you the app gives you that link.
+open a **web link** instead: https://hassanolowofela.github.io/wealth-dashboard/
 
 **Step 1.** Tap the link. The dashboard opens in your browser.
 
@@ -329,7 +331,7 @@ completely separate, with its own data. Nobody can see anyone else's numbers.
 No. Open `index.html` again and it is all still there.
 
 **Can I use it on my phone?**
-Yes. Open the link you were sent and add it to your home screen, as in Part 1B.
+Yes. Open https://hassanolowofela.github.io/wealth-dashboard/ and add it to your home screen, as in Part 1B.
 Buttons grow to a comfortable size, pop-up screens fill the display, and the
 layout becomes a single column. Importing statements works too, though picking
 files out of a bank app is fiddlier on a phone than on a computer.

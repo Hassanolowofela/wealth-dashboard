@@ -11,6 +11,9 @@ never seen this before.
 
 Current version: **1.3.0**
 
+Live at **https://hassanolowofela.github.io/wealth-dashboard/**, served by GitHub Pages from the
+`main` branch root. Every push updates it within a minute or two.
+
 ---
 
 ## Build the shareable copies

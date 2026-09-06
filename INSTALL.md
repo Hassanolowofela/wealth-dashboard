@@ -6,6 +6,12 @@ The Household Wealth Dashboard runs on **Windows, Mac, Android, iPhone and
 iPad**. Everything stays on your own device. There is no account to create, no
 password, and no fee.
 
+### The link
+
+**https://hassanolowofela.github.io/wealth-dashboard/**
+
+Open that on any device to begin. Everything below explains what to do next.
+
 ---
 
 ## Contents
@@ -25,37 +31,44 @@ password, and no fee.
 
 ## 1. Start here: pick your device
 
-You were given either a **file** or a **web link**. Which one decides your path.
+Find your device below.
 
-| You were given | You are on | Go to |
-|---|---|---|
-| A file called `wealth-dashboard.html` | Windows or Mac | [Section 2](#2-install-on-windows-or-mac) |
-| A web link | iPhone or iPad | [Section 3](#3-install-on-iphone-or-ipad) |
-| A web link | Android phone or tablet | [Section 4](#4-install-on-android) |
-| A web link | Windows or Mac | [Section 2](#2-install-on-windows-or-mac) |
+| You are on | Go to |
+|---|---|
+| iPhone or iPad | [Section 3](#3-install-on-iphone-or-ipad) |
+| Android phone or tablet | [Section 4](#4-install-on-android) |
+| Windows or Mac | [Section 2](#2-install-on-windows-or-mac) |
 
-> **On a phone, you need a link, not a file.** Phones have no good way to open a
-> downloaded HTML file. If you were sent the file and you are on a phone, ask
-> for a link instead.
+Everyone uses the same link: **https://hassanolowofela.github.io/wealth-dashboard/**
+
+> **On a phone, use the link, not a downloaded file.** Phones have no good way
+> to open a saved HTML file. On a computer either works.
 
 ---
 
 ## 2. Install on Windows or Mac
 
-### The quick way: just open the file
+### The quick way: open the link
 
-**Step 1.** Find the file you were sent. It is usually in your **Downloads**
-folder and is called **`wealth-dashboard.html`**.
+**Step 1.** Go to **https://hassanolowofela.github.io/wealth-dashboard/**
 
-**Step 2.** Double-click it.
+**Step 2.** The dashboard opens and is already running. That is all.
 
-**Step 3.** It opens in your web browser and it is now running. That is all.
+Skip to [Section 5](#5-set-up-your-household) to start using it, or read on to
+give it its own icon.
 
-You do not need the internet. You do not need to install anything else.
+### The offline way: one file, no internet at all
 
-> **Cannot see the `.html` part of the name?** That is normal. Windows hides
-> file endings. Look for the file called **wealth-dashboard** with a web browser
-> icon beside it.
+If you would rather have the whole thing as a single file on your computer:
+
+**Step 1.** Download
+[`dist/wealth-dashboard.html`](https://github.com/Hassanolowofela/wealth-dashboard/raw/main/dist/wealth-dashboard.html)
+
+**Step 2.** Double-click it. It opens in your browser and works with no internet
+and nothing installed.
+
+> **Cannot see the `.html` part of the name?** That is normal. Windows hides file
+> endings. Look for the file called **wealth-dashboard** with a browser icon.
 
 ### If it opens in the wrong program
 
@@ -109,7 +122,7 @@ Now go to [Section 5](#5-set-up-your-household).
 You must use **Safari** for this. Chrome on iPhone cannot add apps to the home
 screen.
 
-**Step 1.** Open the link you were sent, in Safari.
+**Step 1.** Open **https://hassanolowofela.github.io/wealth-dashboard/** in Safari.
 
 **Step 2.** The dashboard appears and is already working.
 
@@ -146,7 +159,7 @@ Now go to [Section 5](#5-set-up-your-household).
 
 Use **Chrome**, **Edge** or **Samsung Internet**.
 
-**Step 1.** Open the link you were sent.
+**Step 1.** Open **https://hassanolowofela.github.io/wealth-dashboard/** in Chrome.
 
 **Step 2.** The dashboard appears and is already working.
 

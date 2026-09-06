@@ -2,15 +2,34 @@
 
 A private, offline spending tracker and financial planner for your whole household.
 
-**Your data never leaves your computer.** No server, no account, no internet needed.
+### [Open the dashboard](https://hassanolowofela.github.io/wealth-dashboard/)
+
+**https://hassanolowofela.github.io/wealth-dashboard/**
+
+Works on Windows, Mac, Android, iPhone and iPad. Nothing to install, no account,
+no fee. Add it to your home screen or Start menu and it runs offline.
+
+**Your data never leaves your device.** No server, no account, no internet needed.
 
 ## Getting started
 
-1. Double-click `index.html`. That's the whole install.
-2. Answer three quick questions: who's in your household, what accounts you have, and how you'd like to start.
-3. Not ready to add your own numbers? Choose **Explore a sample household** to look around first.
+Open the link above, then answer three quick questions: who's in your household,
+what accounts you have, and how you'd like to start. Not ready to add your own
+numbers? Choose **Explore a sample household** to look around first.
 
-On a phone or tablet, open the hosted link and add it to your home screen. See [DEPLOY.md](DEPLOY.md).
+New to it? The [illustrated installation guide](INSTALL.md) walks through every
+step with screenshots.
+
+### Keep it on your device
+
+| Device | How |
+|---|---|
+| **iPhone, iPad** | Open the link in **Safari**, tap **Share**, then **Add to Home Screen** |
+| **Android** | Open the link in Chrome, tap the menu, then **Install app** |
+| **Windows, Mac** | Click the install icon in the address bar, or **Settings**, then **Install as an app** |
+
+You can also download `dist/wealth-dashboard.html` and double-click it. That is
+the whole app in one file, for computers, with no internet needed at all.
 
 ## Adding your transactions
 
