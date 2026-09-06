@@ -16,6 +16,7 @@ which are already committed - the build reuses them if present).
 """
 
 import base64
+import hashlib
 import mimetypes
 import re
 import shutil
@@ -27,7 +28,7 @@ WEB = DIST / "web"
 
 SCRIPTS = ["app.js", "charts.js", "advisor.js", "credit.js", "docparse.js", "extract.js", "views.js"]
 WEB_FILES = SCRIPTS + ["index.html", "manifest.webmanifest", "sw.js",
-                       "README.md", "RUN-THIS-APP.md", "LICENSE"]
+                       "README.md", "RUN-THIS-APP.md", "SECURITY.md", "LICENSE"]
 
 
 def data_uri(path: Path) -> str:
@@ -73,6 +74,18 @@ def build_single_file() -> Path:
         "  return;  // single-file build: everything is already inlined, no worker needed",
         1,
     )
+
+    # The scripts are inline now, so `script-src 'self'` would block them all.
+    # Use each script's content hash rather than 'unsafe-inline', which would
+    # throw away the protection the policy exists to provide.
+    hashes = []
+    for block in re.findall(r"<script>(.*?)</script>", html, re.S):
+        digest = base64.b64encode(hashlib.sha256(block.encode("utf-8")).digest()).decode()
+        hashes.append(f"'sha256-{digest}'")
+    if not hashes:
+        raise SystemExit("no inline scripts found; CSP hashing needs updating")
+    html = html.replace("script-src 'self';",
+                        "script-src " + " ".join(hashes) + ";", 1)
 
     DIST.mkdir(exist_ok=True)
     out = DIST / "wealth-dashboard.html"

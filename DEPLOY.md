@@ -9,10 +9,15 @@ If you are the person who just received a copy, read
 **[RUN-THIS-APP.md](RUN-THIS-APP.md)** instead. It is written for someone who has
 never seen this before.
 
-Current version: **1.3.0**
+Current version: **1.4.0**
 
 Live at **https://hassanolowofela.github.io/wealth-dashboard/**, served by GitHub Pages from the
 `main` branch root. Every push updates it within a minute or two.
+
+> **Storage on that address is shared with every other project on the same
+> GitHub account**, because browsers separate data by domain and not by folder.
+> Host it somewhere with its own subdomain before anyone puts real figures in.
+> [SECURITY.md](SECURITY.md) explains it and lists the options.
 
 ---
 
@@ -45,7 +50,7 @@ output, so you cannot accidentally ship your own family's details.
 | `extract.js` | Statement text into transactions and card fields |
 | `views.js` | Screens, forms, setup wizard, import flow, event wiring |
 | `sw.js`, `manifest.webmanifest`, `icons/` | Offline support and installability |
-| `README.md`, `RUN-THIS-APP.md`, `LICENSE` | Documentation for the recipient |
+| `README.md`, `RUN-THIS-APP.md`, `SECURITY.md`, `LICENSE` | Documentation for the recipient |
 | `samples/` | Example statements for trying the importer |
 
 Adding or renaming a script means updating `SCRIPTS` in `build.py` **and** the

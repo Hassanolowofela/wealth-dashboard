@@ -31,12 +31,50 @@ function bytesFromLatin1(s) {
   return u;
 }
 
-/** Native inflate. `raw` selects ZIP-style raw deflate over zlib-wrapped. */
+/* ---------------------------------------------------------------- limits ---
+   These parsers read files the user did not write, so a malformed or hostile
+   document must fail fast rather than freeze the tab. None of this is a memory
+   safety concern (JavaScript has none to lose); it is purely about not hanging.
+--------------------------------------------------------------------------- */
+
+const MAX_FILE_BYTES = 25 * 1024 * 1024;      // 25 MB: far above any statement
+const MAX_INFLATED_BYTES = 80 * 1024 * 1024;  // guards a decompression bomb
+const PARSE_BUDGET_MS = 20000;                // whole-document wall clock
+
+/** Throws once a parse has run too long, so every loop can be interrupted. */
+function deadline(startedAt) {
+  return () => {
+    if (Date.now() - startedAt > PARSE_BUDGET_MS) {
+      throw new Error('PARSE_TIMEOUT');
+    }
+  };
+}
+
+/**
+ * Native inflate. `raw` selects ZIP-style raw deflate over zlib-wrapped.
+ * Output is capped, because a small compressed payload can expand without
+ * limit and exhaust memory.
+ */
 async function inflate(bytes, raw) {
   const fmt = raw ? 'deflate-raw' : 'deflate';
   const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream(fmt));
-  const buf = await new Response(stream).arrayBuffer();
-  return new Uint8Array(buf);
+  const reader = stream.getReader();
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > MAX_INFLATED_BYTES) {
+      reader.cancel();
+      throw new Error('DECOMPRESSION_LIMIT');
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let at = 0;
+  for (const c of chunks) { out.set(c, at); at += c.length; }
+  return out;
 }
 
 function decompressionSupported() {
@@ -127,6 +165,7 @@ function asciiHexDecode(bytes) {
 /** LZW as PDFs use it. Uncommon now, but old bank exports still contain it. */
 function lzwDecode(bytes) {
   const out = [];
+  const started = Date.now();
   let dict = [], bitBuf = 0, bitCount = 0, codeLen = 9, prev = null;
   const reset = () => {
     dict = [];
@@ -139,6 +178,10 @@ function lzwDecode(bytes) {
     bitBuf = (bitBuf << 8) | bytes[i];
     bitCount += 8;
     while (bitCount >= codeLen) {
+      if (out.length > MAX_INFLATED_BYTES) throw new Error('DECOMPRESSION_LIMIT');
+      if ((out.length & 0xffff) === 0 && Date.now() - started > PARSE_BUDGET_MS) {
+        throw new Error('PARSE_TIMEOUT');
+      }
       const code = (bitBuf >> (bitCount - codeLen)) & ((1 << codeLen) - 1);
       bitCount -= codeLen;
       if (code === 256) { reset(); continue; }
@@ -170,7 +213,12 @@ async function pdfStreamBytes(s, bytes, obj) {
       else if (f === 'LZWDecode' || f === 'LZW') data = lzwDecode(data);
       else if (f === 'RunLengthDecode' || f === 'RL') return null;
       else return null;                       // image codecs: nothing to read
-    } catch (e) { return null; }
+    } catch (e) {
+      // a bomb or a timeout must reach the caller, or the user gets told the
+      // PDF simply has no text when in fact it was refused
+      if (e && (e.message === 'DECOMPRESSION_LIMIT' || e.message === 'PARSE_TIMEOUT')) throw e;
+      return null;
+    }
     if (!data || !data.length) return null;
   }
   return data;
@@ -388,6 +436,25 @@ function itemsToLines(items) {
 
 /** Reads a text-based PDF. Returns text plus why it failed, if it did. */
 async function readPdf(buf) {
+  try {
+    return await readPdfInner(buf);
+  } catch (e) {
+    if (e && e.message === 'PARSE_TIMEOUT') {
+      return { text: '', pages: 0, warnings: [],
+        error: 'This PDF took too long to read and was stopped, which usually means it is very ' +
+               'large or unusually structured. Download the statement as CSV instead.' };
+    }
+    if (e && e.message === 'DECOMPRESSION_LIMIT') {
+      return { text: '', pages: 0, warnings: [],
+        error: 'This PDF expands to an unreasonable size when decompressed and was rejected. ' +
+               'Download the statement as CSV instead.' };
+    }
+    return { text: '', pages: 0, warnings: [],
+      error: 'This PDF could not be read (' + (e && e.message ? e.message : 'unknown error') + ').' };
+  }
+}
+
+async function readPdfInner(buf) {
   const bytes = new Uint8Array(buf);
   const s = latin1(bytes);
   const warnings = [];
@@ -445,7 +512,9 @@ async function readPdf(buf) {
   }
 
   const chunks = [];
+  const checkTime = deadline(Date.now());
   for (const start of pageStarts) {
+    checkTime();
     const o = pdfObjectAt(s, start);
     if (!o) continue;
     let res = null;
@@ -477,6 +546,7 @@ async function readPdf(buf) {
   if (!chunks.length) {
     const seen = new Set();
     for (const num of Object.keys(idx)) {
+      checkTime();
       const o = objAt(+num);
       if (!o || !o.data) continue;
       if (/\/Subtype\s*\/Image|\/Type\s*\/XObject/.test(o.dict) && !/\/Type\s*\/Page/.test(o.dict)) continue;
@@ -592,7 +662,15 @@ function docxXmlToText(xml) {
 
 async function readDocx(buf) {
   const bytes = new Uint8Array(buf);
-  const doc = await zipEntry(bytes, 'word/document.xml');
+  let doc;
+  try {
+    doc = await zipEntry(bytes, 'word/document.xml');
+  } catch (e) {
+    return { text: '', warnings: [],
+      error: e && e.message === 'DECOMPRESSION_LIMIT'
+        ? 'This Word file expands to an unreasonable size when decompressed and was rejected.'
+        : 'This Word file could not be opened (' + (e && e.message ? e.message : 'unknown') + ').' };
+  }
   if (!doc) {
     return { text: '', warnings: [],
       error: 'This does not look like a Word .docx file. If it is an older .doc, open it in Word ' +
@@ -667,6 +745,12 @@ async function extractDocumentText(file) {
   if (!decompressionSupported()) {
     return { text: '', kind: null,
       error: 'This browser is too old to read PDF and Word files. Chrome, Edge or Firefox will work.' };
+  }
+  if (file.size > MAX_FILE_BYTES) {
+    return { text: '', kind: null,
+      error: `This file is ${(file.size / 1048576).toFixed(0)} MB, which is far larger than any ` +
+             `statement and too large to read safely. Download the statement again as CSV, or ` +
+             `export a single month at a time.` };
   }
   const name = (file.name || '').toLowerCase();
   const buf = await file.arrayBuffer();

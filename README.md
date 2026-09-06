@@ -11,6 +11,12 @@ no fee. Add it to your home screen or Start menu and it runs offline.
 
 **Your data never leaves your device.** No server, no account, no internet needed.
 
+> **Before you enter real figures, read [SECURITY.md](SECURITY.md).** Short
+> version: GitHub Pages puts every project of an account on one domain, and
+> browsers share stored data across a whole domain. Any other project published
+> there could read this one's data. For real numbers, use a copy on its own
+> address or the single file on your own computer.
+
 ## Getting started
 
 Open the link above, then answer three quick questions: who's in your household,

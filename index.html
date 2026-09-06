@@ -3,6 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--
+  Defence in depth. Escaping already stops injected markup from imported
+  statements, but this means a gap could not load a script, phone anything home,
+  or embed anything either. 'unsafe-inline' appears only for style-src, because
+  the UI uses inline style attributes; scripts have no such allowance.
+  build.py rewrites script-src with content hashes for the single-file build.
+  frame-ancestors is deliberately absent: browsers ignore it in a meta tag, so
+  claiming it here would be false comfort. Set it as a header if your host can.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Household Wealth Dashboard</title>
 <meta name="description" content="Private, offline household spending tracker, credit card manager and financial planner. All data stays on your device.">
 <meta name="theme-color" content="#2a78d6" media="(prefers-color-scheme: light)">

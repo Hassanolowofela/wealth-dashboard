@@ -2123,11 +2123,34 @@ function wireView() {
     const f = jsonIn.files[0]; if (!f) return;
     const r = new FileReader();
     r.onload = () => {
+      // Keep the current data until the restored document has proved it can
+      // render. Otherwise a file that passes a shallow check but is corrupt
+      // inside replaces good data and then fails to display, losing both.
+      const previous = JSON.stringify(S);
       try {
         const d = JSON.parse(r.result);
-        if (!d || !Array.isArray(d.txns)) throw 0;
-        S = { ...blankState(), ...d }; save(); UI.tab = 'overview'; render(); toast('Backup restored');
-      } catch (e) { toast('That file is not a valid backup.'); }
+        if (!d || typeof d !== 'object') throw new Error('not a backup file');
+        for (const [k, shouldBeArray] of [['txns', true], ['members', true], ['accounts', true],
+          ['cards', true], ['debts', true], ['goals', true], ['assets', true],
+          ['recurring', true], ['budgets', false], ['settings', false]]) {
+          if (d[k] === undefined) continue;
+          const ok = shouldBeArray ? Array.isArray(d[k])
+            : (d[k] && typeof d[k] === 'object' && !Array.isArray(d[k]));
+          if (!ok) throw new Error(`the "${k}" section is damaged`);
+        }
+        if (!Array.isArray(d.txns)) throw new Error('no transactions in the file');
+
+        S = migrate({ ...blankState(), ...d });
+        render();                          // throws here if anything is unusable
+        save();
+        UI.tab = 'overview';
+        render();
+        toast(`Backup restored: ${S.txns.length} transactions`);
+      } catch (e) {
+        S = JSON.parse(previous);          // nothing was saved, so this is intact
+        render();
+        toast('Not restored: ' + (e && e.message ? e.message : 'unreadable file'));
+      }
     };
     r.readAsText(f);
   };
@@ -2657,6 +2680,15 @@ async function storageInfo() {
       <b class="${days == null || days > 30 ? 'neg' : ''}">${
         days == null ? 'never' : days === 0 ? 'today' : days + ' days ago'}</b></div>
 
+    ${sharedOriginRisk() ? `<div class="disclaim" style="border-left-color:var(--crit)">
+      <b>This address shares its storage with other sites.</b> Everything under
+      <b>${esc(location.hostname)}</b> uses one storage area, no matter which folder it is in,
+      because browsers separate data by domain and not by path. Any other project published on
+      this same domain can read what this dashboard has saved. That is a property of the hosting,
+      not of this app. For real figures, use a copy on its own address, or the single-file version
+      on your own computer.
+    </div>` : ''}
+
     <h4 style="font-size:13px;margin:18px 0 6px">How safe is this?</h4>
     ${P.iOS ? `<div class="disclaim" style="border-left-color:var(--crit)">
       <b>On iPhone and iPad, treat backups as mandatory.</b> Safari reclaims website storage from
@@ -2930,6 +2962,22 @@ function platformInfo() {
     fileMode: location.protocol === 'file:',
     swSupported: 'serviceWorker' in navigator
   };
+}
+
+/**
+ * True on hosts that put many unrelated sites on one domain, where browser
+ * storage is therefore shared between them. github.io is the common case: every
+ * project page of an account sits on `account.github.io`, so any one of them can
+ * read the others' saved data. Path does not isolate storage; only the domain
+ * does. Hosts that give each site its own subdomain are unaffected.
+ */
+function sharedOriginRisk() {
+  const h = (location.hostname || '').toLowerCase();
+  if (!h) return false;
+  const shared = ['github.io', 'gitlab.io', 'sourceforge.io', 'surge.sh', 'neocities.org'];
+  // only when served from a sub-path, i.e. a project site rather than the root
+  const inSubfolder = (location.pathname || '/').replace(/\/+$/, '').split('/').filter(Boolean).length > 0;
+  return shared.some(d => h.endsWith(d)) && inSubfolder;
 }
 
 /**
