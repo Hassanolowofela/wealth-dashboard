@@ -52,6 +52,7 @@ output, so you cannot accidentally ship your own family's details.
 | `extract.js` | Statement text into transactions and card fields |
 | `views.js` | Screens, forms, setup wizard, import flow, event wiring |
 | `sw.js`, `manifest.webmanifest`, `icons/` | Offline support and installability |
+| `_headers`, `netlify.toml` | Security headers and deploy settings for Netlify |
 | `README.md`, `RUN-THIS-APP.md`, `SECURITY.md`, `LICENSE` | Documentation for the recipient |
 | `samples/` | Example statements for trying the importer |
 
@@ -140,6 +141,42 @@ It is a **progressive web app**, not a native one. It will not be in the
 Microsoft Store, the App Store or Google Play, and there is nothing to submit for
 review. For a private tool shared among friends that is an advantage: no store
 accounts, no review delays, and updates ship the moment you hand over a new copy.
+
+---
+
+## Automatic deploys from GitHub
+
+The site is connected to this repository, so pushing to `main` publishes it.
+There is nothing to drag and no folder to remember.
+
+`netlify.toml` pins the settings in the repository rather than leaving them in
+a dashboard: publish directory is the repository root, and there is no build
+command, because the files at the root ARE the site. Running `build.py` on the
+server would achieve nothing, since it only produces the single-file copy and a
+duplicate folder for other hosts.
+
+Publishing from the root also means `_headers` is picked up, which is what puts
+the real security headers in force.
+
+### Connecting it, if it ever needs redoing
+
+1. Netlify dashboard, open the site
+2. **Site configuration**, then **Build & deploy**, then **Continuous deployment**
+3. **Link repository**, choose GitHub, authorise, pick `wealth-dashboard`
+4. Branch `main`. Leave build command empty and publish directory as `.`,
+   or simply let `netlify.toml` supply them
+5. **Deploy**
+
+The first deploy takes about a minute. After that every push is automatic.
+
+### Checking a deploy actually landed
+
+```bash
+curl -sI https://householdfinancemanager.netlify.app/ | grep -i content-security-policy
+```
+
+If that prints a policy, `_headers` is in force. If it prints nothing, the
+deploy predates that file and needs redoing.
 
 ---
 

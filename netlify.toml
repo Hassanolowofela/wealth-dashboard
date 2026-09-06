@@ -1,0 +1,22 @@
+# Netlify configuration, kept in the repository so a fresh connection deploys
+# correctly without anyone remembering settings in a dashboard.
+#
+# The app has no build step. The source files at the repository root ARE the
+# site, so there is nothing to compile and the publish directory is the root.
+# `python build.py` only produces the single-file copy and a duplicate folder
+# for other hosts; running it here would achieve nothing.
+#
+# Security headers live in `_headers` rather than in this file, so there is one
+# place to change them and no chance of two definitions disagreeing.
+
+[build]
+  publish = "."
+  command = ""
+
+[build.environment]
+  # nothing to install; keeps deploys fast and avoids Netlify guessing a runtime
+  NETLIFY_USE_YARN = "false"
+
+# A single-page app would need a catch-all redirect here. This one genuinely has
+# separate files and no client-side router, so requests should 404 honestly
+# rather than being rewritten to index.html.
