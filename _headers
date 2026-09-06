@@ -1,0 +1,25 @@
+# Security headers for hosts that support them (Netlify, Cloudflare Pages).
+# GitHub Pages cannot set headers and simply ignores this file.
+#
+# The Content-Security-Policy below MUST stay in step with the <meta> policy in
+# index.html. When both are present a browser enforces the stricter of the two,
+# so a mismatch silently breaks the app rather than warning you. The only
+# intended difference is frame-ancestors, which browsers ignore in a meta tag
+# and which is the reason this file is worth having.
+
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()
+
+# The service worker must never be served stale, or an update can never land.
+/sw.js
+  Cache-Control: no-cache
+
+# Same for the page itself, so a new version is picked up on the next visit.
+/index.html
+  Cache-Control: no-cache

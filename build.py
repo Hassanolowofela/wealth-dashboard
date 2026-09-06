@@ -28,7 +28,8 @@ WEB = DIST / "web"
 
 SCRIPTS = ["app.js", "charts.js", "advisor.js", "credit.js", "docparse.js", "extract.js", "views.js"]
 WEB_FILES = SCRIPTS + ["index.html", "manifest.webmanifest", "sw.js",
-                       "README.md", "RUN-THIS-APP.md", "SECURITY.md", "LICENSE"]
+                       "README.md", "RUN-THIS-APP.md", "SECURITY.md", "LICENSE",
+                       "_headers"]
 
 
 def data_uri(path: Path) -> str:
@@ -129,6 +130,35 @@ def build_web() -> Path:
     return WEB
 
 
+def check_csp_agrees() -> list:
+    """
+    When a page carries both a meta CSP and a header CSP, the browser enforces
+    the stricter of the two. So a directive present in one but not the other
+    silently breaks the app instead of warning anyone. The only difference that
+    should ever exist is frame-ancestors, which meta tags cannot express.
+    """
+    head = ROOT / "_headers"
+    if not head.exists():
+        return []
+    meta_m = re.search(r'Content-Security-Policy" content="([^"]+)"',
+                       (ROOT / "index.html").read_text(encoding="utf-8"))
+    hdr_m = re.search(r"Content-Security-Policy: (.+)", head.read_text(encoding="utf-8"))
+    if not meta_m or not hdr_m:
+        return ["could not find a CSP in index.html or _headers"]
+
+    def parts(c):
+        return {d.strip() for d in c.split(";") if d.strip()}
+
+    meta, hdr = parts(meta_m.group(1)), parts(hdr_m.group(1))
+    problems = []
+    for d in sorted(meta - hdr):
+        problems.append(f"in the meta CSP but not the header: {d}")
+    for d in sorted(hdr - meta):
+        if not d.startswith("frame-ancestors"):
+            problems.append(f"in the header CSP but not the meta tag: {d}")
+    return problems
+
+
 def private_names() -> list:
     """
     Names that must never appear in a build, read from `.private-names`
@@ -161,8 +191,15 @@ if __name__ == "__main__":
     kb = single.stat().st_size / 1024
 
     leaks = check_no_personal_data()
+    csp_problems = check_csp_agrees()
     print(f"  dist/wealth-dashboard.html   {kb:.0f} KB  (one file, double-click to run)")
     print(f"  dist/web/                    {len(list(web.rglob('*')))} files (upload to any static host)")
+    if csp_problems:
+        print("\n  REFUSING TO SHIP - the meta CSP and the header CSP disagree:")
+        for p in csp_problems:
+            print(f"    {p}")
+        print("    A browser enforces the stricter of the two, so this would break the app.")
+        raise SystemExit(1)
     if leaks:
         print("\n  REFUSING TO SHIP - personal data found in the build:")
         for h in leaks:
