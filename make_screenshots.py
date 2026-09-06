@@ -155,11 +155,124 @@ async def main():
             await p2.evaluate("UI.tab='settings'; render(); window.scrollTo(0, document.body.scrollHeight);")
             await shot(p2, "15-phone-install")
             await p2.close()
+
+            # ---------------- README visuals ----------------
+            # These are framed for a repository front page rather than a manual:
+            # tight crops with no empty page below, and a dark variant.
+            rctx = await browser.new_context(viewport={"width": 1360, "height": 900},
+                                             device_scale_factor=2)
+            r = await fresh(rctx, base)
+            await r.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth();")
+
+            async def framed(name, setup, cards=2, theme=None):
+                """
+                Crop to the bottom of the Nth card rather than a fixed height, so
+                the image never ends halfway through a panel. A guessed height
+                looks broken the moment the layout changes.
+                """
+                if theme:
+                    await r.evaluate(f"document.documentElement.setAttribute('data-theme','{theme}')")
+                else:
+                    await r.evaluate("document.documentElement.removeAttribute('data-theme')")
+                await r.evaluate(setup)
+                await r.wait_for_timeout(450)
+                height = await r.evaluate("""(n) => {
+                    const els = document.querySelectorAll('#view .card, #view .tile');
+                    if (!els.length) return 760;
+                    // walk down until we pass n full rows of panels
+                    let bottom = 0, seenRows = 0, lastTop = -1;
+                    for (const el of els) {
+                        const b = el.getBoundingClientRect();
+                        if (Math.abs(b.top - lastTop) > 8) { seenRows++; lastTop = b.top; }
+                        if (seenRows > n) break;
+                        bottom = Math.max(bottom, b.bottom);
+                    }
+                    return Math.min(Math.round(bottom + 6), 1000);
+                }""", cards)
+                OUT.mkdir(parents=True, exist_ok=True)
+                path = OUT / f"{name}.png"
+                await r.screenshot(path=str(path),
+                                   clip={"x": 0, "y": 0, "width": 1360, "height": height})
+                print(f"  {path.relative_to(ROOT)}  ({height}px tall)")
+
+            await framed("readme-overview", "UI.tab='overview'; render(); window.scrollTo(0,0);", cards=2)
+            await framed("readme-cards", "UI.tab='cards'; render(); window.scrollTo(0,0);", cards=2)
+            await framed("readme-plan", "UI.tab='plan'; render(); window.scrollTo(0,0);", cards=2)
+            await framed("readme-dark", "UI.tab='overview'; render(); window.scrollTo(0,0);",
+                         cards=2, theme="dark")
+
+            # the statement importer, which is the least obvious feature
+            await r.evaluate("document.documentElement.removeAttribute('data-theme')")
+            await r.evaluate("""async () => {
+                S = seedSample(); save(); UI.tab='import'; render();
+                const f = new File([await fetch('samples/sample_card_statement.pdf')
+                    .then(x => x.blob())], 'sample_card_statement.pdf');
+                await statementFlow(f);
+            }""")
+            await r.wait_for_timeout(1500)
+            await shot(r, "readme-import")
+
+            # phone shots sized for the README, where they render small
+            p3 = await browser.new_context(
+                viewport=PHONE, device_scale_factor=2, is_mobile=True, has_touch=True)
+            p3page = await fresh(p3, base)
+            await p3page.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth(); UI.tab='overview'; render(); window.scrollTo(0,0);")
+            await shot(p3page, "readme-phone-overview")
+            await p3page.evaluate("UI.tab='cards'; render(); window.scrollTo(0,0);")
+            await shot(p3page, "readme-phone-cards")
+            await p3page.close()
+
+            await r.close()
             await browser.close()
+
     finally:
         httpd.shutdown()
+
+    shrink_readme_images()
     print("done")
 
 
+def shrink_readme_images():
+    """
+    Captured at 2x for sharpness, but GitHub renders a README at roughly 900px
+    wide, so shipping 2720px files makes the landing page needlessly heavy.
+    Downscale to twice the display width, which stays crisp on high-density
+    screens and costs a fraction of the bytes.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        print("  (Pillow not installed, skipping image downscale)")
+        return
+    targets = {"readme-overview": 1600, "readme-cards": 1600, "readme-plan": 1600,
+               "readme-dark": 1600, "readme-import": 1600,
+               "readme-phone-overview": 540, "readme-phone-cards": 540}
+    before_total = after_total = 0
+    for name, width in targets.items():
+        p = OUT / f"{name}.png"
+        if not p.exists():
+            continue
+        before = p.stat().st_size
+        before_total += before
+        im = Image.open(p).convert("RGB")
+        if im.width > width:
+            im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
+
+        # A screenshot of flat UI uses very few distinct colours, so a 256-entry
+        # palette is visually indistinguishable and a fraction of the bytes.
+        # Re-encoding as truecolour PNG actually comes out LARGER than the
+        # browser's own output, which is why this step exists at all.
+        quantised = im.quantize(colors=256, method=Image.MEDIANCUT, dither=Image.FLOYDSTEINBERG)
+
+        candidate = p.with_suffix(".tmp.png")
+        quantised.save(candidate, optimize=True)
+        if candidate.stat().st_size < before:
+            candidate.replace(p)
+        else:
+            candidate.unlink()          # keep whichever is genuinely smaller
+        after_total += p.stat().st_size
+
+    pct = 100 * (before_total - after_total) / before_total if before_total else 0
+    print(f"  README images: {before_total/1024:.0f} KB -> {after_total/1024:.0f} KB ({pct:.0f}% smaller)")
 if __name__ == "__main__":
     asyncio.run(main())
