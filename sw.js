@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = '2.0.0';
+const VERSION = '2.0.1';
 const CACHE = 'hwd-' + VERSION;
 
 const ASSETS = [
@@ -39,6 +39,21 @@ self.addEventListener('install', e => {
   );
 });
 
+/**
+ * Read from this version's cache and no other.
+ *
+ * `caches.match(req)` searches every bucket on the origin, in creation order,
+ * so a bucket left behind by an earlier release could answer before this one
+ * and serve a file the current code was never tested against. The activate
+ * handler below deletes old buckets, but that is a cleanup rather than a
+ * guarantee: it only runs when a new worker takes over, and a delete can fail.
+ * Scoping the read means a stale bucket can waste space and nothing worse.
+ *
+ * Written as open().then(match) rather than the cacheName option because that
+ * form has been supported everywhere for far longer, including older iOS.
+ */
+const fromCache = req => caches.open(CACHE).then(c => c.match(req));
+
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
@@ -62,14 +77,14 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(req, copy));
           return res;
         })
-        .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
+        .catch(() => fromCache(req).then(r => r || fromCache('./index.html')))
     );
     return;
   }
 
   // everything else: serve from cache immediately, refresh in the background
   e.respondWith(
-    caches.match(req).then(cached => {
+    fromCache(req).then(cached => {
       const network = fetch(req)
         .then(res => {
           if (res && res.status === 200) {
