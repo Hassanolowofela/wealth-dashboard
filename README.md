@@ -4,7 +4,7 @@ A private, offline spending tracker and financial planner for your whole househo
 
 ### **[Open the dashboard](https://householdfinancemanager.netlify.app/)**
 
-![Home: the month in a sentence, what needs attention, then the figures](docs/img/readme-overview.png)
+![The ledger: every transaction tagged to a person and an account](docs/img/readme-money.png)
 
 **Your data never leaves your device.** No server, no account, no sign-up, no
 fee. Works on Windows, Mac, Android, iPhone and iPad. Add it to your home screen
@@ -43,6 +43,21 @@ internet needed at all.
 
 ## What it does
 
+### One ledger, whoever spent it
+
+Shown at the top of this page. Every row is tagged to a person and an account,
+so a category total is what your household actually spent rather than what one
+bank happened to see. Merchant names are tidied for reading while the original
+text is kept for matching, so correcting a category still teaches the rule.
+
+### The month, in a sentence
+
+Home opens with a plain sentence about how the month is going, then anything
+that needs attention, then the figures behind it. Nothing is left for you to
+work out from a chart.
+
+![Home: the month in a sentence, what needs attention, then the figures](docs/img/readme-overview.png)
+
 ### Credit cards, taken seriously
 
 Utilisation per card and in total, when each statement closes as against when
@@ -62,14 +77,6 @@ A health score, a prioritised list of what to do next, and long-run projections.
 Nothing generic: every figure comes from your ledger.
 
 ![Plan: a health score and a prioritised list of what to do next](docs/img/readme-plan.png)
-
-### One ledger, whoever spent it
-
-Every row is tagged to a person and an account, so a category total is what your
-household actually spent rather than what one bank happened to see. Merchant
-names are tidied for reading while the original text is kept for matching.
-
-![The transaction ledger](docs/img/readme-money.png)
 
 ### Import statements, including PDFs
 
