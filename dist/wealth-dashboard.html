@@ -12,7 +12,7 @@
   frame-ancestors is deliberately absent: browsers ignore it in a meta tag, so
   claiming it here would be false comfort. Set it as a header if your host can.
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2Y9EwmHV9W/lVH8LgTfcjcIEOWglCT2N06NUcz1U8/k=' 'sha256-2IMRorplZ+lMPMpHJ2NqU0CPQ3s5ISOka8culWm6DQk=' 'sha256-xwz4tc6W1wzM2dKTLWLhYMekFlNd3LKJ28ESqvP9+Os=' 'sha256-p1B6AL4ONbkLgb89fpGfNW26b1X34oEILt9bt/UzSro=' 'sha256-22mz6GZ0luQnAtpqKzFz6U/QC7SOV/duTs7No2hg2qg=' 'sha256-xOBc298furZED/Oflxp0981fRGucM6ZqJV3oJ6QBafI=' 'sha256-k5MXG8xbVQLcTPLPQa15Uz6lHHt0jgOdCRu8lNT/+qU=' 'sha256-AondAvuILFQOaYLEAEvcdBVNAAMmC6gfJ7lzpfGvU08='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-6UBfQzVg8NMrDc1IOhccfAUlxDwZ5V0qvj3y6yCGMjY=' 'sha256-VzCjy/eUbbkC61iOaFbM9puL/Ik4+Qw6WCMujPO72Vk=' 'sha256-xwz4tc6W1wzM2dKTLWLhYMekFlNd3LKJ28ESqvP9+Os=' 'sha256-p1B6AL4ONbkLgb89fpGfNW26b1X34oEILt9bt/UzSro=' 'sha256-22mz6GZ0luQnAtpqKzFz6U/QC7SOV/duTs7No2hg2qg=' 'sha256-xOBc298furZED/Oflxp0981fRGucM6ZqJV3oJ6QBafI=' 'sha256-k5MXG8xbVQLcTPLPQa15Uz6lHHt0jgOdCRu8lNT/+qU=' 'sha256-IpGi6FAWNthWr3fOhPcrnZByp6nDSAMaoKElikmKK7Y='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Household Wealth Dashboard</title>
 <meta name="description" content="Private, offline household spending tracker, credit card manager and financial planner. All data stays on your device.">
 <meta name="theme-color" content="#2a78d6" media="(prefers-color-scheme: light)">
@@ -25,6 +25,24 @@
 <meta name="apple-mobile-web-app-title" content="Wealth">
 <meta name="mobile-web-app-capable" content="yes">
 <style>
+/* ============================ TYPEFACES ============================
+   Space Grotesk is self-hosted, not loaded from a CDN. A font request to a
+   third party would be blocked by this app's own Content-Security-Policy,
+   would break offline use, and would quietly contradict the promise that
+   nothing about your household leaves the device. One variable file, 22 KB,
+   latin subset, covering every weight the interface uses.
+   To swap it: replace fonts/space-grotesk-var.woff2, update this rule, and
+   run build.py, which inlines it into the single-file copy.
+   Licensed under the SIL Open Font License 1.1.
+------------------------------------------------------------------- */
+@font-face{
+  font-family:"Space Grotesk";
+  src:url("data:font/woff2;base64,d09GMgABAAAAAFcQABQAAAAAzrwAAFagAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoMkG/p0HIlOP0hWQVKDKQZgP1NUQVRYJx4AhFovRBEICoGBMOZ3C4RIADDoWAE2AiQDiQwEIAWEbgeLCgwHG969N1C9ds4vQm9WFed8bvrxZyNqt+M7lhAPFHBj6IaNA4AmGZH9//9nJMghIwn6R7Bt9d22IAqpoBI7iIr2hQzbEEyP1hG+DDEsRbZ6qHFCVQUIyJxRmxGz0jGjEKqEjEBHcdLg8OSUCldUPu8UbeWAT9/KcjzRGd+RVbwJQoKQIJ3grGvPn2fr+w7Z8v21uOOvt65Ydgop8/AVJDuIlfzfT9LmAJb3DKd/B5zCx81oHuXIlREEiJUppXXyhSzdn+vVndgO39KdQgrnjfR2LLQO3znnrQJjl8eIqFgn2pfnn/xldu6rljSAbAK1xsj0vSEwRg4XTNliRkBlEc05+/exj2AhQMTRBpNCwGtOqZg7oTRQFaBuDM9vs4fB8PP/tjMSkSmKCFISn09IRNmoGCigs+byXOUtXcW5aM+tZbul7iq3q/Jqt6vtIqd/N/s/EVGScBIgWJBSSinLtvvM5ffeSaDP7Mv9S8xWTLvefdvuUhj+3fT/4IVtd2sn1jE1Nr/39pl++X6f6KfJV1n33K5qrxulGZVRTAKEOMlJchKSEEJIiNrv2ey9r6ZkS4KpGorCz8HQbFEsIi5B23xRMFseDcIYi8OYFupKyOeHa58zgcK8pExGolGBz3hnW97Y/bYE7lSBleqULa3m6emZBZZ4JftYZy6fDiGNvtyroyj59KMPDxCMknlHu0PQsMgmTjIoJQlFdaJygf/3d6G+e27y26dgNqN5ErNpmhCFCtTNfV8uFWFpl9YGFVKlElIzS29quwL4hxuwc0Jgi4lXKJCPrBITqwUGHn5u7cG8jpRsQTAvLK34wSL036992r3bS3LPQoBHBXBqvZm84PsnYfUyKoBTUYDCgFCJk8CjgizklzEmwvv8valp+x9A6JaCA6C467hQXDjCqRfh2FKuXDsX3d+/C+5+LBZY4NICIHUgSFrLA08GwJMEkgpYgncD4s4zpORwyTHTKX/yEuiIk5wC5RhjUblTU7osQyydi662T+3Xqmi/iEdKvdBuqIROvXl/h/2oyLK7t4uYhswQQqUWk/Qj4slC5d6517a9ZJAhyk9TrlI2d/dffiEDRMUKqG9uwgEKPTk5P6EJHn//Tm+CxdUZcSGPYoycftZ3w/rmxX/vFjqUUgYRcUOQEIKIuMdx+1uvxuv49r9z2nUcIiLykvQYU/+LZryx7fJbmxpDCDUHIhI8ESm1+QsqYs6dPcHSLjxqCkiPhrqVA95kQ8yXpfUhFMxYsASyDnKsdFKt+ehIOcVorRSRyufy0islSpUlHeGxnGbH8SdG9QhHddl/nsnjm4uwbHB7/0qexVg1TCUAT4oIvBFf/oiWFtGzInaBSAgHEikGiROHJEhEeorBmWEG8lc4Bd9iipqi+x7oscflpTJHH33SV9/yDxH5lUkk+e0PFnUFLgHJpUQIXJUUChTpyJPkhgiJQGHh8tc7zFMZEPjOdwmKZvmeICqGkqygKE7SLC/Kqm6UNhaimFDmvJDte3Hb94fX7jvIw6gQ15JGZ74Li/vGb45jKYCAOULUlnDiyWdeaPqd1z14t+l4oHsaCA6746b77/apn4Lcu+74Xiu9SHYv7R3aRFdvkhLz7DcguF7bbF/wwKg58OWs/KkwD1rgyBt7Q9dwd0X2Tve1S4VNdeT+qtxBg7SiBo7866GpUrrRHPuBovf4pa7Uhr2/7Csg4s5pHUOK9OgLBs/BJ+H98Gp4BTwKd8ONcDmcu/0n9x/4/72GFI36tiYJ7SiFsGZpqoY2VqO23Daz4Rm4v9dP9V19Wu/Wy0C9WJfrDNSHa1dtrBW1oHqqverLU7bSFFYbiwO1o0iVWgT6n0f5Mu9Dvp6JxDMG+Xj2Qd6cY1kDGfJl9mUgkTQlEFs0wVIWSjIDAym89cwd+eAL4LmssRU0gzO1z5KZkEQDM7XP4MxLJeZJpggz5wIyQMvOih90CrSIgX0+Dpp/mRovm2ECVm16hScBHDMAJ+zQEpmpfaRLPGCZn6l9amdQwBIMM2MALRGZOoKA/h6LCDAH0AZo7tS6Q18cH8PiDeNfgxYRvYLx85iBwMyjgOZWpsYT41NYEmD6OdCSkKnpE+MdWPbCgf8GzUBgzwdBiwbGbwYt8bD3raAZOPE9y0BLzUxNx8Yvl5gkmH4raInOlJjxkyXGCdPfBi0JsOd2I2FPcFxLmfx7lqajHQaXjGdSPd5NJV3Fp/+5nBAB03+We+83+h78412opn/mUSgY9hxpJ0HIbSkDOHBHkcb63tdL6TBT6omAhH5RHFn9olNg9R6itoj3BLL76VPo9Hr0oRvPkTT4qePtQ6iffl3fzTpRUx+JV3KRe+NjXwnDrrgrOQGgr0m9dsRIsJWO5yTEhW9SmZ+gXjCr6bk43qyL1vWoP73/Ekfpn/xQdk+0t0TbDNDoBMmECLMoNocvEIokMrlCpda84L44E1MzcwtrG1s7h9O7Zs7sab0fflGCz4IPg3eC1yMTwZOA+wG3Aq4GXAg4HXAs4HDMg4qPHYDGnanDg4dDwBTiFaJCYczs8Wixf9oEi4PkhQ20wn/Qx2ibcDh14fzxvYHD1+g3HP8uIVwJshb+rnfDP52NOp1v54eHjSHKF0itH9/+HMGR4vb5KwG344dygN2/3PmHBBHWe+/iYbvS3r3DbuwZPp1Q99lmTc/3/uF4Fw7n8PcYZ/oBH0ZnNmdQftwZh93V2eld9edkdv5CAYcHND/rEXLV6zO04l25rVkfJ1Dn83z54tXeStP6MzM6fnJPIxCEvZZDYqMkklwxeMh9MdcO2wPAuucz46lIQ/FGjDUlCv1pS3Opfl25YLVjh55PNdH+7o+eDK+RzzJ+nBlYGfqqO9McDaiqyXsFf7nTWd1nTQjdfFm7x9DsiF0dX9tO5Nv9kXGHP//Ix3XE6pwme8pKmIw1enbYW9C5Ujnu2jpdGnJ5m6PpLTGabCXLHDHiX3or/GVPNlrMgC/LeC3nkOilC1WKCnfFtKPP+lPCJZ5KJhql09u08Pn9h3fHv+vttgaNUOX/7PNm2qcTh+v+YpDn8tgXya42f+B94evOxt3/p1jq5r3orFWE3ykj30dKLy9v7uFt6Sc98q5yH2jn2j6vHh6lustfi+fjrmutzH86X7dysbnN5dkrR7Kpnf7Gt+VZXTfqfcDwfRD5rJjBu9JHTmEsKp0QSRnSit3s4PkAcdvj8D2ShKzJqpxmR14IyY/XP/g/O+TA8dR3c5NH8IfBZ8bf/tKoraGFsrWFU9yRaI60CrvLcvYfNs2vPCbV2cw9XifrLOPrj6LOyPRQc9G7Z1vZ8f8AzfrnA5cj9x86jLvv3YZ8izkicIjKKMjeqgth0/sHnomPg9LT3u4uSPHMhncPUntfKPKP1djVy0/XpMT/fR/VpH8BHZhPAJRglPwXgkeT5n9q7T+KMfOR8XTvzUi78uU3E/PJOOLOkEJu4bSl964yzufnwB/CtgYtRMWnYeUOqWG7+rXyD1wQ+/7lLpM2WiqqVS3Kz0v6RpzYkDzAuiPsR/WzXvrg1QOplBIc40EqQSgJ1zAT3Ryva4mJT4vQb8yu3sKiB0EusKMwxttTntn8glhNyVjlS2WRkFyugsVm4Zu2GZ3HR/v2bGYwEuKVMpyANuZgLDmPm/JrxPiPHGbVhnWwKoRd/0UKmfGMAzF0J4kguJdIRXy0Cx/v8AmoWbw8WxkfKEBVC0hmr3QwYh09PrCWa7t1Hy29ODZvgZwIrIJVD7/xkRiwhxJrnslcwGdzH2i9Y8IDm9Sz2ducfabSXKex0RivHMM8NdiNJLRBe1CEpSv4JI4/jU5iV2L4xYeNDKPrq9azplhJO4/VSsym49rZLIhzrm/tWPmSszHZxXvyq3xrpTphh2WO8/79RbfzzUM/i+40YNlvbccKw/s/q9H3uf+mQJN3AKkfmkeGRh4kt0BrETQv8IgUns9pQ1fX1qyFHmLn674hspL1vJgjoNlRr3lUZmzokv8PAiV3WyvV04/bS3NrP5CnyA87/y+Zcbc0Sd8las4OWQPpGCW34fR/HsZpbHzB+5h3eTPq18sccRAHiMmyiL2knqqlx3fzuxv0yyPike/H8/h4fne1K9YUnZA5GmUvQmzAMqNa9VQ/NCn+jxWRzp/IDy8BJQmT+iw/7f8vRYtnA9uFM4sULVSseA6JkkRKloUrhwamJi+JxgK0GjTSadfHaI7l8qy0SgdHbTLSq1xGeZvbGMWKjXXPPeM89dR4L5WZ4Lvvpvrpp2nKQQevDkJKzEhqUs1MQQrMAnMH4JABmDUACwfgsAHYdwCmBmDPAGwagJUDcOwOnLQDx+3AxADsHYAlAzAzAOMBOGIA1g9Q6kvCExMR7dLoNJoOnU4nSR2EBByODo+nIxBAoZAnEgGx2FwiEUqlFjIZJZeLFAo9pZKh0mjr65MGBtqGhgwjY6aJKcPMnLCw0La0JKystK2tCRsbZGtL2tnp2ttjBweJo6Olk5Ous7PUxUXl6mrk5mbm7m7q4WHg5WXi7W3s46Pv62uIO2ZTK1SJVqGanFLV55WjsYAcrTTK0FkMXi9dEgwyaIahhnDGGI83wQSeJplBZKZ5yHwLyC20iJfFFpNaYhWyxkaslZAhoMEbb/RF8I5W3zL4LrkfkvopuV+SKp/enISjMM4YJnw7H5yGo4ZhRlOIVMSTKZpQ9yenIKZUAJWCeIRn5UXMW8RHMdQivvKikcBPWv7iBCiWVgY6xdFLxbDfbzayBcnYFCrQ0nkIScO9dqFTkWYAH+TWDx9FmFKIRKklySZZUVIUyakKUhUmTRHSFS5DpTLFlCWanNtpY4cMOfLORyXqiZNCydSbczh99OmOSSiIIVLHG+ppOKPNTwVcqGJ6mgck4x45XyThkoz77gEzEJaGeqhXSkiUSqbMkmDJJFgSvH34WNG9ui8KcCKg98xH9g9pc6Z81lXn/Cvr/5H1Usw2yQ1D5u3suam6UxtP1Kb0SZag/AXBKmnE2wvP79XZ3K82FqrfpbgjdLP+4eT6T72o1KNrx+3M5x1z3+u5B3m4ekCsXUjXVqOOMctQikI9U5ya2ZCAWVuEwzY8f2Fx3ggv+wfTSGSYRDwRCRklD958qL8s3AG3DTIxh20+SPD+cETs35IkTQYlFQ0tHQMzFzcPr4AGQY3ahXXoFBHVbcCgeeZbYKFFnrbYWOOMN8FEk0w2xVTTTDfDTLPMNsdc86Yj3Xz7YksstcxyK6y0ymqbHJDvpkK3uD37tqffVeaN9777GUCN5KQi72SFFApy4N8iBasHSU/9dBqRoC7MPiJ4J3RJ1TJTXQ2ps8ckbZi2VrYuyEtn9k51v7BnpzYQPO0bqIle97O67bv/C9KUu/9fmoTyI4LK7zCykLlhXt/cpCnoBQcMMJetS1OFolGP7fRslrguOx92gZe8ooRSyl5VrIryiRfV4D4NaaaMQyc5eEfp1p2iBIETX+3F0X92Ib6jidf59YqecjoEa2DivXSd1BmpN7WV3wnNtYvcZacr3ehOD3p6QkULLLLwYmIUc5aUAcTDKWEQjy6cwnp7VqagkZ3rTZ40H/wW8Hf+OYjskVPfqcb1pL1LpUDg0pat4O/BVPQQGlvzxomdp0hgW5kvXbWvU58Hrl0jzwDPPkb+AgS2TyGAViIOQQiiSwsWo7oQlR0bB4vPZQ5H4NKo7h0ui+ZLTIfUYzszQRHXVSdk7mXvocQwhjOCkYxitMe481gwjvGe4JGVngymMJVpTGeGZ4JZng3mMJd5LGEpy1jOClayymva8FqwjvVsYKPze2AX7B6AX0a/IkoopayCgwex9s0OxHd9YgVlL6eQHza6KOB0wdjRJGcoUyPyDmDFXoIofQfDDoxGpKGc3Io667lLoCvd6E4PenqSgSeDKUxlGtOZ4ZlglmeDOcxlnud78QJooQYs8hLGS8EylrOClayyuwf+Xu2fdCscPsB5kj5Es3eS5SMq4VJlF/KYd7Qab6LpdhtjhLaFuRv1D8sJq20l7BsHM7Z1HI6AoxhH48Ex3a1RsVB7xa3SPKfMSfYvmunt0W+Suz1BgLMTI9J87M5xl54iPY90Brdxu+8Ad3IXd/se7x4KhjGcEYxkFKM9yaMngylMZRrTmeGZjXkWmM0c5jJv44XC841FXpJ5KVjGclawklVe0w+vBetYzwY2Ot/eLtg9Kr+MfkWUUEpZBUcNWBPz0gu6QtY/71Uwv+xxlW7tLW4GLFC1qppYsDOPZWKovE0hJvtms3VCkuj+oyLL33HxkleUUEpZge0HN834cOd5mpkyrjnXBsknIOFtj9elcgrMEmLFYPJV61TpduzQO26HgtwNKr+CvaxcgJ36S2vQSqJOoYItg/3LuWIxDy+laDXrGMz2juBlzVesa3m1fUz7RFbe9Fov4lA3Nq6veT3paiyVC3dezgnisfgMz85n45smWVBajIXMHFa3IQjsYxVHtuy3x/6pedvDkJlQbB0kPxpHWWaE3YsxSLIwq5lA/SZz8OUfl0v5QC1Vba2qIUFX5jf9lRlSMG2GKd7ng+scxCMZVLErPZbmKuaIvlyzjhC7yyp8oG89Tfe8l1/nLRaQFW23StbX83PllET126YBuTSksVvxbg3auLOGu4CudKM7PegZE9q5Sa1oYbMzryI2xMY69dutj16eQt88ZmOJJxx34SaQdT3zRHjHheef8e2mge6ZBQrDk5CSEQo3XHxK0dFTSL0Z4GHpic1HbFyj3WBRWDAU64qCwf9/ALoHxCLhtkbQHulqjoCmE7U3+GL90R7g6F4fA6Y+bEyHNIBQ44MCMQKS8N3fvr0zpaF05ec1jVKPvjVaw89fUvLiVGE+zK0Mpy/Bctxf7+n2myvCt2kbhlwJ1ASEjxonmkSSKCGs9DQ8uXBCleEEy8cJ8hLHphRjE6rkmAn2arsD5WgM/X/HxUiIJUlkSLYP3mYGKfA8OHaK9pfIIOOUSSxdmhTJkhDBc299CI54Ukyt9U9+ZnWkZr0elRKXg2Vv7OSM+GaCp157p9yHkkBK0iQvBaIIa+Dz9i6OP3tXQns3InZDUG+WF+uRN1f1jpzPLKYkkC6Z3nkdhAxblDf3Q445iaRPlvfeZDrJ8SwAhSTJBGSVAo7bTzZxlIJvfCHN/o5hbp4o9+0ZyHiDZy3o11wjyUCadeo+uzrUjjjSwmx7FENrNSUwy20f3xnaHQo6lKcMek7fiRV54JNv/iTXzKcHu3nPcX4Cu5iXxxiEkbuyXpNqyq5++MWoH0p50Qvc99FXv5NDDEbaMhBSzYivo1nPzFMN4FYraD8QYVSUQJovzYwvw/kMYzgWqAHyuJiyOvbGZU9GCUFA+Ah71y2zfkRNRrzd7WlqbHk5T+zl0rm9RG+EkRc5cgon82HN8hSuR/U0r9NZ6CieoihtQ/OL5MQ3oiVpM3ahgKfz80tL7Wqz1WoOd0iHOxTDHfLh8nK2/JxptloYxk9sS7no2eAkCOueCGf9YdRtwsvUPAFwaxSc83vKkcgF/5ui2Rb6VELxE6n8QGoL/pijp6cOKntJXOxLdDuO03jM7KXDnmzc/KUKMnxJnSQPR3n/kjFaWIOnhKjj96x30XDkOG09VbGynkvxoGdhR3dp1xXOHMuidC34BkLBM+W+kzX5vWefzX/5pTZBc/wP+pDTNvMbs31DrhwvgGEpPfFmu9sfbt9hgN9Ph2c/qsgwiaBeWQHAGcfCuRovRdYbHOAWwO0CJ1+87z9PuWU59uD/OIyeDnUToDcB+XnFwSYMIVIEluHBOtwjt9z6YACYRc0uCgEJOUADFY5mQ30OysFGX9XYNCpdlxA977RJi3i/bhMIfWdD2ssLYphkxn8hqjLgQgrJ1JQiVZShWtA8izzvEpfHSnxQ7puLu+I1Ue/Xhw3HeCZjtk0MZS5lGXRhACMYw3k4gI/f9KPNheFnNm/ZkhoZMw/zmUVJlqlGo/kOOO2yAk+U+hhuXDWueCJgjUmPXwpt6J1qBy5d6vcDZkFfgP4O0J/oT0J/vD8BHQP+P//+eSwB/O95Bv5s5adnAcAPjyN4AD/c9ul9BPrJqzvrO9b28fY9QOB8wN2ARwGDiYDnAd8Gf/cTwF9jlj9nA1yD9f/Dpgmrs/Y4qCMLHb02VzXUwMPAx+95J53WTAsVM7Vb2puQw0jrtv+aOm+v3fap7oSrttvss/NJtcM1F5xR6JZL/tqmrVfctMUXhxx2RHPd5r43rlX8dufVZr3HjZ7I74g11lpnvQ022Wi0Ve4p9lFBcvx231e12bk4OLn9mxTQUySZZUM6x4hJNmUmxwsKkNMSeD00+GtqNM8l6p6FwvCtQJ2MVv1GWnwvsOIaYPRZaI8CGAEoDOHQ2eCYbXKl+j1N/UsLXq6RjrZ4qbEmIfeqUOzSsnRjhi25Gk5t0XpnKSlndJdolS2bmXbewPCxr8EmURtarnXD7cITlXUFrVVX6ykmo/w3sCQ1oqkrt6565ZyHEvVMF9dX7kvmwXAJaXzHbvYIHAhIpKxYopwgBKQp5C9d5hozlEfhCVU5HFvch5XobsEhwShwTvJu0Jq7gUeLpxliNjJ700apUcWl4DiDgcVhtdDNOMEwLeX9m1DBf+4bG5SoAojNQo8tmLD+jLhvIl5sR3qqUugZSmQwUEcoEKAPAKxpBJHbCCEQRKEp5CI3DVHGSp5gqcz0RqmruMEKJoVs12ZvFQ88gJSFKALzWighwxcAyOdu4Dis9OKrs1wxO0+HNeBsQUS/28CoWqHRhaJFCCBXr4e4+dfQuMIQdxQYSB8XQUQbD3CP5OQQLskUTi/uTaAS41Tq1geAPrqSXMhIS8Cwwv4hvFMVvkwFWHeYtb4Nnsgg3CnWC+cEBLCc1pHTr662OooJjZOcXMx4MOzJqayu2MWwhlO514co7JWwvHHfJloor2FEOyWGAWCCBvQQiao2UzDHZArNZJ32VLJd9F+qtNKRnpg2uITVV1UTQ4Fp+DZa04ZtDaUNNojS2xnT571r/DPa4Qg6dogPNE+sXfiQ41EHHneh+F2hbiJT0GldaigboncE2rtLAmIKYoWPk5gjj9RQ5FEeryb2hDQ7DyQjwuK20G4Rm8dzo9GEWtLwurSMAq/ZsacFeYp/pfSQBATJU0z7IRjgS1xEIh1gqPRB4FhbY7jIgkhUPfI+uE+UczpV9HWsUpfP1+wjypqs7SLtnjvX/tw1h6jdPWb5wiMPuGPHs417xrerEX5TiFoYXIIzTe+UtSrT2uVE1s0rF3LsdxJgwfEWXj27RBgo0S8qm+qMwRAayRPHQIMiZLVDPvE7Jcz1jwpFy+8ncsFvqKb13mQGUkMAPoTrLqRyKyQTz34WTrRpuChNb/zcEEEJsa5hn/7g1Mc2A53wItwy3X6v5lDvsjutIMFNioiiRAPtR/Q+jZEhVrrGJPYg9UEtiGE5yIkYjxKECCVxtbebA+mMPHhuejCZ8QU1GbHSkDYMpL0Xv34S7ZktqnxyPJp76w3A02WV4zJjlzF+pfUDOpQii0/rHAokNPJaJgw4SeoybkO6hTPvabSYnNNTWn/XqmboY0Quf4akOy7efMzgjjTcQX+LTx/yNjaNbdRYQwLnSTqjNWRYqNq1VnApedg64pPdakX+kJcKrlOPjAvVJ/S3dXtNR+vXjNB+oxi0PYi1QxWiEbXHECBZ+r92g5vXiwPpjA8HDWpx73zig5iCI20N1bEHHT4iPowjmNJENUtt44qTPgnVIVuYsF9ujV5uQBW634qChPYSkhKRXb2DrB4FSh0hgaMJRFI7JKEdfXe7zr5n7o1oaxAVF8d3F/dS8wg3xtK6ni88jxhjg4zzlKHjL1JdjyFFeYm4q54Dg3jPi/O07Za+dRIaTJvvddmBqmsOkaGqKxGGUzdQXhDIHtSzLr1Gw/2DVLVzkvRduP0JGqV/+WtwiOdtLoZTmeXDgcJZtZvusGT4iSTpjNVZ6lKle4FwPqdwlLntmR7ERaePrQO0Ye4K01mqSVgzN/MUQcOu4sDCyN0As9GppiYngpz4fXqnEy/HD/3DU0bN4O62N4tOrLaP/c5X7AJxr3fC/GK63XiJv0cMzC6BB9lWU/Or9BfqDyKlxH+xBLvoDwe08YVKxXhVGGKpU9CRBxjO4itDZ/5t7zQXsiUDeKpGWOQH3GxdvZPV6XQ1L8jLrLULMg2LktSqg6K6UqzfNXXIgO/TyD/vzP6nsvLHL2Y276fcaecXTq5m+/vQT+pIXbJjN3TeCxqiDVCZIt1n04IedevESd3qaLW+hd8XRDGMqOsKmtv0T45utglgFA0b4waSCrAnY/YgtNQZ1ekrmhM3YpNwkj/JQ4BBADXzg8iuQXVp0ptivu8+0ViJ4ap0nuwtRbfMcfzTxlKn1HWsQ2jZJnkfnYl1bX1PbJxnGg6B/Y7pJ8Pk8tvkyetzTrLyTEJiTyPb0gnRp8+TDBNvzxF75XNkteMiLGiG8c6dWquTzcopklB7aFrsvt9X6fXLPF6pr3VjYHN1QarpwIr7I9wY5dQVTi5eEIrtNrE5wo+25f6jzmt2zrZnqbln+WWerSakdu7wizWXdIfbqt39A6q1y1niRBu86aZuCsLcq4bqnVMj726StzD9TAzZWeOauoS9Tes3ckdMKs1eHivTkL6H5vXpmqFiRlXEQc3ql12OY8lU6aVnkZNhrpxltCqx0rMI41m4A99ax7lUcLVO60VvEqr1st5s5Y9Netw9Z5q5lNnaZxoKv2XPiRK34ShaHW/ZrcAQHzpjw/ptd8pjrcygoxp1cavIT2tjBwr1O7v1lAFXeqg202d3BcJrZxmvhlli+4ncE2mqLcNETu8P4jEjBmzgQ3Epl5fGnDmN2ylH5Jjab8pqNZ11tLkjGtsjF7pa9SDQUAE26cH0sc2N1kuumzdZH9ZzqS6DqG2kIpD1Oz2C7vEXzt9lvaqs8RY7C1qCRJNq6mu4qUW9jdYXgYZ6Rgua1o5yqDrJdlFVBAKxj2qUP8OPEyTY8OYBPNSu46mILMV8za7eUgfhdXM/HciCF5svtkynGDUaBQ/bwHOlaw/bu1a4eYPc6ca3G7CK3ULl6NsoNAlViDk7yCPKhulYDbI8GGLDVmR7cDIIr/VPwhog6e6Pmt9tNXfabCJ5e/1cqUfuJ8a7vrL0/KQ4dNbMbAvU1dT7biOhUdW2GGBX1eYYdhW3QqgQa9SQRqxWsCim1kBqTPPW9rQdaRcrfdVxpVeVL2fmC2dM44zQmCoGm6VjVZD4ZPbzllmccjPlJXoy9fWf4tPeHUtlAtKX4z3waskV+Qpbf81dcRAGCSxkCGE10joG38YncBvc2+FtITsXEgud9WXSc+IzZotWQpDsGeYz2JjWpkEhVCztGLAi8zdvXLdvnTqYP29o1UCyYpqvOhJsjPR3HuqU1RjsOL4ZCmRgPMb9EoFW71izZfGWHatXt4hbY73hgZVzettjrcAXP4q14c2YmdCJ+dkfwIJ4NaZWASPimKNQLqojwQUrZ59NVOxxcBTbmoaqaF3612jx1go7fOmqLue/tkIRavAxpwqpnrx0cZCEhPp6olwF12iutTlktcbRBRgeM41GW3v27l0KqyXV4ar+xhqbEj48s6QbQGHhW9vgZnBhXD78pD0dOjySfjr/RRWBXbUdWJD5m0RHm/oei/PETR1fcJtrauxMMPIHP1ckyptYYn8lXIkFmsplt6n1cbPPqIY0HoM1zuGDacVdirfQVaklk7Qi4IunKpsYqEsC6dWOD2HKn6xHiq8ps4ogevPLNo9Bk6xxGRwvAwwx9/PVEU+aIq0xVuvz1zkqy5YYyH//v6HJrDCIxZi7janVxtiKWh1bwRax1c6CCmO9akWgUZd/iUVqykQmmUxaFeUA/JLvsHTsuyXAjJi7+ZWdrvuK+/VN1VVVTdX1v2yXvHM2H/z76bj69WG40dUXFnh23riyaxu8cdsAOoyu7B4+ZyMbUL8NflVtvcmCb7Gs4Es76wQfvssH0zP+PWJ5qQ5udIuXyAD8wPYCaB12b/PBcwgDD5EKVyFbzeH+7yzgjdEkaqVSYZLf2Xi1QuMtldaGGnwPySQ2X1HAp0yD7q5W5rxjra/1ws/xNUw2W8cDNYgjINfDVVhcyoDvPTSRBKqwVNZtha3y7rDUJnC3husIdXXO7WpLMGwgQPQxaeVsK2Sr7KZDvS7IF3piJ3U0hb5EIHBzOAEZQQbGEji2O7tPbkA9s9WAjijDUjnH7yxZd4dUKTSSHt6DGdI4VgXrA3JlAwwRYo7JZbNNsHnze0FErtO0o5IOE2VfQnV7k0Njkkn9n9rcpX/Tgom2Oo/J2OAB10cPCA+sobbRBoURMnnJiHBkFFT+BFvl0bBEKV/HaBPVT7MIFQXkN+DJH4wkobJDIov93qewthpCbWvrpNZaQk1bGwgo4qJeOqHJ5Qv8DL5fXSqlOuwatbm5MfTrnmdyBP7jtUDBQ9offtz78Ac7vxxxEJjCFPB3SpZMYhA8gZP1AiXPWEo3cK1SPf+RGLOaDLScUFZVw5lOqe3kXQHQQhNDgJhicmm3GTa3+HuW6UmNUeBrjlQTqp3zeUMJZhj4J8+oMO5o4cO7bDg+AyqBifTDJJx/5ceWPe3nyXzhFT0HbPKuWAvtBjvzhJqc6/u8DH49yhWjCpFSpuKAbCSwwI0ET/TBupxSqYHDYGpmrb5/30g5WlbZpHe5QyZYN3+niY2KlHR66Xn0fpad/DVL22YCBFobNbRHuOei9OIJ4YlaMrlHCFJT+IE2OMpu15lS5dSADy98pdh/CW50xTcLHIt+JW+4Bi+41ooOo8u7h4cXMADvxd9uPzLvm4Ctm407BcvIq7DPAbZOCklk8r2OJK8g+tV0abGhJe0fS5uobTSgcOnckEw4z6V/shxCIEcGVm1Yf2B9nRz4XtMvCgYHwsfCJIPk7z4AhpEdibpR+tw4wLRmgS9YoUwrmG4qo6v5ScaQ2+YOB2oQKWKpbO8WGgwRvqS+MkXD9zUIFelkh4m6QJh1EgUsxNgjUnRY0uTp3nDQ62uo0eH5M1xkXpsn7wZ0CP20Ovs6JFK2MCU+JaSUBKMCsGPjgEny2eDjeei8jT2Tgtfh0ruAiZiimLRdi8ih6pYqhy/Y6Ce4axstzD2EzbX9d9AVM+Aju3X5AlkjKm43QDqsMyIDfEQbEynCpt8tWCQqsVnDIkGdRK4NuH2BYNDbCc8KoDZlGypt1cN6RVtMpBE5W+pcBBHL7mQKhQWfbBHBNVhxcCC7MD4j89eU59BfjUXEZ4dys4EEcfVx5AEJJGRp1dTb8MSdRSwIU9i7yvR6YzMwiLXo/LvwWyrqki2EJJvwRqZTVBPR6wj6iK6mpth6gq5XU13ja1bLCfJz0veYA2UIRK4eO6nK7a1q4BTtkjYdbFC0FrS6qKg/2fy7WRyNScwV3w93CA0n9ICQ5XhRwe6vyP58Rb6fPMxfnkcuIect54O0rwpzuGY58PtX+W35BonSjJmVEgMK7f5kxSZqIpxINRXLmBpVtBombND+Vc0yuWFNt2+2YfU3q4Y/H9ezZIVlec9SsUH0K/4C3Oylyy0rZi9RnH+QZPVsX7dhTSVInkxtXiYrywDvE5KUBLzRy9LLkuZqPaC9fEYfkvN/zrcyYOwty6ZkEcmenk0+eZDttpiB93iqPJV8iQa/357JJHkSefzXzh/HzcxPDv7rlStlrP/sFC7XM6tCI6DLyzSVtV1sg76TJ/GLRXSThnvwX1pKruVkGfL9vVwAvahGLW/Tv6K/chTySubHh/7V/f9a/u+gcL51a/kBdWXdPOylI525edoLpkbEVz41DI1UAm1ebuCrqoD7K7QUvfPeQD/t5+S2grwbBQU38gq2HzTAGUbvoSBzcsnLLf23N6RviN6+3fJ0+oLxpvCVpWmr6oe8WSXNBQi8DPuBh9XLhTFdql4YrZNj3A/QLbAZ24Ich2doxM1ziP2Bg/s90dTuY766U0Mzh0Knxny9N4T3f9IGWmqgmoNUqw20BeDAOw8AaF2ZyClhFik734euaUxqqchVQxcuFw5JPQota64yj7a7V9obEoZ07wv2z9wv9yl1Or8SsN9mBdR4Y/VH/7cOb8WrAz1Meuth+GqjGj/D6h8q+EP8aawSX4QVEdTYz9xxaQnx3MHnsQf2K2DDpnzpvrP7d+t2R8Q+dNXy5QOegdIqsG0vNsHypqzBbntfXcRMwl6f8FJyL2Ls1GADRgM2u12lVodQNGyibkzyNTXblTp5GZbKtFI/4lmD9V7oosjIZLGs/CWeqNlo7NA6LjEkJqVSZZe91X1FoA6UyjRVIlZGxjPTN+TcyHIUjhW5E5wBj8FQH3BxKynp6pBrMXvxemKaZdH8Xkp+a/6mbuvYkF86L6owCVA3t7xKQqgKRb3eEq96bK/5tyo6XAX4iCkql3abEPMZs1Ima1Sfo4BfjRkNmjYU6zAV7E0MtLY4NUaZtPUnuYuutM02nYbn8RqmWeBpiVQTqkIRr9d2FaG6fY93/1yfYKt1m4xNfrAJEQeKhYbm+c87xBKJqoJLwZ7+gVOQkzOr5bUiD4Nt5ArKPHS0xnpLct0jmxOt1ItdtHI1vSxvTSrhDWIWMuLQlJ5ks8u1LirwTy6TMIgPJlZd7Rij3TmLD+8TSVc9LdDiace8UcFZt8gmEAptbMG8bPqrbPbfixhXTZVqtUlXuSczncKk5X6bA8dO3vxBNIGmDBZ/Syn4D7zvtjcGfb6StTuCdxQsY6Bac2UlJkp+7wA8EuoJ12ZJU7UOu1mikLLYSqaBWDvDrZZlT/x8h5fE4igchVxvp9NeJC0ocVwq5OqYHIGNqUKcT1VhUu7BscmsabraqkyyvhmhaYs18BOX+GZOydc2xPcDIGCQspmBuqWQFHWHGIqP49Lltcs1XSkZKS6HWYLH7FYQIHoWKbSrOjsi2pUV0wN5Fyg0KyMdnZpVqvUuJYQH5q5qX9UOhAkdeaHXrXXkyi1yu9xKjdGlzJDkFavLS7i8XaxYUck4O1OSodA5AUyX1vOFdTJZwa9mabHxgrW21ppwljpkXRnpx95iT046Q48HNFJZIs/IELn7uU9lTJ+e/hQXJH/0sV5wFb+L0H9cEscLx7Hl8fGLcUvh9UJLHIy9vYK/4hTC2+jbe4SV/JWnlFIbwp5Te0Bjw86dZ3NtDCaRZ3bt3PWHjcRgRn5zYueJDSQbkxH5zPGdx7+z5TIZbf/aiRP6uFyfGOP5vFyhUDzPLxb/jvg4c5NOWltGpCNAjpqSdXzdsnCsMxjkBQ9L5GKT0aPXmTymJSv5K5NbUJBJvfvTpgADf0+8S/3sOH8Zf2lXu9V9/Rcz2PIAewCUxBjvfAwMIWMV58di5/U+nxFv8nn1LnhNeGPva0vH5izgQrz5HM58HsRd4GysnQqy1168gF64iN0tBpqV6AgK9u6ZsyPtOdt3VLE8sfPluW9cHFfmZu+f4CVYmXl2LaszbfGz5xwNr2veCElB82JdaCNEdSNTQfb68xfQC+exu8yj9ZSO6eiVtKZ4CSw7v4Z2fA1W5RidKiQjK//HP/d/jkD3W52aN/8/JZ2+OR2aHACvPfR2oAfWg/G9ZepimprJLPg1UMZQFZhvw8NlfAazoqysgsngA4mSz+TPY9olCZNGk6akU/nizI8ysz5s7uvLWZmvhDrxpDnIJSlhWJdaapYCyRNlv83ZDw68QC6Ub//bnplxI+2pg1lUqION19LeLc49dGMbWoiDN7n9sLzZXtqvg3fazXAEKBRnvpyZ9dKDjmdlxl8qdgRlf26b3yKVIHltmvqErMwDXTBx9BhvO2vajz+2Pvts/WaBHtMLNtcf9NZ7R+AuYnaJWaRg6uew5m4xy83XaAqDVXxXA/+SECSxpl8uE4O3v4Cyj8fbRynYzz3O7iLlx9jsWD6pC8yNtCxYr1o4qHBtHy1lDZ/TbNhWvpXP9/DdXe206gssEy67T6NDwqE5pPHfrlsX21jA1FLTPVvjW+GTSaHu16gOQnZKTEw4esuhKV3e0Fy2c/9J38Y3EZ1DGSy2L2BxGopLAnTa3l2Ku4XMnzrg49+zaC9n0DC7Hvwa+Eh45TXv+26mO/D60v1n4c0jYMfGHpMo7Ah0TfJQcWfbRTVLrZalYP2fzn6bsh/Yc/IvmRoRr/xhGJqvTCoNAHVObuCrZiclLw5YVjTNQM06lJp+MyPT/vd2eSGZdPNQXvEDWsX9Rvt+wcCUdAqkiBq7iHKJt/H3S3kmz0ipdqtOqW8IKZNb3wz5rZcGP7FKDOU/ZsCPgWgi9bGS+hjcRNQ2sTnJ8ITL6y0pgAcQvsRdKZH41VqtXyUZkPhNmpO8tcUla3jcXSXFu8FGCozWiYK7rfVANYxsSNQeoQ/GVWJIDNzfK3teRXlp8u6C0t6yst5S+t11rc/alZGxKysTT95I39e+PJH1WFn6+O50XrOUx6CRMp6z/Cb0hMmQbnn3uYV54HJ24V5W8a8pr6EzjVziue7cbPAiovWrMbiKQCE0mctderk58DwNQ45vSYf7s/Rm3RsgJF6hlqwAlkoehTdXP3K1cHX81vOd5gvnB+9vqmuIokYhSyv7nsnaUVgSrJDwVmqhL5hc8SotpAAGHkrt0+aDlsLh+5t+y8z4NOOTIgi6Yhjrdk9lBV8rInYAmv+a83jjHzlZQsEnJIj4YtUnOmL/t7lvSJgIfV8FSDl8rVo34/TyQoqBydolfSpZ6a1UqRxyoUgj+OjaJvs/TJCDJ6lSjJkIXkgxejxGgamVmNwek8A40cjg7eHKebt59a2+knP3xB63ww8w6dFk6Ch+ObPqp9BwpW5GO9xp7i53xr3vyvc867AHsywz5VtBRWXhp4AdO+URIzc3mqLlvL5ot71Ebi7myQQ/nHVhoaRvU8DvfbICkrYirrVJdy+JbdFePefBXeKuSLEyElOX29CfiactKu0LS7CALZIAdwUhZY0KbwbYp77nKxN99S0KP5485c/rtalWMCpT4XORGncQy8tnvwM4GAJFNdNvs5XgrMyGz0R2KhwU/rQlCeA2kEfhyccb3k8psK84dmcv2hJwcpv75zVGMtKa+wtLYuvS9tFEVIWrwpo6L6j7t8IP38eXr2Ch785b1f3PJBUceddbhxVMkw5wCUd8MZ2Vk07qrpLyOsHGAMbJGLgkYlJnR3X/JpsggMuQ0PP+zQDsSOLiDgfO3GPvsl/eFV3uiazkLkl+6wN3gO3YNYMiSJzbx2qKOCBXn6UONNMllIOujGZqEjUfR7XFCk9LGpXxla9V6mLv3cUvNOICzpYL72QebKVglcxg2qSR16qGNIMpcxOpU8mzpSlKevTPNGDhXwb4b7ePfzNPwz3fHj6+r+2iQ19Pm/Xx5wE4HvDJOdTNvm/7HOLML3bOi4ePiItBS90lF1n9T2S0B0aBHMnkMcUoqxXGcyIrMTtVSFCXtm5Ei/h6fMHFjsno5TLWi6IIXVlxeQNhvRGte2VrGeAjHtJzvlHR1yDrAYZOQSSRx7QeimpVHaMoEY0gCPPBJNSlhqhK0SKVQTOhzmxBNECtOKKN+nb7DhgftpYvyGMrmosaoo0aB17M0g94Yg3Az0K9AAnrPUhDjYdqSe2WmkwNYLoPLcABwCpz1KtZRFUp2m5YbV5NvVfPru56y6p7ACPEwp2FKq44MD2j/iwLkROp3SEsvjogUvybDxftl5MMDXXq3ZrR9TBirxcZ40hAn2yOrhW5RWaPhng0BI2CSqH2llZHoRrlnUOa1GfQNdP5khqV0HpoKjoNzRI8Q5KKi6Dt0MpQDmfPNZUFIXuB1GaWx9FsoA4m64hnJjghEQSxb1okkyqkCEpXAy47/2M/qMdR173xJxAlRhd7OrMoa7I/o3kjP1ZeqWphra6Req4m6kF9W/80QQu2Ne1C+6j9Piob6Uf2kX/UMeoddZwD77X3y9k00nHN0tkzV+eFIcbYXVu+jq3fZ3Z8Xz9AzZzjdt6bBwnzc9QzyGZ2M8JZLnODZYo0YVAwcXOb+0h4kUSbQCIZyUdR9AlfTCyUoUqzR3z275mUYxY6LjGlWiERfRZYZp2t9hhxynlxd6woaqKGkNCfv3h5a++6LaP7L/xqU1coRg4VammklZJOMpGLqqmJOqiH5tESwjjKNjdceeCFN/54F79hRa259VuHrPesjtoRb8yLbXEzbmlSRZ0m7brk0xwt1TPardO6oo/VYz0uhUrPTHJgoIcN7OQARznDRW5wEwbdZcMT33a71XO90fe85krHXTj9nx7bc/uETRmiDHmGlmoa6WeItRzlNqRAkfll5mYyMvmZssxmuxzwiKc9700z1pUCRVmcLEXeauvpUMcbbbyJblW7L5vsX7YgW5od/PIf/+gv/ZUrN7P1ajmFKoD2PUDl+o/WlUgKdbqNxhIug1VN9Ai1B9Vmh29GjsivRrUeV+PFoSZyzY/C+mORd7V5JQyLxYJYqjbnuouB7XLlNouijuzyFJLKUoRus1MhgdXagqXVTOiTrOtEidpFjkxO2c5Yk3mc0XVFMiZCy0HVefhsqiIvsyQrGwPwdAwWiFLKkeMSuC84my99SP5P9/C2zv6wBGG5ShIEgNN9RWp4jdMybp6XnCd1f12NauVylh5uGOqAvpsL7008NUBvr9Zw/qcALlOs3+nfseuSDxpHA0yMi3CMEZTac4iR2J0QKC5iIbqaUoHAYwZDM4jhC0MVtEtg3NUe70yZNTTZngCYHCGj0NhQgzyvbqQl0qFmz3A8pIRwyZtcYCHhwM0ObdVhtj4wN7JzrTGwGszxz2jGfBixMg0cWVAhIGmIYhCRAgsiZ6qpTDKLpfaf+3BWh4TLkNSmQfAw9czGLJraeyYJ1ujZm0D1vpaJoBuJ9q1tSF9tcOVnrCl1pOpAea3UFSRJo251LtOOlNLzwlof5D7te6J4sJChut68xXWW2OS+Eru37E6kYK9EujfA4DFcldrAkx/agWbBYkZPtM9D5EpOLJV2uTqbAKbM+ABQesB9SWUO+PMnSaQkfsMFfI9Y3jtw6K2Fuy5/y2sPOEKOxBnwSaTRuAEkAzCK7AiMFvo/vLzKCCFSlv02I/0/2bsq0B893G02gX2svNgdI4uLyaJ+BQcJ1d8/cKy5x/86hY9Zs7JSC0s5n6p2HFRUXElBpMclQQpt9vI+YA1hyVUk1CSFmaG3GTmvvOFINT3UI5qfBJwARluddhrw3TNB7M5yOyZwBuByrNXaUhIpXBxwT8cXctUU4VnbXWnYFhRjODLP884iilJ5kR23M3wriYs84QmVUQBjnnAQOz3FVNHOQK2dCKJHCx2T/jMAkWPWHVtNaaydpJCSSHXEAf906lj7CyC8w+nV+gKCzvBCza1KS+1urJFFiaTXgHH0hVhVbKchDWX2hsHFdgKC/8vMpESFCBUfquOQt+FdtokTnGyoGTo2lkl1SdxKa98NDcmmUwxdTRaYVhCbwbEZ7gVfdUiEfQL+DKpQUgYMUilyoPO8jYcVtKudLQFaZmhsoGTkhseGOnNdkOikxpoLKF8c86X59BR8yp8AUzlCEu0PGtIh/Gnu8/0jnxH1yyee8qEmvAKgspd7WRkeI7UagdxyUlxGT6L8p51da+cEenqPLwuc76wi2ayxHQJ3l7eep1q/TycJ0GUKcDnfnwGcgN9OqO33frtRCvYNA4qC6fK+sC9c/2s6iT3/2MdwC2925hM1XCaPsubnJXu2V2mu61mpkHQjcp7KZEWdVAx6fckODOdg6gCXmYsoF52+AtSyIZF9E5UXQQ4vtBkpdlwUEAftM+J9XiMDL99GYHiGEw/DTm/cuiGX6l635umiSENeR1HLAu0Mm8vpYENmqEJRc7kH47w628b3HGwN2N93cBYVGFMZvto3G3hqf7GyxpRlyqq2Dvvtak1yvKjtDiNOMavLUWprsJRZ3nqYEp6QtOXhDDZzUsJieL82WDAyCavfBFm8KUgyqenRzexiKpMBl92ksBqp4l0PU574T3k/H8dj5YhSCDxxKArVJcdBNat1vkTn5uR1ZnXRLIrk3K9/fUwXTXBNjnxIKReSoto6lrb2J1asTYCANbl7M/uqhFqZ/k/DUf9YgmqCr3nWA7ssAzZkStRqMXFZvE5lsWKiF5MKXkEbh1FJYBs3a319crnIrWTKUou5NiuMTydc6YEUQq66Flktl1lx0hi5+yFe5pEmkRg/MwxIHhZGECe30Arahq3f8k7VN1xHN9rLiyO/zQC4HNEHIldyJQUPZ6RNltcKUWhAPeZphUEgP1BWMJ1wreqdOf3m8rMElST4wQIrHE4QNBdCKNaCgMBzEmWD21cz8jTddWWaUEQpNOXxRqKjvOLvtUnbVShCDHV1Th+tovqhRpAqSZpiOdf33MfUm3J6rQtpw1VNysTEiYJJh2ETvYRG4AmjoXKyBZyhujEbwsq5nhG6zqQdt3pXwNdut99itHwHmzF46in7IMa5XE67zMoAnpWI1b0x1CVPpGXtoVfr9shO6GWaKHOtToWYeKjsWZVHPMYztRRp+rvCkxgGn23SPcVsgnQNu5CYSKoxmhatmWcNHhHfMJfGCRQMGWr1fAsWCqWktVAO8ZlO5zh5rdnSJbyEmTRakj6eeGQjrqakZ3I0l1imUpT5Lss7nbokFpEMCbsIBBM5io+B+tBpiYDNoMD1RLVUreONp0LD+xLdtpePYOBoLHfkFgQfIHgQubuovtIu487l+CQeeGydpLcWD8cWsb8wVtlAx7FCAaqBzvMuW5Wt7VZhrpUZQEjJj7wuS6Bb7u0HIkJIjOMMZLVgvCDML0ICcy8fGABepkRMnGqyMFDpYgHlC/n0pvdJfEV568Hur+9Hp8BlM1rzeCMblkirRQnhM5Pu5qkTE//+3Q1zp18lsP4gVECIvYQVWDoW2OHk73D1at7nfLndg5210KI20kvbuS7pGkWE1+OE6FV6mRC1+zkfAM5Fkurv/249lbykYlkwyTGffHPAGf7iaqdDjKHX47FHWMoP8jSspMCHpl3q0VGG2RZHZyripQ2eesrYiN3A2CTGyqmBmjwaAyF9daPyyceDtsawTEaWnSq82KqHDr9P08a93Ac8abTn0HVOzboVlkLM6xBcKGAYrH/Yxui0JlFULnpsbl7DeIEJ8LAxxs5E186zPAzkntT3yoOBfcKznDJs9BB0TjCRoLg87eutwRd/fCdG6BuGXtEy1EZigJAj3dhVZTcGkniEm7XykdGPMCzJPj+rNgNccArVgsw7sC5Efe1iuv9Y//PG3tHSOZkxn9U3YP+XDwMq9MIxUEO16onkJHjc+EXpAelE0rypRN2zc4u9pi+0+5+XUWiAyky3ABrXPlQ5eQTfzSS7zEpSUkynj1UCVqkECQy1m+vzAXK4VLuoXDkU77nuIWs4Xl056Jdc07AzZIk0qYTRQ6rG3bjlB7UjgsQWgMxiAu4XlzEkXWs9J5TtNEQRwWDwVIDhqJpRqapibEubfaZNj2yzb/76E0eph+MSFrgTbNLv9PQ//B1L4i+g3pRK4COjK6EWsHG19UwqlamSV+BRacJdOwhsqg6lC/TP68JxRCsCGTbe5g8jXnwJsJMkOC0zyYM4A5tlA1FobFWpWdKma9Nt21gVYARa8NRTZaEVE9a1Z/VDA9fFQySWjrMDccfKykFwvzMKGhKUMjybo2UtCcOimkoTM4yDuCBLgoqNTqYoJ+WG8lzm5AAJpG8xfc5h04nSM1ONIGMV2N+vinp8hEmnnju2q30nP6h1kYWP93WLxSZ+sQCUSoigctPrAofh2Kxb9HnlxARHppsHgPIkJTSEVv7PGTNFQcIUnpkrTWWV6idP8ZMPG7uw213+Na6/lCRL/Z94UARtWWjUmnUD7U0hjdsBhkE6WOuH3TxjMM5SFgQvLEAeWOQvdPmH1VBOCVN8yzPSca5nGKKFbIPOmB5UTb4jNpn8uNz1/aSY+CCnkgo7hKdFX2U3iO5H8+JKMpibd7oZxpm554dFnwMaCYvz+TNEQ4LMiX36rD4kDbsvnKwDR9shgcpa4BIQPEysYtbHvJD1Z1tMQG2WmZHgVUMC9txpfRw8WpBXf94U0Bn0mQPM7k5DhiOw/0jNbn1jLibBkljloNU2fyBCIGKIMJT2Hky2n8jZccUrT7cYDJAAAHRKh1EGArEW2kHrsVIfDKV6YwQuv1ZefOqGfomAAPTCIx8tKXhXddm0/EO8U0F4WevimzmdvvfsB1F+jOEQISincfvidgdiBmxb6hTyQb7vdQdhJ2B/fff39wQAK/RGG3T+SpFiq9n3JHtlxy310TpXKsM6hYK3lgsIzNDfPLKdUnsJbEnjGaYbxTAvlFwe04uVY0yXSfRmxnlNmURp1jQGDTN6a7z4dO24GBsY6nQgNDYSVcVH3Q46LOasuLksqYswrS2i6BoKG1EbfDGBlm2EMBOdvtRyHAx2/jCMr+EkbQh3bmin4/HVcLKGIyEyuvgudB8xhYLrAE/S07YerylfJHAlI7QP2fbukD5/td7hjPtHhSGz5k5J4fxWaPd+XfEkQfTnfwwBFKMQXfdf3wUqzgXQHOxJUOOH7CInIHRuyvYFFQO8tpFXXl4u9tm/Kd2xwpCO66yIjKN0peUkgr4i6EcVYCXjeZThC01biNgcp26GaxOWV3IdyIkqjHskVV1aWFhaiirk98hr70kP9RsrwvYiRttDm3Wc4pck8E53Li6HgBPEiMcE5W0YnPm/6wfLCJfiLJf6LV+4Xvs6Vwqlkmk+ST0Mk35cn7cK0pbB6fXOMAJsf7bA+kl9k+FxO9slRi8vA405wwpIGJrjumwEzYjF4tiPa3O0XlgIUT0u8rc97tRcroDrMuP9b2yCwAzjWLt25vyA2DGQ6loILGWXedA5d5kHsVphZ2zUl5KscuI8DwuPwExaG57pWEopieMahLU4TkqK5Ziel7FhTL0C5XkMNiRHOCqviojyjAkZCsZ8Gg2qXKnrBEsxYjVXqRRwvFCp5KoiQ7HEXDh2iyUDspVVjuZG80fjV22ERrV1LIXZ6VaGbeXP9iz2qDvbuQjuyBGVSu0Pz1EfXh4TBLEPyoVjuwoAjONsvNybAnejSdH60Vq9h2AjWiBaNFq/twvc3giIVTYQrUY1rYIkmrBqDNuq/dLqKYNBNqppG3qcobQsu717lTeAVmJ8ZGb47ZOkMhnKIX6/P+a3KwXQ0vfkrbxy616dbwi95tzblE3t6KUS33VwaQQnUtSn3t19aLKMw2CrSaZn/dbkepuAtNLK3sEMaaPxq9bB54orX6+s/hKXl9eyy21C6Fr61W995R9YGvPu/EMBoJzhpQQt02pph1Bpofz7YkdhdL9JcFy3TUYCnX3sEz/6WzMJXn82CzGlzBWWQhW4Kkz1GUXpjmKD8+eV62YJdgvOZxFzWyMC1KIxBL2RMkdmNhrUlZYyBqPRnSKzDas7egSW8MrRhraTBW3QnMJz2XKl0vO44CvMAZN5MWOSUYOVWyfWTQEq05oFhGIMAYKY63qYPN21+Q2JwKcGNZVEYZYnjRC5OlgbP1luMgjBtbpyND6a5G3PMILTyk+iRaJZvREgvfugjKaAPmPaaMwqCh4tLufDVKVsvcrDm5wkd4o1vJUv0KQUFtPz3z5QrRYLLVHiaKQOFUzn2IulfPELv97X2wj+8xZNF9E3RxP5yN2RAZw654YHR868XpfiNlaSz3if7GhZd3UNjzCXV1Qj5zzPXreRO5YMO6ZMWr5S0aE4pOLuHAHoGMquFhDLrd7K48Xt9VajsmicB6HMAqqFwM6WDmKNKgSaJAUtbdCsmNdX+NGUaCRRZOqZqo2FBKGkVppxE8fWVZlG1d4jQFsNytGcaFI0cxVMPCsON/XcXH+h7huSn5Z1Rn59oT/MTugVBNoZtkjkcd6Ij/+SKNXNhwwDry60IrWMQFL+uVjP4nZuy1FNDZUDCHTEFTQvITtfsL12ZIYIZjKzMMG+0iS7OrptcwSeo3WvZiQbuwYI/NhUajJSccPTEXSzjrVHCrXFtHlsoyu8althXIj7F0g/JTAoktw+yKGK1sgQcVNG+Gxh5R6UQXF+ylXf5xvyIMgJNLxTY876uxb3i4q7xTPRMDSqAKdwH0u9hfQ4HAnFyLfN3SNWwEmZ2RjcL/S4rRdDI1KeZRS7Vk0Rp6We1aoRpzOqlNMvQccQLox4RjFzPUFBcUtilREt6I5oQ2Fg5cdupCI3b/ckBGMpwc8+2bbj+NR79lp4ipQFXZnSZBtRC+O4epPP54Ha36MxRo1UP4WP51eoXjyszDSVxrDocGhKrE3zEBVZNy/IpNflGe4RdENQHWuB16myS9TH5sCUGRGhVeTB8OBRYzubIUq29hzK/T92ocRkYvnuJAhy2l2elJQX1Oh+/R3xkNGrP3ahpqYothPorMpZAQpG4c5aijzTHIQw2wteudePsrzKs18oKlRVklyxO5rPWsQ4CuEAQ8ZrgDEAecxapQBPNNcBcHLTJsVcT8MwGEamrn9oblZZgkCOkAA+QNY2y0y1M1S8T0oXQWm2e9aphOlbJyTu1nQ4170YP7sL8IfxiwB3mkDA0QHWu6FWM3GoLiZ1hQCbC/hdKfGZyzu9fe0Q0J4O7vy7lhJcA52Tc/ehKBzwdKcUFU5IqbnQrSjgxp8rPlNVAeojXfWh91wQGCzTlZcJar1Gx5YopkK0QF+JdVW5rXEFlT8auOSB8E9jm7lU1/Ru7DKZpzzihhCd5vteoWdpWink80C0Q90xONPtsjatmVwO89ze+ntYjHfFI1pED5Jnrl1tV9jEVmD3rloUnersD7Nv8jhFODGJXOxmrMiBP8bxRzAerEUw+ivaiTTsVWmDufaPOVwFnWjY12wsgSs/ZTe42JDkDhvMFpq63gVx/0TvXmsIFhLzr03ZpuDR8dsHd+vDdHkRZvWiTKFKbywLXd0JBKrsp0JSNkrQ5a2swFhexOTAmtwG12cMTswcrdYwK9UYEsdC5d3f68UEr2rFvM8wgZ8xIY6Zf6ppIE7c4EE1Bxk1Q/knmbadDjDkB3dOBQcI71nQNFjk/9QPfYfxWZw42jPbc84X7B0PLfTPQa4NO7haFjaD6+O6ef0G99RBh69qV0Gigigozqg9a53m94F6iM2OKMPzfe7h26nnn3t3D2OVt/Lv0rtbj1W1cvRy7/VCC2e4ub5+L0jPazV3DFZTsnEE7CTq/LiKLPTrv+Uaz0+CO0H8D1LX0Y7NJhzZDoZY53z8Rvz8lgFg+yKopnia+Dyo7hivIjgeg18h/+5NCTUQcZnwvNbQtfqqSIybV1maxveZOf/X8GY+SL7cSlrS7mLjAUWQfD1fzs9bXQraCQDuK7f/aM/PCKqktf7RwK2rDXC/OqjP1LbLD21b5xsIR5M4tlQ00CspjM10CbcRdyoVk5ogagTbZlTquannejjjBvcog4nUX1zn25PzReBpqeKCJk5CMqeJzDkQIRlt3oDC1u4EIC9wspJiTIC1wOZGkWGDrqGmUPPCgL1ISvg15hGzSuBrsIA/4Y0xJ0z1raHkPcezpVjb0SQwDY6XBF0IxiniSnwzMD/ZrK0FZHuKHk2uSaOlOGXouWTIq1aqHzMT7aF4RRD0nMZ1GYaUmUoI+lJUQJ0u3lxHd8YU2NOchQzY0GokjURwZQKRpu+rREyzeegWrJM2mfxKsf1Yvs0ayLvCrESaYyuAtmvF92YxNSzmzAFGew+K5qdJ/6kt+qSstJhR6HBvBYMsi+Y5HJTc187VALyyMsGX4BU4V0PzY9eII40xh5Dxncr96PAGUZSxrI6kLUYklLIEitXSHbj1aIt+M+EF9grxtS3OmPTrI6/xv/T1Gfnt6he9Jt7yU449nkA4xZvYSmYthnYf22Xi6V09mnOynsZ5cWo4GaSv8m+W9a1gndxZZIQ2l/ehGCNCwJYxGoiUvsRda6KpiaqS83ZbDNuFjwf8eCAfrAJ40WDdjE2KTWMghT7Nd9xeRDZrTpmgEReFICTrAGzKDPdBWzUHAVzIw8MUkltCpIov0/wG3kKwd8Ff3DPt6ZxvRCTyQCXVChzmUdvBu9xk+vSVb4uZQEwjEJlZrEZ3ksG1AQovEZMH3qVTaw2HnpslOK2LbJnOGrmJg8ecYxWqEYIfOVpxtxowLXyr2PzsR5q8Uef1NcfZZu/hFY3+nKYuJ3l39EIyDgDq3Xm5NYXuEUJr293dPmZuvXjXdXhJ6zpSEhXq5F2u9jAS0OctB46a/eYIrK6IIYYGJocyWu+n2wF9bbm70183p1E4NTMQjtBvAe5G0Z0uSsF1xmg9BhgZdg8EDxsvh35L7jlfbp1uvcIdmERvTgJpCaT5JAdwtMUAjeXTxX+x/6v7w72r5+lFVOA/aayGp2tjgCRABxX7QUGiO8acCVrdQNNhLzabvQx/V1evR0vaelFZvgjQlVpA7jPNXSF9YS2vZ3GMveRu3xFJt5tM3c8XhwwjDYm4sBXatc2EZ7XUhZi5QFHfZWYm6bLHQtmqQXc9bd3QTeavGT0MpJzS7LhqnFlmCdTjOt3+eUY7NRzz2DalaEgZ2rp5vp8cjN+M06jO+jFeJALAytiNIXs+CdwjLCfdhLMqJwf4xd5Hg9y+3cMSTMCT6zvosQ6Ax9LZ4G1W12G3o+vgwfI6mRMMbjTmG42PzyDRbj/Scyi3GWMvRIxYD97RMnSvCcvecBkTS3SmAWoStK6NrxOGF7KqiZmnu5BO2pm4NuxmkVd0PkmvZ3hCdyCTApdlGSFKWD9SQEIauRlokZfV1ASgUyjZxUkeNtnrwDFuH/YQlMlMrIVrkw+mPRu8bwhC7/oS4LC5q+36+Y0nol2SpfrpnNjioizPIR9ZqYWgILRgmDwUVmssB7iSI0lkPFcjnEGHQMCvRTaVET3pVwdMrQIoOVl2xGi9gVXytdM53gOTYTlIjLDMSyEcNHwPTW+M2da6hwA5GOpRtYwOaA88y4YcnzMEpmnbtuglAbOqPtO6AY9VwZM1MxdpaQfCuBSDqrqMO8qh3jn/0gAmU8JHnMsEkcQKg7zxUHwBKKSlu8kQFxbsWrBnmg3Fx9cPiF39d39Ne5+r07kRJ6w0icL4s8V2nwcqQahNrZesqxh8W6NBjgDnU7zLKKDljKr1a2sGJyoYFmJoN1KQkNC9I6hEOu9Beyd92MJ310BJGESYSqvg3eDEk+69H3MxHi0Jv/malgcVdO0Oas+zJ1cpNcPCnHxgyTP7pFFJkt5hET1ZjORrl9aPmL8a2gc8lpUvjCLfCZmCvZVtqEEYvv+7e1lZTiymErsswLFUEYI6YETiLbZGXyq4ekgmadFrasNIgmSZJanksE1YfvX4TqDoFmEUG4B5p0dMfVsQruO2fJeY0YHabFKcJBBWG6zFpYDh8IC0UKB7IYk5EEjp5K2drgFsrLRQkPbMNpMaBB3RFgyMYJxlDFA8+Z4T+mFxWYidlJ9Tzc7aaoWgFRsEBr5Mb5VXQHCHtQTMrNEQgc2wVWkgEGzJ1B3kcq7JavWqBGTwNKCUvnesQBgMuCT2En0G2/Y6QbcaW9e4nfq1IwUPQj074Z7vfP+rRwPGxUfv//53vnRjxCFcEvE6kygb7K+r6Y7L05/mh5kMGZlC6m4SGUZGXKQC0yJ6mogW+zJCARohPP9QcOu73rhmo/RvsxJZKfCddx/Y+fAC/3ls7f/ydm4kBpM4QOB/z9J/x6DD/e9rOyPrEtnanGomAGxcapl6EKm2iqrFMmb4PCqSN2Tolja0UZ6HoxbMqpVQkbxVTbcJ3eWZAYI52XbCyPKk2qHuRJBak9KajzrTfmap8EsusVZoPDUUIhvyVSTOWMvq0iEBD2V51M2accJwq757QkZEShuDobPPF3emhLzKWM2cky2olUouF15KoRhdFBndSl31I6iJjCgsH7SaJgzKVoOEdRSNTsBC6TkkJKROL8V1Q+kGr1SeTHmC15xZBjlU0lKNXNvcGghZLRYhTibESSvndbnTzq0dbZxhTIC8IlzbtNWUacIrgANH0QhcU7vHo0EB9QVV6e5rKWY0jcAtPQkuEJAxEjQMXBtTRuZtdUPwkATV6O6FVG9cjcBtSHE6BMbUGNe5TOOMCMvFif+IKh5zXY0/qxwpJRVWszErAp0zo7tv+ezyz+hiugYhqNGpm8iyQ4xjMwRj4GgA04yprRlUklROwA04BpthBMRIeYXazPhMwZG+U6cLKYuQny3WwrhTIHcalrnwkIUjNcDLOkJy/WQ4dZq5/mFsb4JYFDOICtnfaMwaGsg1VaKR3SNOkpVT8qxDnmXIsw/Z6q2W9rouKQlAXskOuY/L/BOS66jcZmY/Ba80EM1Zzdxk2cjMBhGQQRgrnONPM67Wmg6j49AH3FDX8Pr/waD7WN3y5FYO0iSi50V4/yHNEbSX/GLqew0D863F0EgGeDmEmCVBnmU5Ku4sk2BlmuezIlrjs2J2rTMqCcL2ETCPEVmCQH1a26FApPSneEjB8bpEhFi1CAnrF2UR1qZdH78Wwi14K+zWCxNpTz6PNusR7mhfpizLhkWU9hrQNi+8Dh0LN20MVbbQ69GVaQs7dio3AJ/RU7tUlxiKGBGizvWX0RSVmcsWa4ELy8L9Ihr1iFtRbk9Jyat1/by8VE9GPBhRW9YsV6BlxjpG3RQ6jObKfKb+jhldbWFtHdK9fCdh9ln3a8LSTpcoto4iy/iwRjGd/o1eCyPW8T7z3uU6DdFxTvnfsn6PGPvNVkgRA2Pn+mFDiFDOH8yImxFzy8dL4BsFKoZSOKW+6Fo6egZGJmYWVjZ2Dk6+IAhJw1BAlepd16rjO+K/nTp6aTLUCyJS8NbKN9IJRA46ZL8DzrvAiwcDo21461itddIpnvba55xJshSRUdrhikt2aqvZRu1965oO7rnK5bob8nX0lgI37dLJJrsVcyvS2ffe6SqsU1REzAG9fKePbj169eszYI5B88w130ILHLTHFKMsMmSMt456b4WVJppsmqmmEztBYoKFxjtO6puvvlP54KPDzEws5snUaMQ42da7466Z7nnokdPOfA+g0xuMJrPFarM7nGwOl8cXCEViiVQmVyhVao2+gWGi0ImNTRIyHWRlGJjKsbBxcPFU4BMQEkGJYSSkZOQqKSipqGlo6egZGJmYWVjZ2Dk4ubiz7bFYEtR3SmPt72tp7oo2Tet/w5z2T2z7eP4K7uxffnu/2XJJoic75X5k56fun9+dDdyZCFcBU5Xhu6y6XJnX2R6Jt84Yij7G3LH9+ZTGr+eK2jUhXWQgke7iC2lxJwRMvr81ScDEjcTW0ppcJhvC0G2wg0XGmyKjEcI1SmEqnppgF5/xNAS7oCuFcjq6DATirCb2aM7xdMPMfgtpj65O/uIx2pcaMpmTKeGLePi0x2VeQ3X68nrU7M/yAIfiog8LSPbuOdj+5TAxHje5DA1ihNCVjA49S3jwmWRyQW+bmd+ncTxDrfTkvU3X2vY7HvgmeEVrEz/51At7vAcEHEJTbxvENwMRwO2N7C+2Pc9nVIMopHmzsyUaDi3WEqGv9G0RZqEmYoi/e2qNPfrEBOCOdPe1SIhcg8Ad+rtqoMNj0CDoNE32d6ewvk93cnkdEZpixyd+l3nLRfgzAA==") format("woff2-variations");
+  font-weight:300 700;
+  font-style:normal;
+  font-display:swap;      /* text is readable immediately in the fallback */
+}
+
 /* ============================== TOKENS ============================== */
 :root{
   color-scheme: light;
@@ -33,12 +51,45 @@
   --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10); --border-2:rgba(11,11,11,.16);
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+
+  /* The single accent. Everything interactive or emphasised uses this and
+     nothing else, so adding a second one has to be a deliberate edit here. */
+  --accent:#2470ce; --accent-ink:#1a4f92;
   --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
   --good-ink:#006300; --crit-ink:#a32020; --warn-ink:#7a5600;
   --seq-100:#cde2fb; --seq-250:#86b6ef; --seq-400:#3987e5; --seq-550:#1c5cab; --seq-700:#0d366b;
   --shadow:0 1px 2px rgba(11,11,11,.04), 0 4px 12px rgba(11,11,11,.05);
   --r:10px; --r-sm:7px;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* The display face carries hero numbers and section titles only. The
+     fallback is a real stack, not a bare sans, so a failed font load changes
+     the texture rather than the layout. */
+  --display: "Space Grotesk", "Segoe UI Variable Display", "SF Pro Display",
+             system-ui, -apple-system, sans-serif;
+
+  /* One scale, six steps. Nothing renders below --t-xs. */
+  --t-xs: 13px;    /* captions, table headers, the smallest thing allowed */
+  --t-sm: 14px;    /* secondary body */
+  --t-md: 16px;    /* base */
+  --t-lg: 20px;    /* section titles, the headline sentence */
+  --t-xl: 28px;    /* stat values */
+  --t-2xl: 44px;   /* the one hero number per screen */
+
+  /* An 8px rhythm, so spacing is chosen rather than typed. */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --prose: 72ch;
+
+  /* Charts. A single series is not an identity, so it is drawn in ink and the
+     accent is spent on the one point worth looking at: the latest value.
+     The eight-hue palette below stays, but only for comparing people. */
+  --chart-ink: #6b6a65;
+  --chart-ink-2: #bcbab3;   /* a second neutral, for the part of a whole that is not the point */
+  --chart-fill: rgba(107,106,101,.13);
+  --chart-accent: var(--accent);
+  /* text laid on a filled segment: the fill flips between themes, so the
+     text that sits on it has to flip with it */
+  --on-ink:#fff; --on-ink-2:#0b0b0b; --on-accent:#fff;
 }
 @media (prefers-color-scheme: dark){
   :root:where(:not([data-theme="light"])){
@@ -47,10 +98,13 @@
     --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --border-2:rgba(255,255,255,.18);
     --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    --accent:#5ea3f0; --accent-ink:#9ec5f4;
     --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
     --good-ink:#0ca30c; --crit-ink:#e66767; --warn-ink:#fab219;
     --seq-100:#184f95; --seq-250:#1c5cab; --seq-400:#2a78d6; --seq-550:#5598e7; --seq-700:#9ec5f4;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
+    --chart-ink:#9a988f; --chart-ink-2:#55534d; --chart-fill:rgba(154,152,143,.15);
+    --on-ink:#0d0d0d; --on-ink-2:#f2f1ec; --on-accent:#0d0d0d;
   }
 }
 :root[data-theme="dark"]{
@@ -59,81 +113,85 @@
   --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
   --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --border-2:rgba(255,255,255,.18);
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    --accent:#5ea3f0; --accent-ink:#9ec5f4;
   --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
   --good-ink:#0ca30c; --crit-ink:#e66767; --warn-ink:#fab219;
   --seq-100:#184f95; --seq-250:#1c5cab; --seq-400:#2a78d6; --seq-550:#5598e7; --seq-700:#9ec5f4;
   --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
+  --chart-ink:#9a988f; --chart-ink-2:#55534d; --chart-fill:rgba(154,152,143,.15);
+    --on-ink:#0d0d0d; --on-ink-2:#f2f1ec; --on-accent:#0d0d0d;
 }
 
 /* ============================== BASE ============================== */
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--page);color:var(--ink);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+body{background:var(--page);color:var(--ink);font:var(--t-md)/1.55 var(--sans);-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
-h1,h2,h3,h4{margin:0;font-weight:620;letter-spacing:-.01em}
-a{color:var(--s1)}
+h1,h2,h3,h4{margin:0;font-weight:620;letter-spacing:-.015em;text-wrap:balance}
+h2,h3{font-family:var(--display)}
+a{color:var(--accent)}
 .mono{font-variant-numeric:tabular-nums}
 .hide{display:none !important}
 
 /* ============================== LAYOUT ============================== */
-.wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px 80px}
 header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--page) 88%, transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
-.top-in{max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.top-in{max-width:1280px;margin:0 auto;padding:12px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 /* the household name is also the way into settings, import and backups, so it
    is a real button rather than a heading with a menu bolted beside it */
-.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0;
+.brand{display:flex;align-items:center;gap:8px;margin-right:auto;min-width:0;
   background:none;border:1px solid transparent;border-radius:var(--r-sm);
-  padding:5px 9px 5px 5px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+  padding:4px 8px 4px 4px;cursor:pointer;text-align:left;font:inherit;color:inherit}
 .brand:hover{background:var(--surface-2);border-color:var(--border)}
-.brand:focus-visible{outline:2px solid var(--s1);outline-offset:1px}
+.brand:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .brand[aria-expanded="true"]{background:var(--surface-2);border-color:var(--border-2)}
 .brand-text{min-width:0}
-.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(140deg,var(--s1),var(--s7));flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
-.brand-name{display:block;font-size:15px;font-weight:620;letter-spacing:-.01em;
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.brand-name{display:block;font-size:14px;font-weight:620;letter-spacing:-.01em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brand small{display:block;color:var(--muted);font-size:11.5px;font-weight:450;letter-spacing:0;
+.brand small{display:block;color:var(--muted);font-size:13px;font-weight:450;letter-spacing:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.caret{color:var(--muted);font-size:10px;flex:none;margin-left:2px}
+.caret{color:var(--muted);font-size:13px;flex:none;margin-left:2px}
 
 .menu-panel{position:fixed;z-index:60;background:var(--surface);border:1px solid var(--border-2);
-  border-radius:var(--r);box-shadow:0 12px 34px rgba(0,0,0,.18);padding:6px;min-width:240px}
-.menu-panel button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;
-  padding:9px 11px;border-radius:var(--r-sm);cursor:pointer;font-size:13.5px;text-align:left;
+  border-radius:var(--r);box-shadow:0 12px 34px rgba(0,0,0,.18);padding:8px;min-width:240px}
+.menu-panel button{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;
+  padding:8px 12px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;text-align:left;
   color:var(--ink)}
 .menu-panel button:hover{background:var(--surface-2)}
-.menu-panel button:focus-visible{outline:2px solid var(--s1);outline-offset:-2px}
-.menu-panel .sep{height:1px;background:var(--border);margin:5px 8px}
-.menu-panel .mlabel{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
-  padding:8px 11px 4px;font-weight:640}
+.menu-panel button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.menu-panel .sep{height:1px;background:var(--border);margin:4px 8px}
+.menu-panel .mlabel{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  padding:8px 12px 4px;font-weight:640}
 .menu-scrim{position:fixed;inset:0;z-index:55}
 
 /* the month said plainly, before any number is shown */
-.headline{font-size:20px;line-height:1.45;font-weight:520;letter-spacing:-.01em;
-  margin:4px 0 18px;max-width:52ch;color:var(--ink);text-wrap:balance}
+.headline{font-family:var(--display);font-size:var(--t-lg);line-height:1.4;font-weight:520;letter-spacing:-.015em;
+  margin:4px 0 16px;max-width:52ch;color:var(--ink);text-wrap:balance}
 
 /* insights: at most three, each with one dismiss */
-.feed{display:flex;flex-direction:column;gap:0;margin-bottom:20px;
+.feed{display:flex;flex-direction:column;gap:0;margin-bottom:24px;
   border:1px solid var(--border);border-radius:var(--r);background:var(--surface);
   box-shadow:var(--shadow);overflow:hidden}
-.feed-item{display:flex;gap:12px;padding:14px 14px 14px 16px;align-items:flex-start;
+.feed-item{display:flex;gap:12px;padding:16px 16px 16px 16px;align-items:flex-start;
   border-bottom:1px solid var(--grid)}
 .feed-item:last-of-type{border-bottom:0}
 .feed .ic{width:22px;height:22px;border-radius:6px;flex:none;display:grid;place-items:center;
-  font-size:12px;font-weight:700;color:#fff;margin-top:1px}
+  font-size:13px;font-weight:700;color:#fff;margin-top:1px}
 .feed-b{min-width:0;flex:1}
-.feed-b b{display:block;font-size:13.5px;margin-bottom:2px}
-.feed-b .sub{font-size:12.5px;line-height:1.5;display:block;max-width:68ch}
-.feed-x{flex:none;color:var(--muted);font-size:16px;line-height:1;padding:2px 7px}
+.feed-b b{display:block;font-size:13px;margin-bottom:2px}
+.feed-b .sub{font-size:13px;line-height:1.5;display:block;max-width:68ch}
+.feed-x{flex:none;color:var(--muted);font-size:16px;line-height:1;padding:2px 8px}
 .feed-x:hover{color:var(--ink)}
-.feed > .btn{margin:10px 14px 14px;align-self:flex-start}
+.feed > .btn{margin:8px 16px 16px;align-self:flex-start}
 
 /* the quiet state, which is the one worth designing for */
-.calm{display:flex;gap:12px;align-items:center;padding:16px 18px;margin-bottom:20px;
+.calm{display:flex;gap:12px;align-items:center;padding:16px 16px;margin-bottom:24px;
   border:1px solid var(--border);border-radius:var(--r);background:var(--surface);
   box-shadow:var(--shadow)}
 .calm-tick{width:24px;height:24px;border-radius:99px;flex:none;display:grid;place-items:center;
   background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good-ink);font-weight:700}
-.calm b{display:block;font-size:13.5px}
+.calm b{display:block;font-size:13px}
 .calm .sub{display:block;margin-top:1px}
 
 /* sections: a summary row you can open, so a long screen arrives short.
@@ -141,16 +199,16 @@ header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--p
 .sect{border-top:1px solid var(--border);margin-top:8px}
 .sect:first-of-type{border-top:0;margin-top:0}
 .sect-h{display:flex;align-items:baseline;gap:12px;width:100%;background:none;border:0;
-  padding:18px 2px 14px;cursor:pointer;text-align:left;font:inherit;color:inherit}
-.sect-h:hover .sect-title{color:var(--s1)}
-.sect-h:focus-visible{outline:2px solid var(--s1);outline-offset:2px;border-radius:var(--r-sm)}
-.sect-title{font-size:16px;font-weight:620;letter-spacing:-.01em;flex:none}
-.sect-sum{font-size:12.5px;color:var(--muted);margin-left:auto;text-align:right;min-width:0}
-.sect-caret{color:var(--muted);font-size:11px;flex:none}
-.sect-b{padding-bottom:20px}
+  padding:16px 2px 16px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.sect-h:hover .sect-title{color:var(--accent)}
+.sect-h:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-sm)}
+.sect-title{font-family:var(--display);font-size:var(--t-lg);font-weight:620;letter-spacing:-.015em;flex:none}
+.sect-sum{font-size:13px;color:var(--muted);margin-left:auto;text-align:right;min-width:0}
+.sect-caret{color:var(--muted);font-size:13px;flex:none}
+.sect-b{padding-bottom:24px}
 
-.skiplink{position:absolute;left:-9999px;top:0;z-index:100;background:var(--s1);color:#fff;
-  padding:10px 16px;border-radius:0 0 var(--r-sm) 0;font-weight:620}
+.skiplink{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:#fff;
+  padding:8px 16px;border-radius:0 0 var(--r-sm) 0;font-weight:620}
 .skiplink:focus{left:0}
 
 
@@ -163,7 +221,7 @@ header.top{padding-top:env(safe-area-inset-top,0px)}
       padding-right:calc(20px + env(safe-area-inset-right,0px));
       padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
 .toast{bottom:calc(22px + env(safe-area-inset-bottom,0px))}
-.modal-f{padding-bottom:calc(13px + env(safe-area-inset-bottom,0px))}
+.modal-f{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 /* keep the narrow-screen gutters, just widened by the inset */
 @media (max-width:700px){
   .top-in,nav.tabs{padding-left:calc(12px + env(safe-area-inset-left,0px));
@@ -180,12 +238,12 @@ header.top{padding-top:env(safe-area-inset-top,0px)}
     background:color-mix(in srgb,var(--page) 94%, transparent);backdrop-filter:blur(12px);
     border-top:1px solid var(--border);
     padding-bottom:env(safe-area-inset-bottom,0px)}
-  .bottomnav button{flex:1 1 0;background:none;border:0;cursor:pointer;padding:8px 2px 7px;
-    display:flex;flex-direction:column;align-items:center;gap:3px;min-height:56px;
-    color:var(--muted);font-size:10.5px;font-weight:560;letter-spacing:.01em}
-  .bottomnav button .ic{font-size:17px;line-height:1}
-  .bottomnav button[aria-selected="true"]{color:var(--s1)}
-  .bottomnav button:focus-visible{outline:2px solid var(--s1);outline-offset:-3px}
+  .bottomnav button{flex:1 1 0;background:none;border:0;cursor:pointer;padding:8px 2px 8px;
+    display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;
+    color:var(--muted);font-size:13px;font-weight:560;letter-spacing:.01em}
+  .bottomnav button .ic{font-size:16px;line-height:1}
+  .bottomnav button[aria-selected="true"]{color:var(--accent)}
+  .bottomnav button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
   header.top nav.tabs{display:none}   /* outranks the base rule regardless of order */
 
   /* One header row on a phone: identity, month, add. The household name and
@@ -199,90 +257,115 @@ header.top{padding-top:env(safe-area-inset-top,0px)}
   .monthnav .lbl{min-width:0;flex:1 1 auto;font-size:14px}
   .top-in .btn{flex:none}
   .top-in #btnAdd{padding:0;width:46px;justify-content:center;font-size:0}
-  .top-in #btnAdd::before{content:"+";font-size:22px;font-weight:400;line-height:1}
+  .top-in #btnAdd::before{content:"+";font-size:20px;font-weight:400;line-height:1}
 
   /* Transactions become list rows on a phone. A six-column table at 390px is
      unreadable however it is scrolled, so the same markup is re-laid out:
      merchant and amount lead, the rest sits underneath as supporting detail. */
   .txtable thead{display:none}
   .txtable, .txtable tbody, .txtable tr, .txtable td{display:block;width:auto}
-  .txtable tr{display:grid;grid-template-columns:1fr auto;gap:3px 12px;
-    padding:13px 14px;border-bottom:1px solid var(--grid);align-items:center}
+  .txtable tr{display:grid;grid-template-columns:1fr auto;gap:4px 12px;
+    padding:12px 16px;border-bottom:1px solid var(--grid);align-items:center}
   .txtable tr:last-child{border-bottom:0}
   .txtable td{padding:0;border:0}
   .txtable .c-desc{grid-column:1;grid-row:1;font-weight:520;font-size:14px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .txtable .c-amt{grid-column:2;grid-row:1;font-size:15px;font-weight:620;text-align:right}
+  .txtable .c-amt{grid-column:2;grid-row:1;font-size:14px;font-weight:620;text-align:right}
   .txtable .c-cat{grid-column:1;grid-row:2}
   .txtable .c-cat select{max-width:100%;font-size:13px}
   .txtable .c-who{grid-column:2;grid-row:2;justify-self:end}
-  .txtable .c-date{grid-column:1;grid-row:3;font-size:12.5px;color:var(--muted)}
+  .txtable .c-date{grid-column:1;grid-row:3;font-size:13px;color:var(--muted)}
   .txtable .c-edit{grid-column:2;grid-row:3;justify-self:end}
   .txtable .c-acct{display:none}   /* account is filterable, not worth a row here */
   .wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }
 
-nav.tabs{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs{max-width:1280px;margin:0 auto;padding:0 24px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 nav.tabs::-webkit-scrollbar{display:none}
-nav.tabs button{background:none;border:0;padding:9px 13px;border-radius:var(--r-sm) var(--r-sm) 0 0;color:var(--ink-2);cursor:pointer;white-space:nowrap;font-weight:520;font-size:13.5px;border-bottom:2px solid transparent}
+nav.tabs button{background:none;border:0;padding:8px 12px;border-radius:var(--r-sm) var(--r-sm) 0 0;color:var(--ink-2);cursor:pointer;white-space:nowrap;font-weight:520;font-size:13px;border-bottom:2px solid transparent}
 nav.tabs button:hover{background:var(--surface-2);color:var(--ink)}
-nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--s1);font-weight:620}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:620}
 
 /* ============================== CONTROLS ============================== */
-.btn{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:7px 12px;cursor:pointer;font-weight:520;font-size:13px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:background .12s,border-color .12s}
+.btn{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:8px 12px;cursor:pointer;font-weight:520;font-size:13px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;transition:background .12s,border-color .12s}
 .btn:hover{background:var(--surface-2);border-color:var(--muted)}
-.btn.primary{background:var(--s1);border-color:var(--s1);color:#fff}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.primary:hover{filter:brightness(1.08)}
 .btn.danger{color:var(--crit-ink);border-color:var(--border-2)}
 .btn.danger:hover{background:color-mix(in srgb,var(--crit) 12%,var(--surface))}
-.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn.sm{padding:4px 8px;font-size:13px}
 .btn.ghost{border-color:transparent;background:transparent}
 .btn.ghost:hover{background:var(--surface-2)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 input[type=text],input[type=number],input[type=date],input[type=month],select,textarea{
-  background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:7px 9px;width:100%;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--s1);box-shadow:0 0 0 3px color-mix(in srgb,var(--s1) 18%,transparent)}
-label.f{display:block;margin-bottom:10px}
-label.f > span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px;font-weight:520}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:8px 8px;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+label.f{display:block;margin-bottom:8px}
+label.f > span{display:block;font-size:13px;color:var(--ink-2);margin-bottom:4px;font-weight:520}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
 .row > *{flex:1 1 150px;min-width:0}
 .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:2px;gap:2px}
-.seg button{background:none;border:0;padding:5px 11px;border-radius:5px;cursor:pointer;font-size:12.5px;font-weight:520;color:var(--ink-2)}
+.seg button{background:none;border:0;padding:4px 12px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:520;color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:620}
 .monthnav{display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:2px}
-.monthnav button{background:none;border:0;padding:5px 9px;cursor:pointer;border-radius:5px;color:var(--ink-2);font-size:15px;line-height:1}
+.monthnav button{background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:5px;color:var(--ink-2);font-size:14px;line-height:1}
 .monthnav button:hover{background:var(--surface-2);color:var(--ink)}
 .monthnav .lbl{padding:4px 8px;font-weight:620;font-size:13px;min-width:104px;text-align:center}
 
 /* ============================== CARDS ============================== */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
-.card > h3{font-size:13.5px;margin-bottom:2px}
-.card > h3 + .sub{color:var(--muted);font-size:12px;margin-bottom:12px}
-.sub{color:var(--muted);font-size:12px}
-.grid{display:grid;gap:14px}
-.g-kpi{grid-template-columns:repeat(auto-fit,minmax(176px,1fr))}
+/* A card is an object you can act on: a transaction, a credit card, a goal,
+   a choice. Reporting is not an object, so it gets a panel instead: no fill,
+   no shadow, one rule and enough space to be its own thing. */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:var(--sp-4);box-shadow:var(--shadow)}
+.card.soft{box-shadow:none;background:var(--surface-2)}
+.panel{border-top:1px solid var(--grid);padding-top:var(--sp-5);margin-top:var(--sp-4)}
+/* inside a grid the gap already separates them, and the rules line up as a row */
+.grid > .panel{margin-top:0}
+/* the first thing on a screen has nothing to be separated from */
+#view > .panel:first-child, #view > .grid:first-child > .panel{border-top:0;padding-top:0;margin-top:0}
+.card > h3, .panel > h3{font-family:var(--display);font-size:var(--t-lg);font-weight:620;
+  letter-spacing:-.015em;margin-bottom:2px}
+.card > h3 + .sub, .panel > h3 + .sub{color:var(--muted);font-size:var(--t-sm);
+  margin-bottom:var(--sp-3);max-width:var(--prose)}
+/* Prose stops at a comfortable measure wherever it appears. Numbers, tables
+   and charts are exempt: they need the width they need. */
+.panel > p, .panel > .sub:not(h3 + .sub), .card > p, .disclaim, .empty p,
+.headline, .sect-b > p{max-width:var(--prose)}
+.sub{color:var(--muted);font-size:13px}
+.grid{display:grid;gap:var(--sp-5)}
+.g-kpi{grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:var(--sp-5) var(--sp-4)}
+/* The tiles inside the band are separated by space, which is the only
+   separator that survives wrapping. The band itself needs no rule of its own:
+   whatever follows is a panel, and panels already begin with one. */
+#view > .g-kpi{padding-bottom:var(--sp-2)}
 .g-2{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
 .g-3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
-.section-h{display:flex;align-items:baseline;gap:10px;margin:26px 0 12px;flex-wrap:wrap}
+.section-h{display:flex;align-items:baseline;gap:8px;margin:24px 0 12px;flex-wrap:wrap}
 .section-h h2{font-size:16px}
 .section-h .sub{margin-left:auto}
 
 /* ============================== STAT TILES ============================== */
-.tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;position:relative;overflow:hidden}
-.tile .lbl{font-size:12px;color:var(--ink-2);font-weight:520;display:flex;align-items:center;gap:5px}
+/* A measurement is not an object you can act on, so it is not a card. The
+   tiles are separated by a rule and by space, and the first one is allowed to
+   be larger than the rest because it is the number the screen is about. */
+.tile{padding:0 var(--sp-4) 0 0;display:flex;flex-direction:column;gap:2px;
+  position:relative;overflow:hidden}
+.tile .lbl{font-size:var(--t-xs);color:var(--ink-2);font-weight:520;display:flex;align-items:center;gap:4px}
 .helpbtn{width:16px;height:16px;flex:none;border-radius:99px;border:1px solid var(--border-2);
-  background:transparent;color:var(--muted);font-size:10.5px;line-height:1;cursor:pointer;
+  background:transparent;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;
   display:grid;place-items:center;padding:0;font-weight:700}
 .helpbtn:hover{background:var(--surface-2);color:var(--ink);border-color:var(--muted)}
-.helpbtn:focus-visible{outline:2px solid var(--s1);outline-offset:1px}
-.quiet-note{margin-top:14px;padding:11px 14px;border-left:3px solid var(--border-2);
+.helpbtn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.quiet-note{margin-top:16px;padding:12px 16px;border-left:3px solid var(--border-2);
   background:var(--surface-2);border-radius:0 var(--r-sm) var(--r-sm) 0;
   font-size:13px;color:var(--ink-2);max-width:72ch}
-.tile .val{font-size:26px;font-weight:640;letter-spacing:-.02em;line-height:1.15}
-.tile .val.hero{font-size:clamp(26px,3.1vw + 12px,40px)}
+.tile .val{font-family:var(--display);font-size:var(--t-xl);font-weight:640;
+  letter-spacing:-.025em;line-height:1.1;font-variant-numeric:proportional-nums}
+.tile .val.hero{font-size:clamp(var(--t-xl),3.1vw + 12px,var(--t-2xl));letter-spacing:-.03em}
 /* Flowing text, not flex: as flex items the coloured span and the trailing
    words wrap independently and end up as two ragged columns on a narrow tile. */
-.tile .delta{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.45}
+.tile .delta{font-size:var(--t-xs);color:var(--muted);margin-top:2px;line-height:1.45}
 .tile .delta > span{white-space:nowrap}
 .tile .delta b{font-weight:620}
 .up{color:var(--good-ink)} .down{color:var(--crit-ink)} .flat{color:var(--muted)}
@@ -292,127 +375,128 @@ label.f > span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px
 .chartbox{position:relative;width:100%}
 svg.chart{display:block;width:100%;overflow:visible}
 svg.chart text{font-family:var(--sans)}
-.tick{fill:var(--muted);font-size:10.5px}
+.tick{fill:var(--muted);font-size:13px}
 .gridline{stroke:var(--grid);stroke-width:1}
 .baseline{stroke:var(--axis);stroke-width:1}
-.dlabel{fill:var(--ink);font-size:11px;font-weight:620}
-.dlabel-2{fill:var(--ink-2);font-size:11px}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px}
-.legend .li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
+.dlabel{fill:var(--ink);font-size:13px;font-weight:620}
+.dlabel-2{fill:var(--ink-2);font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px}
+.legend .li{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
 .legend .sw{width:10px;height:10px;border-radius:3px;flex:none}
 .legend .swl{width:14px;height:3px;border-radius:2px;flex:none}
-.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:7px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.14);z-index:20;min-width:120px;transform:translate(-50%,-120%);opacity:0;transition:opacity .1s}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:8px 8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.14);z-index:20;min-width:120px;transform:translate(-50%,-120%);opacity:0;transition:opacity .1s}
 .tip.on{opacity:1}
-.tip .t{font-weight:620;margin-bottom:3px}
-.tip .r{display:flex;justify-content:space-between;gap:14px;color:var(--ink-2)}
+.tip .t{font-weight:620;margin-bottom:4px}
+.tip .r{display:flex;justify-content:space-between;gap:16px;color:var(--ink-2)}
 .tip .r b{color:var(--ink);font-variant-numeric:tabular-nums}
 .hit{fill:transparent;cursor:crosshair}
 
 /* ============================== METERS ============================== */
 .meter{height:8px;background:var(--surface-3);border-radius:99px;overflow:hidden}
-.meter i{display:block;height:100%;border-radius:99px;background:var(--s1)}
+.meter i{display:block;height:100%;border-radius:99px;background:var(--accent)}
 .meter.g i{background:var(--good)} .meter.w i{background:var(--warn)} .meter.c i{background:var(--crit)}
-.budrow{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:9px 0;border-bottom:1px solid var(--grid)}
+.budrow{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:8px 0;border-bottom:1px solid var(--grid)}
 .budrow:last-child{border-bottom:0}
-.budrow .nm{font-size:13px;font-weight:520;display:flex;align-items:center;gap:7px}
-.budrow .amt{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;text-align:right}
-.budrow .meter{grid-column:1/-1;margin-top:3px}
+.budrow .nm{font-size:13px;font-weight:520;display:flex;align-items:center;gap:8px}
+.budrow .amt{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;text-align:right}
+.budrow .meter{grid-column:1/-1;margin-top:4px}
 .dot{width:9px;height:9px;border-radius:3px;flex:none;display:inline-block}
 
 /* ============================== TABLES ============================== */
 .tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:13px}
-th{text-align:left;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface);position:sticky;top:0;z-index:2}
+th{text-align:left;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface);position:sticky;top:0;z-index:2}
 td{padding:8px 12px;border-bottom:1px solid var(--grid);vertical-align:middle}
 tr:last-child td{border-bottom:0}
 tbody tr:hover{background:var(--surface-2)}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mono,.tick,.budrow .amt,.kv b{font-variant-numeric:tabular-nums}
 .neg{color:var(--crit-ink)} .pos{color:var(--good-ink)}
-.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);font-size:11.5px;color:var(--ink-2);white-space:nowrap}
-.pill.tiny{padding:1px 6px;font-size:11px}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;border:1px solid var(--border-2);background:var(--surface);font-size:12px;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--s1);border-color:var(--s1);color:#fff;font-weight:560}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);font-size:13px;color:var(--ink-2);white-space:nowrap}
+.pill.tiny{padding:1px 8px;font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:99px;border:1px solid var(--border-2);background:var(--surface);font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:560}
 .chip[aria-pressed="true"] .dot{box-shadow:0 0 0 1.5px #fff}
 
 /* ============================== ADVISOR ============================== */
-.score-ring{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.comp{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--grid)}
+.score-ring{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.comp{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 0;border-bottom:1px solid var(--grid)}
 .comp:last-child{border-bottom:0}
-.comp .cn{font-size:12.5px;font-weight:520}
-.comp .cv{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.comp .cn{font-size:13px;font-weight:520}
+.comp .cv{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
 .comp .meter{grid-column:1/-1}
-.comp .why{grid-column:1/-1;font-size:11.5px;color:var(--muted);margin-top:3px}
-.step{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--grid)}
+.comp .why{grid-column:1/-1;font-size:13px;color:var(--muted);margin-top:4px}
+.step{display:flex;gap:12px;padding:16px 0;border-bottom:1px solid var(--grid)}
 .step:last-child{border-bottom:0}
-.step .n{width:26px;height:26px;border-radius:99px;flex:none;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--surface-3);color:var(--ink-2)}
+.step .n{width:26px;height:26px;border-radius:99px;flex:none;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--surface-3);color:var(--ink-2)}
 .step.done .n{background:var(--good);color:#fff}
-.step.now .n{background:var(--s1);color:#fff}
+.step.now .n{background:var(--accent);color:#fff}
 .step .b{min-width:0;flex:1}
-.step .b h4{font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.step .b p{margin:5px 0 0;font-size:12.5px;color:var(--ink-2)}
-.step .b .metric{margin-top:7px;font-size:12.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 10px}
+.step .b h4{font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.step .b p{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
+.step .b .metric{margin-top:8px;font-size:13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 8px}
 .step.done{opacity:.72}
-.tag{font-size:10.5px;font-weight:640;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:4px}
+.tag{font-size:13px;font-weight:640;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:4px}
 .tag.done{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good-ink)}
-.tag.now{background:color-mix(in srgb,var(--s1) 16%,transparent);color:var(--s1)}
+.tag.now{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
 .tag.next{background:var(--surface-3);color:var(--muted)}
-.insight{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--grid)}
+.insight{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--grid)}
 .insight:last-child{border-bottom:0}
-.insight .ic{width:22px;height:22px;border-radius:6px;flex:none;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.insight .ic{width:22px;height:22px;border-radius:6px;flex:none;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
 .insight .tx{min-width:0}
 .insight .tx b{display:block;font-size:13px;margin-bottom:2px}
-.insight .tx span{font-size:12.5px;color:var(--ink-2)}
-.disclaim{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:var(--r-sm);padding:11px 13px;font-size:12px;color:var(--ink-2);margin-top:16px}
+.insight .tx span{font-size:13px;color:var(--ink-2)}
+.disclaim{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:var(--r-sm);padding:12px 12px;font-size:13px;color:var(--ink-2);margin-top:16px}
 
 /* ============================== MODAL ============================== */
-.modal-bg{position:fixed;inset:0;background:rgba(11,11,11,.44);z-index:100;display:grid;place-items:center;padding:20px;overflow:auto}
+.modal-bg{position:fixed;inset:0;background:rgba(11,11,11,.44);z-index:100;display:grid;place-items:center;padding:24px;overflow:auto}
 .modal{background:var(--surface);border:1px solid var(--border-2);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;margin:auto}
 .modal.wide{max-width:1000px}
-.modal-h{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.modal-h h3{font-size:15px;margin-right:auto}
-.modal-b{padding:18px;overflow:auto}
-.modal-f{padding:13px 18px;border-top:1px solid var(--border);display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap}
-.x{background:none;border:0;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:6px}
+.modal-h{padding:16px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.modal-h h3{font-size:14px;margin-right:auto}
+.modal-b{padding:16px;overflow:auto}
+.modal-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.x{background:none;border:0;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);padding:2px 8px;border-radius:6px}
 .x:hover{background:var(--surface-2);color:var(--ink)}
 
 /* ============================== MISC ============================== */
-.empty{text-align:center;padding:52px 20px;color:var(--ink-2)}
-.empty h3{font-size:17px;margin-bottom:7px}
-.empty p{max-width:440px;margin:0 auto 18px;font-size:13.5px;color:var(--muted)}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--page);padding:10px 18px;border-radius:99px;font-size:13px;font-weight:520;z-index:200;transition:transform .22s cubic-bezier(.2,.8,.3,1);box-shadow:0 6px 24px rgba(0,0,0,.24)}
-.toast.on{transform:translateX(-50%) translateY(0)}
-.toast.with-action{display:flex;align-items:center;gap:14px;padding:9px 9px 9px 18px;border-radius:12px}
+.empty{text-align:center;padding:52px 24px;color:var(--ink-2)}
+.empty h3{font-size:16px;margin-bottom:8px}
+.empty p{max-width:440px;margin:0 auto 16px;font-size:13px;color:var(--muted)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--page);padding:8px 16px;border-radius:99px;font-size:var(--t-xs);font-weight:520;z-index:200;transition:transform .22s cubic-bezier(.2,.8,.3,1),visibility .22s;box-shadow:0 6px 24px rgba(0,0,0,.24);/* hidden rather than merely parked, so an empty pill is never painted */visibility:hidden}
+.toast.on{transform:translateX(-50%) translateY(0);visibility:visible}
+.toast.with-action{display:flex;align-items:center;gap:16px;padding:8px 8px 8px 16px;border-radius:12px}
 .toast.with-action .btn{background:transparent;border-color:rgba(255,255,255,.35);color:var(--page);
-  font-weight:620;padding:5px 12px}
+  font-weight:620;padding:4px 12px}
 .toast.with-action .btn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.6)}
 
 /* validation belongs beside the field that is wrong, not in a toast that
    disappears before it has been read */
-.field-error{display:block;margin-top:5px;font-size:12.5px;color:var(--crit-ink);font-weight:520}
-.field-warn{display:block;margin-top:5px;font-size:12.5px;color:var(--warn-ink);font-weight:520}
+.field-error{display:block;margin-top:4px;font-size:13px;color:var(--crit-ink);font-weight:520}
+.field-warn{display:block;margin-top:4px;font-size:13px;color:var(--warn-ink);font-weight:520}
 input.invalid,select.invalid{border-color:var(--crit)}
 input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,transparent)}
-.dz{border:2px dashed var(--border-2);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
-.dz:hover,.dz.over{border-color:var(--s1);background:color-mix(in srgb,var(--s1) 5%,var(--surface))}
+.dz{border:2px dashed var(--border-2);border-radius:var(--r);padding:32px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
+.dz:hover,.dz.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
 .scroller{max-height:380px;overflow:auto}
-.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--grid)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:13px;border-bottom:1px solid var(--grid)}
 .kv:last-child{border-bottom:0}
 .kv b{font-variant-numeric:tabular-nums}
-.slider{width:100%;accent-color:var(--s1)}
+.slider{width:100%;accent-color:var(--accent)}
 /* ==================== TOUCH DEVICES & INSTALLED APP ==================== */
 /* Phones, tablets and touchscreen laptops get 44px+ hit areas, the size both
    Apple and Google publish as the minimum. Anything driven by a mouse or
    trackpad keeps the denser sizing, so this costs nothing there. */
 @media (pointer: coarse){
-  .btn{min-height:44px;padding:10px 14px}
+  .btn{min-height:44px;padding:8px 16px}
   .btn.sm{min-height:38px;padding:8px 12px}
   .btn.ghost{min-height:40px}
   .monthnav{padding:0}
   .monthnav button{min-width:46px;min-height:46px;font-size:20px}
   .monthnav .lbl{min-height:46px;display:flex;align-items:center;justify-content:center}
-  nav.tabs button{min-height:46px;padding:12px 15px}
-  .chip{min-height:40px;padding:9px 14px}
-  .seg button{min-height:40px;padding:9px 14px}
+  nav.tabs button{min-height:46px;padding:12px 16px}
+  .chip{min-height:40px;padding:8px 16px}
+  .seg button{min-height:40px;padding:8px 16px}
   .x{min-width:44px;min-height:44px;display:grid;place-items:center}
   input[type=text],input[type=number],input[type=date],input[type=month],select,textarea{
     min-height:44px;font-size:16px}          /* 16px stops iOS zooming on focus */
@@ -423,13 +507,13 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
   .slider{height:36px}
   th{padding:12px}
   td{padding:12px}
-  .insight,.step,.comp,.budrow{padding-top:13px;padding-bottom:13px}
+  .insight,.step,.comp,.budrow{padding-top:12px;padding-bottom:12px}
 }
 
 @media print{ .noprint{display:none!important} body{background:#fff} }
 @media (max-width:700px){
-  .wrap{padding:0 12px 60px} .top-in{padding:10px 12px;gap:8px} nav.tabs{padding:0 12px}
-  .tile .val{font-size:22px}
+  .wrap{padding:0 12px 60px} .top-in{padding:8px 12px;gap:8px} nav.tabs{padding:0 12px}
+  .tile .val{font-size:20px}
   .brand{flex:1 1 100%}
   .monthnav{flex:1 1 100%;justify-content:center}
   .top-in .btn{flex:1 1 auto;justify-content:center}
@@ -442,9 +526,9 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
      pattern people expect on a phone. */
   .modal-bg{padding:0;place-items:stretch}
   .modal,.modal.wide{max-width:100%;width:100%;max-height:100%;border-radius:0;margin:0}
-  .modal-h{padding:13px 14px;position:sticky;top:0;background:var(--surface);z-index:2}
-  .modal-b{padding:14px}
-  .modal-f{padding:12px 14px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  .modal-h{padding:12px 16px;position:sticky;top:0;background:var(--surface);z-index:2}
+  .modal-b{padding:16px}
+  .modal-f{padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
            position:sticky;bottom:0;background:var(--surface)}
   .row > *{flex:1 1 100%}
   .section-h .sub{margin-left:0;flex-basis:100%}
@@ -501,7 +585,7 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.7.0';
+const APP_VERSION = '1.8.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
@@ -1320,7 +1404,13 @@ let chartSeq = 0;
 function chart(spec) {
   const id = 'c' + (++chartSeq);
   CHARTS.set(id, spec);
-  const h = spec.h || 200;
+  // The reservation stops the page jumping before the chart is measured and
+  // drawn, so it has to be the height the chart will actually take. A ranked
+  // bar chart knows that from its row count, and reserving a flat 200px left
+  // a short one sitting in a pool of blank space.
+  const h = spec.h || (spec.type === 'barh'
+    ? spec.items.length * (spec.rowH || 30) + 6
+    : 200);
   return `<div class="chartbox" data-chart="${id}" style="min-height:${h}px">
     <div class="tip" data-tip></div></div>`;
 }
@@ -1335,6 +1425,8 @@ function mountCharts() {
     const svg = drawChart(spec, w);
     box.querySelectorAll('svg').forEach(n => n.remove());
     box.insertAdjacentHTML('afterbegin', svg);
+    // the drawn chart is now the thing setting the height
+    box.style.minHeight = '';
     wireHover(box, spec, tip, w);
   }
 }
@@ -1420,7 +1512,9 @@ function drawLine(spec, w) {
     paths += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"
                stroke-linejoin="round" stroke-linecap="round"${s.dash ? ' stroke-dasharray="5 4"' : ''}/>`;
     const last = pts[pts.length - 1];
-    ends += `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="${s.color}"
+    // one series means no legend is needed, so the endpoint carries the accent
+    const endFill = spec.series.length === 1 ? 'var(--chart-accent)' : s.color;
+    ends += `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="${endFill}"
               stroke="var(--surface)" stroke-width="2"/>`;
     if (spec.direct) {
       ends += `<text class="dlabel" x="${(last[0] + 9).toFixed(1)}" y="${(last[1] + 4).toFixed(1)}">${esc(s.endLabel || axisFmt(s.values[s.values.length - 1]))}</text>`;
@@ -1457,7 +1551,7 @@ function drawBarH(spec, w) {
   items.forEach((it, i) => {
     const y = i * rowH + 4;
     const bw = Math.max(2, (Math.abs(it.value) / max) * iw);
-    const c = it.color || 'var(--s1)';
+    const c = it.color || 'var(--chart-ink)';
     out += `<text class="dlabel-2" x="0" y="${y + barH / 2 + 4}" >${esc(clip(it.label, labelW))}</text>`;
     out += `<g data-i="${i}" style="cursor:default">
       <rect x="${labelW}" y="${y}" width="${bw.toFixed(1)}" height="${barH}" rx="4" fill="${c}"/>
@@ -1504,7 +1598,7 @@ function drawBarV(spec, w) {
     const yv = Y(it.value);
     const top = Math.min(yv, y0), hgt = Math.max(1.5, Math.abs(yv - y0));
     const pos = it.value >= 0;
-    const c = it.color || (pos ? 'var(--s1)' : 'var(--s8)');
+    const c = it.color || (pos ? 'var(--chart-ink)' : 'var(--crit)');
     // rounded at the data end, square at the baseline
     bars += `<g data-i="${i}">
       <path d="${roundedEnd(x, top, bw, hgt, pos)}" fill="${c}"/>
@@ -1529,7 +1623,7 @@ function roundedEnd(x, y, w, h, up) {
 /* 2px surface gaps do the separating - never a stroke around a segment.      */
 
 function drawStack(spec, w) {
-  const h = spec.h || 54, barH = 26, gap = 2;
+  const h = spec.h || 54, barH = 28, gap = 2;
   const segs = spec.segs.filter(s => s.value > 0);
   const tot = sum(segs.map(s => s.value)) || 1;
   const avail = w - gap * Math.max(0, segs.length - 1);
@@ -1541,8 +1635,10 @@ function drawStack(spec, w) {
              rx="${sw > 10 ? r : 1}" fill="${s.color}"/>`;
     // label inside only when it comfortably fits, otherwise it lives in the legend
     const txt = Math.round((s.value / tot) * 100) + '%';
-    if (sw > 42) out += `<text x="${(x + sw / 2).toFixed(1)}" y="${barH / 2 + 4}" text-anchor="middle"
-        style="font-size:11px;font-weight:640;fill:#fff">${txt}</text>`;
+    // a light segment cannot carry white text, so the label follows the fill
+    const on = s.on || '#fff';
+    if (sw > 42) out += `<text x="${(x + sw / 2).toFixed(1)}" y="${barH / 2 + 4.5}" text-anchor="middle"
+        style="font-size:var(--t-xs);font-weight:640;fill:${on}">${txt}</text>`;
     x += sw + gap;
   });
   return `<svg class="chart" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img"
@@ -1558,12 +1654,14 @@ function drawSpark(spec, w) {
   const X = i => (i / (v.length - 1)) * (w - 6) + 3;
   const Y = n => h - 4 - ((n - lo) / ((hi - lo) || 1)) * (h - 8);
   const d = v.map((n, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(n).toFixed(1)).join(' ');
-  const c = spec.color || 'var(--s1)';
+  const c = spec.color || 'var(--chart-ink)';
+  // the line is context; the accent is spent on the only point that is news
+  const dot = spec.dot || 'var(--chart-accent)';
   return `<svg class="chart" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">
     <path d="${d} L${X(v.length - 1).toFixed(1)} ${h} L${X(0).toFixed(1)} ${h} Z" fill="${c}" opacity=".10"/>
     <path d="${d}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${X(v.length - 1).toFixed(1)}" cy="${Y(v[v.length - 1]).toFixed(1)}" r="3.2"
-      fill="${c}" stroke="var(--surface)" stroke-width="2"/>
+    <circle cx="${X(v.length - 1).toFixed(1)}" cy="${Y(v[v.length - 1]).toFixed(1)}" r="3.4"
+      fill="${dot}" stroke="var(--surface)" stroke-width="2"/>
   </svg>`;
 }
 
@@ -1581,10 +1679,10 @@ function drawGauge(spec, w) {
       stroke-dasharray="${(C * val / 100).toFixed(1)} ${C.toFixed(1)}"
       transform="rotate(-90 ${cx} ${cy})"/>
     <text x="${cx}" y="${cy + 2}" text-anchor="middle"
-      style="font-size:${spec.display && String(spec.display).length > 3 ? 26 : 30}px;font-weight:640;fill:var(--ink)"
+      style="font-family:var(--display);font-size:${spec.display && String(spec.display).length > 3 ? 20 : 28}px;font-weight:640;fill:var(--ink)"
       >${esc(spec.display != null ? spec.display : Math.round(val))}</text>
     <text x="${cx}" y="${cy + 20}" text-anchor="middle"
-      style="font-size:10.5px;fill:var(--muted)">${esc(spec.sub != null ? spec.sub : 'out of 100')}</text>
+      style="font-size:13px;fill:var(--muted)">${esc(spec.sub != null ? spec.sub : 'out of 100')}</text>
   </svg>`;
 }
 
@@ -4210,7 +4308,7 @@ function deltaBit(cur, prev, goodUp = true, fmt = money) {
   const ar = d > 0 ? '▲' : d < 0 ? '▼' : '-';
   return `<span class="${cls}">${ar} <b>${fmt(Math.abs(d))}</b></span> vs last month`;
 }
-const toneVar = t => ({ good: 'var(--good)', warn: 'var(--warn)', serious: 'var(--serious)', crit: 'var(--crit)' }[t] || 'var(--s1)');
+const toneVar = t => ({ good: 'var(--good)', warn: 'var(--warn)', serious: 'var(--serious)', crit: 'var(--crit)' }[t] || 'var(--accent)');
 const toneIcon = t => ({ good: '✓', warn: '!', serious: '!', crit: '✕' }[t] || 'i');
 
 function catOptions(sel) {
@@ -4268,12 +4366,12 @@ function viewOverview() {
   const top = catRows.slice(0, 8);
   const tail = catRows.slice(8);
   const catItems = top.map(([c, v]) => ({
-    label: catName(c), value: v, color: 'var(--s1)',
+    label: catName(c), value: v, color: 'var(--chart-ink)',
     sub: st.spend > 0 ? Math.round(v / st.spend * 100) + '%' : '',
     tip: ['Share of spending', st.spend > 0 ? pct(v / st.spend * 100, 1) : '-']
   }));
   if (tail.length) catItems.push({
-    label: `Other (${tail.length})`, value: sum(tail.map(t => t[1])), color: 'var(--s1)',
+    label: `Other (${tail.length})`, value: sum(tail.map(t => t[1])), color: 'var(--chart-ink)',
     sub: st.spend > 0 ? Math.round(sum(tail.map(t => t[1])) / st.spend * 100) + '%' : ''
   });
 
@@ -4303,17 +4401,17 @@ function viewOverview() {
       value: money(st.net),
       tone: st.net >= 0 ? 'var(--good-ink)' : 'var(--crit-ink)',
       delta: deltaBit(st.net, prevSt.count ? prevSt.net : null, true),
-      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.net), color: 'var(--s1)' })
+      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.net), color: 'var(--chart-ink)' })
     })}
     ${tile({
       label: 'Income', value: money(st.income), help: 'income',
       delta: deltaBit(st.income, prevSt.count ? prevSt.income : null, true),
-      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.income), color: 'var(--s1)' })
+      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.income), color: 'var(--chart-ink)' })
     })}
     ${tile({
       label: 'Spending', value: money(st.spend), help: 'spending',
       delta: deltaBit(st.spend, prevSt.count ? prevSt.spend : null, false),
-      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.spend), color: 'var(--s2)' })
+      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.spend), color: 'var(--chart-ink)' })
     })}
     ${tile(K.savingsRate == null
       // no income means there is nothing to be a rate of, and "0.0%, below the
@@ -4323,38 +4421,38 @@ function viewOverview() {
       : { label: 'Savings rate', value: pct(K.savingsRate, 1), help: 'savingsRate',
           tone: K.savingsRate >= 20 ? 'var(--good-ink)' : K.savingsRate < 5 ? 'var(--crit-ink)' : '',
           delta: `<span class="${K.savingsRate >= 20 ? 'up' : 'flat'}">${K.savingsRate >= 20 ? 'at or above' : 'below'}</span> the 20% benchmark`,
-          spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--s3)' }) })}
+          spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--chart-ink)' }) })}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Income vs spending</h3><div class="sub">Last 12 months, household total</div>
       ${chart({
         type: 'line', h: 230, direct: true,
         x: hist.map(monthShort),
         tipTitle: i => monthLabel(hist[i]),
         series: [
-          { name: 'Income', color: 'var(--s1)', values: histStats.map(s => s.income), endLabel: compact(histStats.at(-1).income) },
-          { name: 'Spending', color: 'var(--s2)', values: histStats.map(s => s.spend), endLabel: compact(histStats.at(-1).spend) }
+          { name: 'Income', color: 'var(--chart-accent)', values: histStats.map(s => s.income), endLabel: compact(histStats.at(-1).income) },
+          { name: 'Spending', color: 'var(--chart-ink)', values: histStats.map(s => s.spend), endLabel: compact(histStats.at(-1).spend) }
         ],
         aria: 'Monthly income and spending over the last twelve months'
       })}
-      ${legend([{ name: 'Income', color: 'var(--s1)' }, { name: 'Spending', color: 'var(--s2)' }], 'swl')}
+      ${legend([{ name: 'Income', color: 'var(--chart-accent)' }, { name: 'Spending', color: 'var(--chart-ink)' }], 'swl')}
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Needs, wants and savings</h3>
       <div class="sub">The 50/30/20 guideline against your actual split</div>
       ${chart({
         type: 'stack', h: 34,
         segs: [
-          { label: 'Needs', value: st.needs, color: 'var(--s1)' },
-          { label: 'Wants', value: st.wants, color: 'var(--s2)' },
-          { label: 'Saved', value: st.totalSaved, color: 'var(--s3)' }
+          { label: 'Needs', value: st.needs, color: 'var(--chart-ink)', on: 'var(--on-ink)' },
+          { label: 'Wants', value: st.wants, color: 'var(--chart-ink-2)', on: 'var(--on-ink-2)' },
+          { label: 'Saved', value: st.totalSaved, color: 'var(--chart-accent)', on: 'var(--on-accent)' }
         ], aria: 'Share of income going to needs, wants and savings'
       })}
       <div style="margin-top:12px">
-        ${[['Needs', st.needs, 50, 'var(--s1)'], ['Wants', st.wants, 30, 'var(--s2)'], ['Saved', st.totalSaved, 20, 'var(--s3)']]
+        ${[['Needs', st.needs, 50, 'var(--chart-ink)'], ['Wants', st.wants, 30, 'var(--chart-ink-2)'], ['Saved', st.totalSaved, 20, 'var(--chart-accent)']]
           .map(([n, v, target, c]) => {
             const share = st.income > 0 ? (v / st.income) * 100 : 0;
             const ok = n === 'Saved' ? share >= target : share <= target;
@@ -4363,27 +4461,27 @@ function viewOverview() {
               <b class="${ok ? 'pos' : ''}">${money(v)} · ${pct(share)}</b></div>`;
           }).join('')}
       </div>
-      <div class="sub" style="margin-top:10px">Guideline only. High-cost housing markets routinely push needs past 50% - what matters is that the savings share keeps rising.</div>
+      <div class="sub" style="margin-top:8px">Guideline only. High-cost housing markets routinely push needs past 50% - what matters is that the savings share keeps rising.</div>
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Where the money went</h3><div class="sub">${esc(monthLabel(m))} · ranked by amount</div>
       ${catItems.length ? chart({ type: 'barh', items: catItems, rowH: 30, tipLabel: 'Spent',
         aria: 'Spending by category, ranked' }) : '<div class="sub">No spending recorded.</div>'}
     </div>
-    <div class="card">
+    <div class="panel">
       <h3>Spending by household member</h3>
       <div class="sub">Each person keeps the same colour everywhere</div>
       ${memItems.length ? chart({ type: 'barh', items: memItems, rowH: 32, tipLabel: 'Spent',
         aria: 'Spending by household member' })
-        : `<div class="sub" style="padding:14px 0">No members set up yet. <button class="btn sm" data-act="go-settings">Add household members</button></div>`}
+        : `<div class="sub" style="padding:16px 0">No members set up yet. <button class="btn sm" data-act="go-settings">Add household members</button></div>`}
       ${memItems.length > 1 ? legend(memItems.map(i => ({ name: i.label, color: i.color }))) : ''}
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Biggest merchants this month</h3><div class="sub">Grouped by merchant name</div>
     ${merchants.length ? `<table><tbody>${merchants.map(x => `
       <tr><td>${esc(x.name)}<div class="sub">${esc(catName(x.cat))} · ${x.n} charge${x.n === 1 ? '' : 's'}</div></td>
@@ -4391,7 +4489,7 @@ function viewOverview() {
       : '<div class="sub">No spending recorded.</div>'}
   </div>
 
-  ${anoms.length ? `<div class="card" style="margin-top:14px">
+  ${anoms.length ? `<div class="panel">
     <h3>Worth a look</h3><div class="sub">Categories that moved against your recent norm</div>
     ${anoms.map(a => `<div class="insight">
       <div class="ic" style="background:${a.delta > 0 ? 'var(--warn)' : 'var(--good)'}">${a.delta > 0 ? '▲' : '▼'}</div>
@@ -4540,7 +4638,7 @@ function spendingBody() {
   const inflow = sum(rows.filter(t => t.amount > 0).map(t => t.amount));
 
   return `
-  <div class="card noprint" style="margin-bottom:14px">
+  <div class="card noprint" style="margin-bottom:16px">
     <div class="row">
       <label class="f" style="flex:2 1 220px"><span>Search</span>
         <input type="text" id="fq" placeholder="Merchant or category" value="${esc(f.q)}"></label>
@@ -4568,7 +4666,7 @@ function spendingBody() {
       <td class="mono c-date">${esc(t.date.slice(5))}</td>
       <td class="c-desc">${esc(t.desc)}</td>
       <td class="c-cat"><select class="tcat" data-id="${t.id}" aria-label="Category for ${esc(t.desc)}"
-        style="padding:3px 6px;font-size:12.5px">${catOptions(t.cat)}</select></td>
+        style="padding:4px 8px;font-size:13px">${catOptions(t.cat)}</select></td>
       <td class="c-who">${t.member ? `<span class="pill tiny"><span class="dot" style="background:${memberColor(t.member)}"></span>${esc(memberName(t.member))}</span>` : '<span class="sub">-</span>'}</td>
       <td class="sub c-acct">${esc(accountName(t.account))}</td>
       <td class="num c-amt ${t.amount < 0 ? 'neg' : 'pos'}">${money2(t.amount)}</td>
@@ -4635,7 +4733,7 @@ function viewBudget() {
     That is counted separately, so it cannot make the figures above look over budget.
   </div>` : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Category budgets</h3>
     <div class="sub">The bar fills as you spend. The notch marks where you should be by today.</div>
     ${rows.length ? rows.map(r => {
@@ -4657,7 +4755,7 @@ function viewBudget() {
           </div>` : '<div class="meter"><i style="width:0"></i></div>'}
       </div>`;
     }).join('') : '<div class="sub">No spending or budgets in this month yet.</div>'}
-    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" data-act="set-budget" data-cat="">Set a category budget</button>
       <button class="btn" data-act="auto-budget">Suggest budgets from my history</button>
     </div>
@@ -4685,21 +4783,21 @@ function recurringBody() {
       tone: 'var(--good-ink)', delta: `over 20 years at ${S.settings.expectedReturn}%` })}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Ranked by annual cost</h3>
       <div class="sub">Small monthly numbers, sorted by what they actually cost per year</div>
       ${audit.items.length ? chart({
         type: 'barh', rowH: 30, fmt: v => money(v),
         items: audit.items.slice(0, 12).map(i => ({
           label: i.name.length > 26 ? i.name.slice(0, 25) + '…' : i.name,
-          value: i.amount * 12, color: 'var(--s1)',
+          value: i.amount * 12, color: 'var(--chart-ink)',
           tip: ['Per month', money2(i.amount)]
         })), tipLabel: 'Per year', aria: 'Recurring charges by annual cost'
       }) : '<div class="sub">Nothing recurring found yet.</div>'}
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Manage</h3><div class="sub">Declared items also seed future months</div>
       <div class="scroller">
       ${declared.length ? `<table><tbody>${S.recurring.map(r => `<tr>
@@ -4713,7 +4811,7 @@ function recurringBody() {
     </div>
   </div>
 
-  ${detected.length ? `<div class="card" style="margin-top:14px">
+  ${detected.length ? `<div class="panel">
     <h3>Found in your transactions</h3>
     <div class="sub">Charges that repeat at a steady amount but are not on your declared list</div>
     <table><tbody>${detected.map(d => `<tr>
@@ -4723,9 +4821,9 @@ function recurringBody() {
     </tr>`).join('')}</tbody></table>
   </div>` : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>The subscription question</h3>
-    <div class="sub" style="margin-bottom:10px">For each item, one question decides it</div>
+    <div class="sub" style="margin-bottom:8px">For each item, one question decides it</div>
     <p style="font-size:13px;color:var(--ink-2);margin:0">
       <b>Would I sign up for this today at this price?</b> If the answer is no, the only thing keeping it is inertia.
       Recurring costs are the highest-leverage cut available because the effort is one-time and the saving repeats forever -
@@ -4751,9 +4849,9 @@ function viewCards() {
 
   if (!cards.length) {
     return `
-    ${convertible.length ? `<div class="card" style="margin-top:20px">
+    ${convertible.length ? `<div class="panel">
       <h3>These look like credit cards</h3>
-      <div class="sub" style="margin-bottom:10px">They are currently in your loan list, where utilisation and
+      <div class="sub" style="margin-bottom:8px">They are currently in your loan list, where utilisation and
         statement timing can't be tracked. Convert them and add the credit limit.</div>
       ${convertible.map(d => `<div class="budrow">
         <div class="nm">${esc(d.name)}</div>
@@ -4782,10 +4880,10 @@ function viewCards() {
     <span class="sub">${cards.length} card${cards.length === 1 ? '' : 's'} ·
       ${money(totalReported())} reported of ${money(totalLimit())} in limits</span></div>
 
-  ${convertible.length ? `<div class="disclaim" style="border-left-color:var(--s1);margin:0 0 14px">
+  ${convertible.length ? `<div class="disclaim" style="border-left-color:var(--accent);margin:0 0 16px">
     <b>${convertible.length} item${convertible.length === 1 ? '' : 's'} in your loan list look like credit cards.</b>
     Converting them lets this tab track utilisation and statement timing.
-    ${convertible.map(d => `<button class="btn sm" style="margin:6px 6px 0 0"
+    ${convertible.map(d => `<button class="btn sm" style="margin:8px 8px 0 0"
       data-act="convert-debt" data-id="${d.id}">Convert &ldquo;${esc(d.name)}&rdquo;</button>`).join('')}
   </div>` : ''}
 
@@ -4802,7 +4900,7 @@ function viewCards() {
       tone: utilTone(util.agg) === 'good' ? 'var(--good-ink)' : utilTone(util.agg) === 'crit' ? 'var(--crit-ink)' : '',
       delta: util.agg > 30 ? `<span class="down">above</span> the 30% threshold`
         : util.agg > 10 ? `under 30%, above the 10% ideal` : `<span class="up">in the strongest band</span>`,
-      spark: hist.length > 1 ? chart({ type: 'spark', h: 34, values: hist.map(x => x.util), color: 'var(--s2)' }) : ''
+      spark: hist.length > 1 ? chart({ type: 'spark', h: 34, values: hist.map(x => x.util), color: 'var(--chart-ink)' }) : ''
     })}
     ${tile({
       label: 'Next payment due',
@@ -4819,8 +4917,8 @@ function viewCards() {
     })}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Utilisation by card</h3>
       <div class="sub">Each card is scored on its own as well as in total. Under 30% matters; under 10% is ideal.</div>
       <div style="margin-top:12px">
@@ -4839,7 +4937,7 @@ function viewCards() {
             </div>
           </div>`;
         }).join('')}
-        <div class="budrow" style="border-top:2px solid var(--border);margin-top:6px;padding-top:12px">
+        <div class="budrow" style="border-top:2px solid var(--border);margin-top:8px;padding-top:12px">
           <div class="nm"><b>All cards together</b></div>
           <div class="amt"><b>${pct(util.agg, 1)}</b> <span class="sub">${money(totalReported())} of ${money(totalLimit())}</span></div>
           <div class="meter ${utilClass(util.agg)}" style="position:relative">
@@ -4852,7 +4950,7 @@ function viewCards() {
       recalculated from the balances reported each month, so it can be fixed in a single billing cycle.</div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Credit factor scorecard</h3>
       <div class="sub" style="margin-bottom:12px">Published FICO factor weights applied to the data you entered</div>
       <div class="score-ring">
@@ -4863,15 +4961,15 @@ function viewCards() {
           color: toneVar(cs.tone)
         })}</div>
         <div style="flex:1 1 200px;min-width:180px">
-          <div style="font-size:19px;font-weight:640;color:${toneVar(cs.tone)}">${esc(cs.label)}</div>
-          <p class="sub" style="margin:6px 0 0">
+          <div style="font-size:20px;font-weight:640;color:${toneVar(cs.tone)}">${esc(cs.label)}</div>
+          <p class="sub" style="margin:8px 0 0">
             ${cs.reported ? `Your last reported score was <b>${cs.reported}</b>. ` : ''}
             This is a model of the factor weights, not your score. Lenders use several scoring versions and
             see data this app never will.
           </p>
         </div>
       </div>
-      <div style="margin-top:14px">
+      <div style="margin-top:16px">
         ${cs.factors.map(f => {
           if (f.score == null) return `<div class="comp">
             <div class="cn">${esc(f.name)}</div>
@@ -4894,36 +4992,36 @@ function viewCards() {
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Utilisation over time</h3>
       <div class="sub">Recorded automatically each month you open the dashboard</div>
       ${hist.length > 1 ? chart({
         type: 'line', h: 210, direct: true, fmt: v => pct(v, 1),
         x: hist.map(x => monthShort(x.month)),
         tipTitle: i => monthLabel(hist[i].month),
-        series: [{ name: 'Utilisation', color: 'var(--s2)', area: true,
+        series: [{ name: 'Utilisation', color: 'var(--chart-ink)', area: true,
           values: hist.map(x => x.util), endLabel: pct(hist[hist.length - 1].util, 0) }],
         aria: 'Credit utilisation percentage by month'
-      }) : `<div class="sub" style="padding:20px 0">History starts building from this month.
+      }) : `<div class="sub" style="padding:24px 0">History starts building from this month.
         Come back next month and a trend appears here.</div>`}
       <div class="sub" style="margin-top:8px">One series, so no legend is needed. The title names it.
       Lower is better; the strongest band is under 10%.</div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Payments due</h3>
       <div class="sub">Next 45 days. The close date is the one that sets your reported balance.</div>
-      ${due.length ? due.map(d => `<div style="padding:11px 0;border-bottom:1px solid var(--grid)">
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap">
+      ${due.length ? due.map(d => `<div style="padding:12px 0;border-bottom:1px solid var(--grid)">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
           <b style="font-size:13px">${esc(d.card.name)}</b>
           <span class="mono" style="font-weight:620">${money(d.amountFull)}</span>
         </div>
-        <div class="sub" style="margin-top:3px">
+        <div class="sub" style="margin-top:4px">
           Due in <b>${d.daysToDue} day${d.daysToDue === 1 ? '' : 's'}</b> (${d.card.dueDay}${ordinal(d.card.dueDay)})
           · statement closes in <b>${d.daysToClose} day${d.daysToClose === 1 ? '' : 's'}</b> (${d.card.statementDay}${ordinal(d.card.statementDay)})
         </div>
-        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <span class="pill tiny" ${d.autopay === 'none' ? 'style="color:var(--crit-ink);border-color:var(--crit)"' : ''}>
             ${d.autopay === 'none' ? '⚠ ' : '✓ '}${esc(AUTOPAY_LABEL[d.autopay])}</span>
           <span class="pill tiny">minimum ${money(d.amountMin)}</span>
@@ -4934,18 +5032,18 @@ function viewCards() {
     </div>
   </div>
 
-  ${totalLimit() <= 0 ? `<div class="card" style="margin-top:14px">
+  ${totalLimit() <= 0 ? `<div class="panel">
     <h3>Credit limits are missing</h3>
     <div class="sub">Utilisation is a ratio, so none of it can be calculated without each card's limit.
       Add them and this tab fills in.</div>
     <div style="margin-top:12px">${cards.map(c =>
-      `<button class="btn sm" style="margin:0 6px 6px 0" data-act="edit-card" data-id="${c.id}">Set limit for ${esc(c.name)}</button>`).join('')}</div>
+      `<button class="btn sm" style="margin:0 8px 8px 0" data-act="edit-card" data-id="${c.id}">Set limit for ${esc(c.name)}</button>`).join('')}</div>
   </div>` : `
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Pay-before-close simulator</h3>
     <div class="sub">Utilisation is measured on the statement balance. Paying before the statement closes
       changes what gets reported; paying by the due date only protects your payment history.</div>
-    <div class="row" style="margin:14px 0 4px">
+    <div class="row" style="margin:16px 0 4px">
       <label class="f" style="flex:1 1 260px">
         <span>Pay down <b>${money(payAmt)}</b> before your statements close</span>
         <input type="range" class="slider" id="utilPay" min="0" step="50"
@@ -4965,9 +5063,9 @@ function viewCards() {
       card's close date. A payment made after the statement cuts has no effect on that month's reported figure.</div>
   </div>`}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Your cards</h3>
-    <div class="sub" style="margin-bottom:10px">Limit, timing and rewards drive everything on this tab</div>
+    <div class="sub" style="margin-bottom:8px">Limit, timing and rewards drive everything on this tab</div>
     <div class="tbl-wrap" style="border:0"><table>
       <thead><tr><th>Card</th><th class="num">Limit</th><th class="num">Reported</th><th class="num">Used</th>
         <th class="num">APR</th><th>Closes / due</th><th class="num">Fee</th><th>Age</th><th></th></tr></thead>
@@ -4993,7 +5091,7 @@ function viewCards() {
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>What to do, ordered by impact</h3>
     <div class="sub" style="margin-bottom:4px">Heaviest factors and most urgent items first</div>
     ${ins.length ? ins.map(i => `<div class="insight">
@@ -5002,8 +5100,8 @@ function viewCards() {
     </div>`).join('') : '<div class="sub">Nothing needs attention right now.</div>'}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Rewards routing</h3>
       <div class="sub">Which card to use where, based on what you actually spend</div>
       ${ra.rows.length ? `<div class="tbl-wrap" style="border:0"><table>
@@ -5017,7 +5115,7 @@ function viewCards() {
           <td class="num">${money(r.bestVal)}</td>
           <td class="num ${r.gain > 1 ? 'pos' : ''}">${r.gain > 1 ? '+' + money(r.gain) : '-'}</td>
         </tr>`).join('')}</tbody></table></div>
-        <div class="kv" style="margin-top:10px"><span>Earning now</span><b>${money(ra.current)}/yr</b></div>
+        <div class="kv" style="margin-top:8px"><span>Earning now</span><b>${money(ra.current)}/yr</b></div>
         <div class="kv"><span>If every category went to its best card</span><b>${money(ra.best)}/yr</b></div>
         <div class="kv"><span>Difference</span><b class="${ra.gain > 0 ? 'pos' : ''}">${money(ra.gain)}/yr</b></div>
         ${ra.fees > 0 ? `<div class="kv"><span>Annual fees paid</span><b class="neg">${money(ra.fees)}/yr</b></div>` : ''}
@@ -5031,14 +5129,14 @@ function viewCards() {
         ${ra.noneClear ? `<div class="disclaim" style="border-left-color:var(--crit)">
           Every card is carrying a balance, so none of these rates are actually being earned,
           interest is outrunning them. Paying the balances off comes before any rewards decision.</div>` : ''}
-        <div class="sub" style="margin-top:10px">Chasing rewards is only worth it once balances are cleared
+        <div class="sub" style="margin-top:8px">Chasing rewards is only worth it once balances are cleared
         every month. A 3% cashback rate loses badly to a ${(Math.max(...cards.map(c => +c.apr || 0))).toFixed(1)}% interest charge.</div>`
         : '<div class="sub">Add reward rates to your cards to see routing suggestions.</div>'}
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Before you close a card</h3>
-      <div class="sub" style="margin-bottom:10px">Closing removes its limit from the calculation and eventually
+      <div class="sub" style="margin-bottom:8px">Closing removes its limit from the calculation and eventually
         shortens your average account age. That is two factors damaged by one action</div>
       ${cards.map(c => {
         const im = closeImpact(c.id);
@@ -5107,8 +5205,8 @@ function viewWealth() {
       delta: `25 × ${money(fi.annualEss)} of annual essentials` })}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Assets</h3><div class="sub">Cash, retirement and taxable accounts</div>
       ${S.assets.length ? `<table><tbody>${S.assets.map(a => `<tr>
         <td><b>${esc(a.name)}</b><div class="sub">${esc(({cash:'Cash',retirement:'Retirement',brokerage:'Brokerage',property:'Property',other:'Other'})[a.type] || a.type)}</div></td>
@@ -5118,7 +5216,7 @@ function viewWealth() {
       <div style="margin-top:12px"><button class="btn" data-act="edit-asset" data-id="">+ Add account</button></div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Debts</h3><div class="sub">Ordered by interest rate - the most expensive first</div>
       ${debtRows.length ? `<table><tbody>${debtRows.map(d => `<tr>
         <td><b>${esc(d.name)}</b>
@@ -5134,13 +5232,13 @@ function viewWealth() {
         <button class="btn" data-act="edit-debt" data-id="">+ Add loan</button>
         <button class="btn" data-act="edit-card" data-id="">+ Add credit card</button>
       </div>
-      ${cardDebt() > 0 ? `<div class="sub" style="margin-top:10px">Credit cards are also tracked on the
+      ${cardDebt() > 0 ? `<div class="sub" style="margin-top:8px">Credit cards are also tracked on the
         <button class="btn sm ghost" data-act="go-cards" style="padding:0 4px">Cards &amp; Credit tab</button>,
         where utilisation and statement timing matter as much as the balance.</div>` : ''}
     </div>
   </div>
 
-  ${debtRows.length ? `<div class="card" style="margin-top:14px">
+  ${debtRows.length ? `<div class="panel">
     <h3>Payoff strategy</h3>
     <div class="sub">Both methods pay the same minimums; they differ only in where the extra dollar goes.</div>
     <div class="row" style="margin:12px 0">
@@ -5148,21 +5246,21 @@ function viewWealth() {
         <input type="range" class="slider" id="extraDebt" min="0" max="1500" step="25" value="${extra}"></label>
     </div>
     <div class="grid g-3">
-      <div class="card" style="box-shadow:none;background:var(--surface-2)">
+      <div class="card soft">
         <h4 style="font-size:13px">Avalanche <span class="tag now">lowest cost</span></h4>
         <div class="sub" style="margin:4px 0 8px">Highest APR first</div>
         <div class="kv"><span>Debt-free in</span><b>${plans.avalanche.months} mo</b></div>
         <div class="kv"><span>Total interest</span><b>${money(plans.avalanche.interest)}</b></div>
         <div class="kv"><span>First target</span><b>${esc((plans.avalanche.order[0] || '-').slice(0, 22))}</b></div>
       </div>
-      <div class="card" style="box-shadow:none;background:var(--surface-2)">
+      <div class="card soft">
         <h4 style="font-size:13px">Snowball <span class="tag next">fastest wins</span></h4>
         <div class="sub" style="margin:4px 0 8px">Smallest balance first</div>
         <div class="kv"><span>Debt-free in</span><b>${plans.snowball.months} mo</b></div>
         <div class="kv"><span>Total interest</span><b>${money(plans.snowball.interest)}</b></div>
         <div class="kv"><span>First target</span><b>${esc((plans.snowball.order[0] || '-').slice(0, 22))}</b></div>
       </div>
-      <div class="card" style="box-shadow:none;background:var(--surface-2)">
+      <div class="card soft">
         <h4 style="font-size:13px">Minimums only</h4>
         <div class="sub" style="margin:4px 0 8px">No extra payment</div>
         <div class="kv"><span>Debt-free in</span><b>${plans.minimum.months} mo</b></div>
@@ -5178,7 +5276,7 @@ function viewWealth() {
     </div>` : ''}
   </div>` : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Goals</h3><div class="sub">Money with a name attached</div>
     ${S.goals.length ? S.goals.map(g => {
       const p = g.target > 0 ? clamp((g.saved / g.target) * 100, 0, 100) : 0;
@@ -5218,21 +5316,21 @@ function viewPlan() {
     <span class="sub">Built from ${S.txns.length} transactions across ${activeMonths().length} months</span></div>
 
   <div class="grid g-2">
-    <div class="card">
+    <div class="panel">
       <h3>Financial health score</h3>
       <div class="sub" style="margin-bottom:12px">Six measures, weighted by how much each one moves long-run outcomes</div>
       <div class="score-ring">
         <div style="flex:0 0 auto">${chart({ type: 'gauge', h: 150, value: h.total, color: toneVar(h.tone) })}</div>
         <div style="flex:1 1 200px;min-width:180px">
-          <div style="font-size:19px;font-weight:640;color:${toneVar(h.band[1])}">${esc(h.band[0])}</div>
-          <p class="sub" style="margin:6px 0 0">
+          <div style="font-size:20px;font-weight:640;color:${toneVar(h.band[1])}">${esc(h.band[0])}</div>
+          <p class="sub" style="margin:8px 0 0">
             ${h.total >= 62 ? 'The foundations are in place. The leverage now is in raising the investing rate and holding it.'
               : h.total >= 45 ? 'Solid habits with a clear gap or two. The lowest-numbered incomplete step below is where to push.'
               : 'The base needs work before growth compounds. Steps 1 to 3 below carry the most weight.'}
           </p>
         </div>
       </div>
-      <div style="margin-top:14px">
+      <div style="margin-top:16px">
         ${h.comps.map(c => {
           const p = (c.score / c.max) * 100;
           const cls = p >= 70 ? 'g' : p >= 40 ? 'w' : 'c';
@@ -5246,9 +5344,9 @@ function viewPlan() {
       </div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>What to do next, in order</h3>
-      <div class="sub" style="margin-bottom:6px">Each step is unlocked by the one above it. Your position is marked.</div>
+      <div class="sub" style="margin-bottom:8px">Each step is unlocked by the one above it. Your position is marked.</div>
       ${rungs.map((x, i) => `<div class="step ${x.status}">
         <div class="n">${x.status === 'done' ? '✓' : i + 1}</div>
         <div class="b">
@@ -5264,10 +5362,10 @@ function viewPlan() {
 
   ${activeCards().length ? (() => {
     const cs = creditScore(), u = utilisationScore(), top = creditInsights()[0];
-    return `<div class="card" style="margin-top:14px">
+    return `<div class="panel">
       <h3>Credit standing</h3>
       <div class="sub" style="margin-bottom:12px">Your borrowing cost for the next decade is set here</div>
-      <div class="grid g-kpi" style="gap:10px">
+      <div class="grid g-kpi" style="gap:8px">
         ${tile({ label: 'Modelled score', value: String(cs.estimate), tone: toneVar(cs.tone),
           delta: `${esc(cs.label)} · range ${cs.low} to ${cs.high}` })}
         ${tile({ label: 'Utilisation', value: pct(u.agg, 1),
@@ -5284,7 +5382,7 @@ function viewPlan() {
     </div>`;
   })() : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Findings from this month</h3>
     <div class="sub" style="margin-bottom:4px">Most urgent first</div>
     ${ins.length ? ins.map(i => `<div class="insight">
@@ -5293,8 +5391,8 @@ function viewPlan() {
     </div>`).join('') : '<div class="sub">Nothing stands out this month.</div>'}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>The cost of the next dollar spent</h3>
       <div class="sub">What a recurring monthly amount becomes if invested instead, at ${r}% a year</div>
       ${chart({
@@ -5315,15 +5413,15 @@ function viewPlan() {
       A ${money(500)}/mo habit contributes ${compact(500 * 360)} over 30 years and ends near ${compact(futureValue(500, 30, r))}; the gap is compounding.</div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Trim simulator</h3>
       <div class="sub">Move the slider. Discretionary spending averages ${money(sim.wants)}/mo over your last months.</div>
-      <label class="f" style="margin-top:14px"><span>Cut discretionary spending by <b>${UI.cutPct}%</b></span>
+      <label class="f" style="margin-top:16px"><span>Cut discretionary spending by <b>${UI.cutPct}%</b></span>
         <input type="range" class="slider" id="cutPct" min="0" max="60" step="5" value="${UI.cutPct}"></label>
       <div class="kv"><span>Freed by the cut</span><b>${money(sim.freed)}/mo</b></div>
       <div class="kv"><span>Already unallocated</span><b>${money(sim.surplus)}/mo</b></div>
       <div class="kv"><span>Total investable</span><b style="color:var(--good-ink)">${money(sim.total)}/mo</b></div>
-      <div style="margin-top:14px">
+      <div style="margin-top:16px">
         ${chart({
           type: 'barv', h: 176, fmt: v => compact(v),
           items: [['5 yr', sim.y5], ['10 yr', sim.y10], ['20 yr', sim.y20], ['30 yr', sim.y30]]
@@ -5336,11 +5434,11 @@ function viewPlan() {
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Distance to financial independence</h3>
       <div class="sub">The 25× rule: assets worth 25 years of essential spending can historically sustain a 4% annual draw</div>
-      <div class="grid g-kpi" style="margin-top:12px;gap:10px">
+      <div class="grid g-kpi" style="margin-top:12px;gap:8px">
         ${tile({ label: 'Target', value: compact(fi.target), delta: `${money(fi.annualEss)} essentials a year` })}
         ${tile({ label: 'Invested today', value: compact(fi.start), delta: `${pct(fi.coverage, 1)} of target` })}
         ${tile({ label: 'Years at current pace', value: fi.yrs == null ? '-' : fi.yrs + ' yr',
@@ -5355,9 +5453,9 @@ function viewPlan() {
       </div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Principles this plan applies</h3>
-      <div class="sub" style="margin-bottom:10px">Frameworks, not picks - no security is ever named here</div>
+      <div class="sub" style="margin-bottom:8px">Frameworks, not picks - no security is ever named here</div>
       ${[
         ['Pay the guaranteed return first', 'Clearing a 20% balance beats an uncertain 7% market return. Debt above roughly 8% outranks investing.'],
         ['Automate before you optimise', 'A transfer that happens on payday beats a better strategy you have to remember. Automation is why savings rate beats stock selection for most households.'],
@@ -5366,7 +5464,7 @@ function viewPlan() {
         ['Match the horizon to the risk', 'Money needed within about five years belongs in cash or short-term instruments; a market drop should never force a sale at the wrong moment.'],
         ['Lower fixed costs twice', 'Cutting a recurring cost raises the surplus and lowers the FI target at the same time. One-off cuts do only the first.']
       ].map(([t, d]) => `<div class="insight">
-        <div class="ic" style="background:var(--s7)">•</div>
+        <div class="ic" style="background:var(--accent)">•</div>
         <div class="tx"><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('')}
     </div>
   </div>
@@ -5392,47 +5490,47 @@ function viewImport() {
     <span class="sub">Bank, card, or wallet exports · nothing is uploaded anywhere</span></div>
 
   <div class="grid g-2">
-    <div class="card">
+    <div class="panel">
       <h3>1. Bring in a file</h3>
       <div class="sub" style="margin-bottom:12px">CSV from any bank, card issuer, or transfer app</div>
       <div class="dz" id="dz">
-        <div style="font-size:26px;margin-bottom:6px">⤓</div>
+        <div style="font-size:28px;margin-bottom:8px">⤓</div>
         <b>Drop a statement here</b> or click to choose a file
-        <div class="sub" style="margin-top:6px">
+        <div class="sub" style="margin-top:8px">
           <b>CSV</b> exports, and <b>PDF</b> or <b>Word</b> statements. Everything is read on this
           computer, and no file is uploaded anywhere.
         </div>
       </div>
       <input type="file" id="fileIn" accept=".csv,.txt,.pdf,.docx,.doc" class="hide">
-      <div style="margin:14px 0 6px" class="sub">Or paste the rows directly:</div>
+      <div style="margin:16px 0 8px" class="sub">Or paste the rows directly:</div>
       <textarea id="pasteIn" rows="5" placeholder="Date,Description,Amount&#10;2026-09-01,KROGER #418,-84.21"></textarea>
-      <div style="margin-top:10px"><button class="btn primary" data-act="parse-paste">Read pasted rows</button></div>
+      <div style="margin-top:8px"><button class="btn primary" data-act="parse-paste">Read pasted rows</button></div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>How aggregation works here</h3>
-      <div class="sub" style="margin-bottom:10px">One ledger, many sources</div>
+      <div class="sub" style="margin-bottom:8px">One ledger, many sources</div>
       ${[
         ['Every source lands in one place', 'Checking, credit cards, cash wallets and transfer apps all become rows in the same ledger, so a category total is the household total rather than one bank’s view.'],
         ['Each row is tagged to a person and an account', 'That is what makes the per-member breakdown and the fairness check possible.'],
         ['Duplicates are skipped automatically', 'Rows are fingerprinted on date, amount and merchant, so re-importing an overlapping statement will not double-count.'],
         ['Column layouts are remembered', 'Save the mapping once per bank and the next import from that source needs no setup.'],
         ['Categories are assigned on arrival', 'A merchant-matching rule set does the first pass; corrections you make can be saved as permanent rules.']
-      ].map(([t, d]) => `<div class="insight"><div class="ic" style="background:var(--s1)">✓</div>
+      ].map(([t, d]) => `<div class="insight"><div class="ic" style="background:var(--accent)">✓</div>
         <div class="tx"><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('')}
     </div>
   </div>
 
-  ${Object.keys(S.profiles).length ? `<div class="card" style="margin-top:14px">
+  ${Object.keys(S.profiles).length ? `<div class="panel">
     <h3>Saved source formats</h3>
     <div class="sub">Re-used automatically when a file has matching headers</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
       ${Object.keys(S.profiles).map(p => `<span class="pill">${esc(p)}
-        <button class="x" style="font-size:14px;padding:0 3px" data-act="del-profile" data-name="${esc(p)}">×</button></span>`).join('')}
+        <button class="x" style="font-size:14px;padding:0 4px" data-act="del-profile" data-name="${esc(p)}">×</button></span>`).join('')}
     </div>
   </div>` : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Backup &amp; restore</h3>
     <div class="sub" style="margin-bottom:12px">Your data lives only in this browser. Export regularly.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -5453,9 +5551,9 @@ function viewSettings() {
   <div class="section-h"><h2>Settings</h2><span class="sub">Household, accounts and planning assumptions</span></div>
 
   <div class="grid g-2">
-    <div class="card">
+    <div class="panel">
       <h3>Household members</h3>
-      <div class="sub" style="margin-bottom:10px">Each person gets a fixed colour used across every chart</div>
+      <div class="sub" style="margin-bottom:8px">Each person gets a fixed colour used across every chart</div>
       ${S.members.length ? S.members.map(m => `<div class="budrow">
         <div class="nm"><span class="dot" style="background:${memberColor(m.id)}"></span>${esc(m.name)}
           <span class="pill tiny">${esc(m.role || 'Member')}</span></div>
@@ -5468,9 +5566,9 @@ function viewSettings() {
       </div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Accounts &amp; sources</h3>
-      <div class="sub" style="margin-bottom:10px">Where transactions come from</div>
+      <div class="sub" style="margin-bottom:8px">Where transactions come from</div>
       ${S.accounts.length ? S.accounts.map(a => `<div class="budrow">
         <div class="nm">${esc(a.name)} <span class="pill tiny">${esc(a.type)}</span></div>
         <div class="amt">${a.member ? esc(memberName(a.member)) : '<span class="sub">shared</span>'}
@@ -5480,8 +5578,8 @@ function viewSettings() {
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Planning assumptions</h3>
       <div class="sub" style="margin-bottom:12px">These drive every projection on the Plan tab</div>
       <div class="row">
@@ -5503,13 +5601,13 @@ function viewSettings() {
         <input type="checkbox" id="setHdhp" ${st.hdhp ? 'checked' : ''} style="width:auto">
         We are on a high-deductible health plan (HSA-eligible)</span></label>
       <button class="btn primary" data-act="save-settings">Save assumptions</button>
-      <div class="sub" style="margin-top:10px">A 7% expected return is a common long-run nominal assumption for a
+      <div class="sub" style="margin-top:8px">A 7% expected return is a common long-run nominal assumption for a
       diversified equity-heavy portfolio; it is not a promise, and real returns arrive unevenly.</div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Categorisation rules</h3>
-      <div class="sub" style="margin-bottom:10px">Your rules override the ${DEFAULT_RULES.length} built-in merchant patterns</div>
+      <div class="sub" style="margin-bottom:8px">Your rules override the ${DEFAULT_RULES.length} built-in merchant patterns</div>
       ${S.rules.length ? `<div class="scroller"><table><tbody>${S.rules.map((r, i) => `<tr>
         <td>Description contains <b>${esc(r.match)}</b></td>
         <td>&rarr; ${esc(catName(r.cat))}</td>
@@ -5522,7 +5620,7 @@ function viewSettings() {
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Data</h3>
     <div class="sub" style="margin-bottom:12px">
       Everything is stored in this browser only (localStorage). Clearing site data, using a different
@@ -5545,7 +5643,7 @@ function viewSettings() {
       : P.fileMode ? 'running from a local file'
       : (navigator.serviceWorker && navigator.serviceWorker.controller) ? 'available offline in this browser'
       : 'running in a browser';
-    return `<div class="card" style="margin-top:14px">
+    return `<div class="panel">
     <h3>This app</h3>
     <div class="sub" style="margin-bottom:12px">Version ${APP_VERSION} &middot; ${state}</div>
 
@@ -5553,11 +5651,11 @@ function viewSettings() {
       <div class="ic" style="background:var(--good)">&#10003;</div>
       <div class="tx"><b>Installed on this computer</b><span>It runs in its own window and works
       without an internet connection. Updates arrive the next time you open it while online.</span></div></div>`
-    : P.fileMode ? `<div class="disclaim" style="border-left-color:var(--s1);margin-top:0">
+    : P.fileMode ? `<div class="disclaim" style="border-left-color:var(--accent);margin-top:0">
       <b>Opened straight from a file.</b> That works fine and is the simplest way to use it.
       To get an icon and its own window instead, the folder needs to be opened through a
       local address. The RUN-THIS-APP guide has the steps.</div>`
-    : P.iOS ? `<div class="disclaim" style="border-left-color:var(--s1);margin-top:0">
+    : P.iOS ? `<div class="disclaim" style="border-left-color:var(--accent);margin-top:0">
       <b>To install on iPhone or iPad:</b> tap the <b>Share</b> button in Safari
       (the square with an arrow pointing up), scroll down, and choose
       <b>Add to Home Screen</b>. Safari has no automatic install prompt, so this is the only
@@ -5865,7 +5963,7 @@ function cardForm(id) {
       <input type="checkbox" id="c_full" ${v.paysInFull !== false ? 'checked' : ''} style="width:auto">
       Paid in full every month (no interest charged)</span></label>
 
-    <h4 style="font-size:13px;margin:16px 0 6px">Reward rates</h4>
+    <h4 style="font-size:13px;margin:16px 0 8px">Reward rates</h4>
     <div class="sub" style="margin-bottom:8px">Use <b>*</b> for the everything-else rate.</div>
     <div id="c_rewards">
       ${rw.map((r, i) => rewardRow(r, i)).join('')}
@@ -5917,9 +6015,9 @@ function cardForm(id) {
       closeModal();
       confirmAction({
         title: 'Remove this card?',
-        body: `<p style="margin:0 0 10px">This removes <b>${esc(c.name)}</b> from the dashboard.
+        body: `<p style="margin:0 0 8px">This removes <b>${esc(c.name)}</b> from the dashboard.
           It does not close the account with ${esc(c.issuer || 'the issuer')}.</p>
-          <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+          <ul style="margin:0;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.7">
             <li>Its ${money(c.limit)} limit stops counting towards your utilisation</li>
             ${(+c.balance || 0) > 0 ? `<li>Its ${money(c.balance)} balance leaves your debt total</li>` : ''}
             ${pays ? `<li>${pays} logged payment${pays === 1 ? '' : 's'} stay in your history</li>` : ''}
@@ -5997,7 +6095,7 @@ function paymentLogView() {
   const r = paymentRecord();
   const nameOf = id => ((S.cards || []).find(c => c.id === id) || {}).name || 'Card';
   openModal('Payment history', `
-    <div class="grid g-3" style="margin-bottom:14px">
+    <div class="grid g-3" style="margin-bottom:16px">
       <div class="kv"><span>On-time streak</span><b>${r.streak}</b></div>
       <div class="kv"><span>Late payments logged</span><b class="${r.lates.length ? 'neg' : ''}">${r.lates.length}</b></div>
       <div class="kv"><span>Total logged</span><b>${r.total}</b></div>
@@ -6033,7 +6131,7 @@ function inquiriesForm() {
         ${(monthsSince(q.date) || 0) >= 12 ? '<span class="pill tiny">no longer scored</span>' : ''}</td>
       <td><button class="btn sm ghost" data-act="del-inquiry" data-i="${i}">&times;</button></td>
     </tr>`).join('')}</tbody></table>` : '<div class="sub">None recorded.</div>'}
-    <div class="row" style="margin-top:14px">
+    <div class="row" style="margin-top:16px">
       <label class="f"><span>Date</span><input type="date" id="q_date" value="${todayISO()}"></label>
       <label class="f" style="flex:2 1 200px"><span>What for</span>
         <input type="text" id="q_label" placeholder="e.g. car loan application"></label>
@@ -6157,7 +6255,7 @@ function fixUncategorised() {
     ${items.map(t => `<tr data-uid="${t.id}">
       <td><b>${esc(t.desc)}</b><div class="sub">${esc(t.date)} · ${money2(t.amount)}</div></td>
       <td style="width:190px"><select class="uCat">${catOptions('misc')}</select></td>
-      <td style="width:80px"><label class="sub" style="display:flex;gap:5px;align-items:center">
+      <td style="width:80px"><label class="sub" style="display:flex;gap:4px;align-items:center">
         <input type="checkbox" class="uRule" style="width:auto"> rule</label></td>
     </tr>`).join('')}
     </tbody></table></div>`,
@@ -6278,13 +6376,13 @@ function importModal() {
         <input type="text" id="mProf" value="${esc(IMP.source)}" placeholder="e.g. Chase checking"></label>
     </div>
 
-    ${p.span ? `<div class="disclaim" style="border-left-color:${p.spanMonths > 3 ? 'var(--warn)' : 'var(--s1)'};margin-top:14px">
+    ${p.span ? `<div class="disclaim" style="border-left-color:${p.spanMonths > 3 ? 'var(--warn)' : 'var(--accent)'};margin-top:16px">
       Dates read as <b>${esc(p.span[0])}</b> to <b>${esc(p.span[1])}</b>${p.spanMonths > 3
         ? `. That spans ${p.spanMonths} months. If this file covers a single statement period,
             the date order above is probably wrong; switch it and the preview will update.`
         : '.'}
     </div>` : ''}
-    <div class="kv" style="margin-top:6px"><span>Rows read</span><b>${p.total}</b></div>
+    <div class="kv" style="margin-top:8px"><span>Rows read</span><b>${p.total}</b></div>
     <div class="kv"><span>New transactions to add</span><b style="color:var(--good-ink)">${p.fresh.length}</b></div>
     <div class="kv"><span>Duplicates skipped</span><b>${p.dupes.length}</b></div>
 
@@ -6521,10 +6619,10 @@ let STMT = null;   // in-flight document review
 /** Reads a PDF or Word statement and opens the review screen. */
 async function statementFlow(file, preloadedText) {
   openModal('Reading ' + (file.name || 'document'), `
-    <div style="text-align:center;padding:26px 10px">
-      <div style="font-size:30px;margin-bottom:10px">&#8987;</div>
+    <div style="text-align:center;padding:24px 8px">
+      <div style="font-size:28px;margin-bottom:8px">&#8987;</div>
       <b>Reading the document</b>
-      <div class="sub" style="margin-top:6px">Large PDFs can take a few seconds. This happens entirely
+      <div class="sub" style="margin-top:8px">Large PDFs can take a few seconds. This happens entirely
       on your computer.</div>
     </div>`, '');
   await new Promise(r => setTimeout(r, 30));   // let the modal paint first
@@ -6598,20 +6696,20 @@ function documentError(doc, file) {
     <div class="disclaim" style="border-left-color:var(--crit);margin-top:0">
       ${esc(doc.error || 'This file could not be read.')}
     </div>
-    <h4 style="font-size:13px;margin:18px 0 8px">What usually works instead</h4>
-    <ol style="font-size:13px;color:var(--ink-2);padding-left:20px;line-height:1.8;margin:0">
+    <h4 style="font-size:13px;margin:16px 0 8px">What usually works instead</h4>
+    <ol style="font-size:13px;color:var(--ink-2);padding-left:24px;line-height:1.8;margin:0">
       <li>Sign in to the bank or card website.</li>
       <li>Look for <b>Download</b>, <b>Export</b> or <b>Download transactions</b>.</li>
       <li>Choose <b>CSV</b> as the format.</li>
       <li>Drop that file here instead. CSV always works and is more accurate.</li>
     </ol>
-    ${isPdf ? `<p class="sub" style="margin-top:14px">A quick way to tell whether a PDF can be read
+    ${isPdf ? `<p class="sub" style="margin-top:16px">A quick way to tell whether a PDF can be read
       at all: open it and try to select a line of text with your mouse. If nothing highlights, the page
       is a picture and there is no text to extract.</p>` : ''}
-    ${doc.text ? `<details style="margin-top:14px"><summary class="sub" style="cursor:pointer">
+    ${doc.text ? `<details style="margin-top:16px"><summary class="sub" style="cursor:pointer">
       Show what was read from the file</summary>
-      <pre style="white-space:pre-wrap;font-size:11px;max-height:220px;overflow:auto;
-        background:var(--surface-2);padding:10px;border-radius:7px;margin-top:8px">${esc(doc.text.slice(0, 3000))}</pre>
+      <pre style="white-space:pre-wrap;font-size:13px;max-height:220px;overflow:auto;
+        background:var(--surface-2);padding:8px;border-radius:7px;margin-top:8px">${esc(doc.text.slice(0, 3000))}</pre>
       </details>` : ''}
   `, `<button class="btn primary" data-close>Close</button>`);
 }
@@ -6632,7 +6730,7 @@ function statementReview() {
   const kindLabel = { card: 'Credit card statement', bank: 'Bank statement', unknown: 'Statement' }[a.kind];
 
   openModal('Review what was found', `
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px">
       <span class="pill">${esc(doc.name || STMT.file.name)}</span>
       <span class="pill">${esc(kindLabel)}</span>
       ${doc.pages ? `<span class="pill">${doc.pages} page${doc.pages === 1 ? '' : 's'}</span>` : ''}
@@ -6644,14 +6742,14 @@ function statementReview() {
       <b>Old Word format.</b> Text was pulled out as best it could be, so check the rows below
       carefully. Saving the file as .docx or PDF and importing that gives a cleaner result.</div>` : ''}
 
-    ${a.txns.some(t => t.transfer) ? `<div class="disclaim" style="border-left-color:var(--s1);margin-top:0">
+    ${a.txns.some(t => t.transfer) ? `<div class="disclaim" style="border-left-color:var(--accent);margin-top:0">
       <b>${a.txns.filter(t => t.transfer).length} payment row(s) to this card have been left out.</b>
       Paying a card moves money between your own accounts, so counting it would look like income and
       would double-count the spending once you import the account that paid it. Include them below if
       you want them anyway.</div>` : ''}
 
     ${a.txns.length ? `
-    <div class="grid g-3" style="gap:10px;margin-bottom:14px">
+    <div class="grid g-3" style="gap:8px;margin-bottom:16px">
       <div class="kv"><span>Transactions found</span><b>${a.txns.length}</b></div>
       <div class="kv"><span>Money out</span><b>${money(outflow)}</b></div>
       <div class="kv"><span>Money in</span><b>${money(inflow)}</b></div>
@@ -6671,7 +6769,7 @@ function statementReview() {
             Some rows may be missing or duplicated, so compare against the paper statement before applying.`) : ''}
     </div>
 
-    <div class="row" style="margin:14px 0 6px">
+    <div class="row" style="margin:16px 0 8px">
       <label class="f"><span>Assign to account</span>
         <select id="stAcc">${accountOptions(STMT.account, 'None')}</select></label>
       <label class="f"><span>Assign to person</span>
@@ -6697,7 +6795,7 @@ function statementReview() {
           <td class="mono">${esc(t.date)}</td>
           <td>${esc(t.desc.slice(0, 46))}${t.transfer
             ? ' <span class="pill tiny">card payment</span>' : ''}</td>
-          <td><select class="stCat" data-i="${i}" style="padding:3px 6px;font-size:12.5px">${catOptions(t.cat)}</select></td>
+          <td><select class="stCat" data-i="${i}" style="padding:4px 8px;font-size:13px">${catOptions(t.cat)}</select></td>
           <td class="num ${amt < 0 ? 'neg' : 'pos'}">${money2(amt)}</td>
           <td><button class="btn sm ghost" data-stskip="${i}">${off ? 'Include' : 'Drop'}</button></td>
         </tr>`;
@@ -6707,7 +6805,7 @@ function statementReview() {
       this document, but the account figures below were. Applying them still updates your card.</div>`}
 
     ${a.kind === 'card' && updates.length ? `
-      <h4 style="font-size:13px;margin:18px 0 8px">Card details found in this statement</h4>
+      <h4 style="font-size:13px;margin:16px 0 8px">Card details found in this statement</h4>
       <label class="f"><span>Apply these to</span>
         <select id="stCard">
           <option value="">Do not update any card</option>
@@ -6726,8 +6824,8 @@ function statementReview() {
 
     <details style="margin-top:16px"><summary class="sub" style="cursor:pointer">
       Show the raw text read from the file</summary>
-      <pre style="white-space:pre-wrap;font-size:11px;max-height:240px;overflow:auto;
-        background:var(--surface-2);padding:10px;border-radius:7px;margin-top:8px">${esc((doc.text || '').slice(0, 6000))}</pre>
+      <pre style="white-space:pre-wrap;font-size:13px;max-height:240px;overflow:auto;
+        background:var(--surface-2);padding:8px;border-radius:7px;margin-top:8px">${esc((doc.text || '').slice(0, 6000))}</pre>
     </details>
   `, `<button class="btn" data-close>Cancel</button>
       <button class="btn primary" id="stApply">Apply${fresh.length ? ' ' + fresh.length + ' transaction' + (fresh.length === 1 ? '' : 's') : ''}</button>`,
@@ -6877,7 +6975,7 @@ document.addEventListener('click', e => {
     case 'goto-month': UI.month = a.dataset.m; render(); break;
     case 'explain': {
       const h = METRIC_HELP[a.dataset.key];
-      if (h) openModal(h[0], `<p style="margin:0;font-size:13.5px;max-width:66ch">${esc(h[1])}</p>`,
+      if (h) openModal(h[0], `<p style="margin:0;font-size:13px;max-width:66ch">${esc(h[1])}</p>`,
         `<button class="btn primary" data-close>Got it</button>`);
       break;
     }
@@ -6904,9 +7002,9 @@ document.addEventListener('click', e => {
     case 'dismiss-backup': { const w = $('#backupWarn'); if (w) w.remove(); break; }
     case 'about-sharing':
       openModal('Sharing this dashboard', `
-        <p style="margin-top:0;font-size:13.5px">Anyone can run their own copy. Nothing is shared between
+        <p style="margin-top:0;font-size:13px">Anyone can run their own copy. Nothing is shared between
         copies. Each person's figures stay in their own browser, on their own device.</p>
-        <h4 style="font-size:13px;margin:16px 0 6px">Send them the single file</h4>
+        <h4 style="font-size:13px;margin:16px 0 8px">Send them the single file</h4>
         <p class="sub" style="margin:0">Email or message them <b>wealth-dashboard.html</b> from the
         <code>dist</code> folder. It is the entire app in one file: they save it anywhere and double-click it.
         No install, no folder, no internet needed.</p>
@@ -6914,11 +7012,11 @@ document.addEventListener('click', e => {
         <p class="sub" style="margin:0">Copy the whole <code>finance-dashboard</code> folder to a shared
         drive or a USB stick. They open <code>index.html</code> inside it. Same result, and it keeps the
         separate files if they ever want to change something.</p>
-        <h4 style="font-size:13px;margin:16px 0 6px">For a phone or tablet, send a link</h4>
+        <h4 style="font-size:13px;margin:16px 0 8px">For a phone or tablet, send a link</h4>
         <p class="sub" style="margin:0">Phones have no good way to open a downloaded HTML file, so put
         the folder on any static host and send the address. They open it once, add it to their home
         screen, and it works offline from then on. <b>DEPLOY.md</b> has the steps.</p>
-        <h4 style="font-size:13px;margin:16px 0 6px">What they will see</h4>
+        <h4 style="font-size:13px;margin:16px 0 8px">What they will see</h4>
         <p class="sub" style="margin:0">A setup screen asking for their own household members and accounts.
         Your data is never part of what you send. It lives only in your browser's storage, not in the
         files.</p>
@@ -6999,9 +7097,9 @@ document.addEventListener('click', e => {
       // real data is about to be replaced, so offer to save it first
       confirmAction({
         title: 'Replace your data with the sample household?',
-        body: `<p style="margin:0 0 10px">This removes what is currently in the dashboard and puts
+        body: `<p style="margin:0 0 8px">This removes what is currently in the dashboard and puts
           a made-up family in its place.</p>
-          <ul style="margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+          <ul style="margin:0 0 12px;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.7">
             <li><b>${S.txns.length}</b> transactions</li>
             <li><b>${S.members.length}</b> household members and ${S.accounts.length} accounts</li>
             ${(S.cards || []).length ? `<li><b>${S.cards.length}</b> credit cards</li>` : ''}
@@ -7025,14 +7123,14 @@ document.addEventListener('click', e => {
     case 'wipe': {
       confirmAction({
         title: 'Clear all data?',
-        body: `<p style="margin:0 0 10px">This removes everything you have entered from this browser:</p>
-          <ul style="margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+        body: `<p style="margin:0 0 8px">This removes everything you have entered from this browser:</p>
+          <ul style="margin:0 0 12px;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.7">
             <li><b>${S.txns.length}</b> transactions</li>
             <li>${(S.cards || []).length} credit cards and ${(S.debts || []).length} loans</li>
             <li>${(S.goals || []).length} goals, ${(S.assets || []).length} assets, ${(S.recurring || []).length} recurring items</li>
             <li>All budgets and categorisation rules</li>
           </ul>
-          <p style="margin:0 0 10px;font-size:13px"><b>${S.members.length} household members and
+          <p style="margin:0 0 8px;font-size:13px"><b>${S.members.length} household members and
             ${S.accounts.length} accounts are kept</b>, so you do not have to set them up again.</p>
           <div class="quiet-note" style="margin:0">Download a backup first if there is any chance you
             want this back.</div>`,
@@ -7145,7 +7243,7 @@ async function storageInfo() {
       on your own computer.
     </div>` : ''}
 
-    <h4 style="font-size:13px;margin:18px 0 6px">How safe is this?</h4>
+    <h4 style="font-size:13px;margin:16px 0 8px">How safe is this?</h4>
     ${P.iOS ? `<div class="disclaim" style="border-left-color:var(--crit)">
       <b>On iPhone and iPad, treat backups as mandatory.</b> Safari reclaims website storage from
       sites you have not opened in a while, and it ignores the standard request to mark storage as
@@ -7162,8 +7260,8 @@ async function storageInfo() {
            that much less likely. Either way it does not exist on any other device or browser.`}
     </div>`}
 
-    <h4 style="font-size:13px;margin:18px 0 6px">What always loses the data</h4>
-    <ul style="font-size:12.5px;color:var(--ink-2);margin:0;padding-left:18px;line-height:1.7">
+    <h4 style="font-size:13px;margin:16px 0 8px">What always loses the data</h4>
+    <ul style="font-size:13px;color:var(--ink-2);margin:0;padding-left:16px;line-height:1.7">
       <li>Clearing browsing data or site data for this page</li>
       <li>Private or incognito windows, where nothing is kept at all</li>
       <li>Opening it in a different browser, a different device, or another Windows user account</li>
@@ -7194,26 +7292,26 @@ function setupWizard(step) {
 
   const dots = [0, 1, 2].map(i =>
     `<span style="width:7px;height:7px;border-radius:99px;display:inline-block;
-      background:${i === WIZ.step ? 'var(--s1)' : 'var(--surface-3)'}"></span>`).join(' ');
+      background:${i === WIZ.step ? 'var(--accent)' : 'var(--surface-3)'}"></span>`).join(' ');
 
   const body = [
     // ---------- step 1: who lives here ----------
     () => `
-      <p style="margin-top:0;font-size:13.5px">This dashboard tracks what a household spends across every
+      <p style="margin-top:0;font-size:13px">This dashboard tracks what a household spends across every
       account and person, then uses those numbers to model savings, debt payoff, credit and long-term growth.</p>
-      <p style="font-size:13.5px"><b>Nothing leaves this device.</b> There is no server, no account and no
+      <p style="font-size:13px"><b>Nothing leaves this device.</b> There is no server, no account and no
       sign-in. Everything is stored in this browser, which is also why backups matter.</p>
       <label class="f"><span>What should we call this household?</span>
         <input type="text" id="wzName" value="${esc(WIZ.name)}" placeholder="e.g. The Smith Household"></label>
-      <h4 style="font-size:13px;margin:18px 0 6px">Who lives here?</h4>
-      <div class="sub" style="margin-bottom:10px">Each person gets a fixed colour used on every chart, so you can
+      <h4 style="font-size:13px;margin:16px 0 8px">Who lives here?</h4>
+      <div class="sub" style="margin-bottom:8px">Each person gets a fixed colour used on every chart, so you can
       see at a glance who spent what. Include children if you want their spending tracked separately.</div>
       <div id="wzPeople">${WIZ.people.map((p, i) => personRow(p, i)).join('')}</div>
       <button class="btn sm" type="button" id="wzAddPerson">+ Add another person</button>`,
 
     // ---------- step 2: where the money sits ----------
     () => `
-      <p style="margin-top:0;font-size:13.5px">Add the accounts you'll import statements from: current
+      <p style="margin-top:0;font-size:13px">Add the accounts you'll import statements from: current
       accounts, credit cards, cash wallets, transfer apps. Every one of them feeds the same ledger, which is
       what makes a category total the <i>household</i> total rather than one bank's view.</p>
       <div class="sub" style="margin-bottom:12px">You can skip this and add them later from Settings.
@@ -7223,21 +7321,21 @@ function setupWizard(step) {
 
     // ---------- step 3: get some data in ----------
     () => `
-      <p style="margin-top:0;font-size:13.5px"><b>${esc(WIZ.name || 'Your household')}</b> is set up with
+      <p style="margin-top:0;font-size:13px"><b>${esc(WIZ.name || 'Your household')}</b> is set up with
       ${WIZ.people.filter(p => p.name.trim()).length} member(s)
       and ${WIZ.accounts.filter(a => a.name.trim()).length} account(s).</p>
-      <p style="font-size:13.5px">The dashboard needs transactions before it can tell you anything. Pick how
+      <p style="font-size:13px">The dashboard needs transactions before it can tell you anything. Pick how
       you'd like to begin:</p>
-      <div style="display:grid;gap:10px;margin-top:14px">
-        <button class="btn" id="wzImport" style="justify-content:flex-start;padding:14px;height:auto;text-align:left">
+      <div style="display:grid;gap:8px;margin-top:16px">
+        <button class="btn" id="wzImport" style="justify-content:flex-start;padding:16px;height:auto;text-align:left">
           <div><b style="display:block">Import a bank or card statement</b>
           <span class="sub">A CSV export from any bank. Columns are detected for you. This is the fastest route.</span></div>
         </button>
-        <button class="btn" id="wzManual" style="justify-content:flex-start;padding:14px;height:auto;text-align:left">
+        <button class="btn" id="wzManual" style="justify-content:flex-start;padding:16px;height:auto;text-align:left">
           <div><b style="display:block">Add transactions by hand</b>
           <span class="sub">Good if you mostly spend cash, or just want to try it out.</span></div>
         </button>
-        <button class="btn" id="wzSample" style="justify-content:flex-start;padding:14px;height:auto;text-align:left">
+        <button class="btn" id="wzSample" style="justify-content:flex-start;padding:16px;height:auto;text-align:left">
           <div><b style="display:block">Explore a sample household first</b>
           <span class="sub">A fictional family with nine months of activity, so every screen has something to show.
           Replaces your setup, and you can clear it from Settings afterwards.</span></div>
@@ -7250,13 +7348,13 @@ function setupWizard(step) {
   ][WIZ.step]();
 
   const footer = WIZ.step === 0
-    ? `<span style="margin-right:auto;display:flex;gap:5px;align-items:center">${dots}</span>
+    ? `<span style="margin-right:auto;display:flex;gap:4px;align-items:center">${dots}</span>
        <button class="btn primary" id="wzNext">Continue</button>`
     : WIZ.step === 1
-    ? `<span style="margin-right:auto;display:flex;gap:5px;align-items:center">${dots}</span>
+    ? `<span style="margin-right:auto;display:flex;gap:4px;align-items:center">${dots}</span>
        <button class="btn" id="wzBack">Back</button>
        <button class="btn primary" id="wzNext">Continue</button>`
-    : `<span style="margin-right:auto;display:flex;gap:5px;align-items:center">${dots}</span>
+    : `<span style="margin-right:auto;display:flex;gap:4px;align-items:center">${dots}</span>
        <button class="btn" id="wzBack">Back</button>`;
 
   openModal(['Welcome', 'Accounts and cards', 'Ready'][WIZ.step], body, footer, root => {

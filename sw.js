@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = '1.7.0';
+const VERSION = '1.8.0';
 const CACHE = 'hwd-' + VERSION;
 
 const ASSETS = [
@@ -20,6 +20,7 @@ const ASSETS = [
   './docparse.js',
   './extract.js',
   './views.js',
+  './fonts/space-grotesk-var.woff2',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',

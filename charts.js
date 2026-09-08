@@ -12,7 +12,13 @@ let chartSeq = 0;
 function chart(spec) {
   const id = 'c' + (++chartSeq);
   CHARTS.set(id, spec);
-  const h = spec.h || 200;
+  // The reservation stops the page jumping before the chart is measured and
+  // drawn, so it has to be the height the chart will actually take. A ranked
+  // bar chart knows that from its row count, and reserving a flat 200px left
+  // a short one sitting in a pool of blank space.
+  const h = spec.h || (spec.type === 'barh'
+    ? spec.items.length * (spec.rowH || 30) + 6
+    : 200);
   return `<div class="chartbox" data-chart="${id}" style="min-height:${h}px">
     <div class="tip" data-tip></div></div>`;
 }
@@ -27,6 +33,8 @@ function mountCharts() {
     const svg = drawChart(spec, w);
     box.querySelectorAll('svg').forEach(n => n.remove());
     box.insertAdjacentHTML('afterbegin', svg);
+    // the drawn chart is now the thing setting the height
+    box.style.minHeight = '';
     wireHover(box, spec, tip, w);
   }
 }
@@ -112,7 +120,9 @@ function drawLine(spec, w) {
     paths += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"
                stroke-linejoin="round" stroke-linecap="round"${s.dash ? ' stroke-dasharray="5 4"' : ''}/>`;
     const last = pts[pts.length - 1];
-    ends += `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="${s.color}"
+    // one series means no legend is needed, so the endpoint carries the accent
+    const endFill = spec.series.length === 1 ? 'var(--chart-accent)' : s.color;
+    ends += `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="${endFill}"
               stroke="var(--surface)" stroke-width="2"/>`;
     if (spec.direct) {
       ends += `<text class="dlabel" x="${(last[0] + 9).toFixed(1)}" y="${(last[1] + 4).toFixed(1)}">${esc(s.endLabel || axisFmt(s.values[s.values.length - 1]))}</text>`;
@@ -149,7 +159,7 @@ function drawBarH(spec, w) {
   items.forEach((it, i) => {
     const y = i * rowH + 4;
     const bw = Math.max(2, (Math.abs(it.value) / max) * iw);
-    const c = it.color || 'var(--s1)';
+    const c = it.color || 'var(--chart-ink)';
     out += `<text class="dlabel-2" x="0" y="${y + barH / 2 + 4}" >${esc(clip(it.label, labelW))}</text>`;
     out += `<g data-i="${i}" style="cursor:default">
       <rect x="${labelW}" y="${y}" width="${bw.toFixed(1)}" height="${barH}" rx="4" fill="${c}"/>
@@ -196,7 +206,7 @@ function drawBarV(spec, w) {
     const yv = Y(it.value);
     const top = Math.min(yv, y0), hgt = Math.max(1.5, Math.abs(yv - y0));
     const pos = it.value >= 0;
-    const c = it.color || (pos ? 'var(--s1)' : 'var(--s8)');
+    const c = it.color || (pos ? 'var(--chart-ink)' : 'var(--crit)');
     // rounded at the data end, square at the baseline
     bars += `<g data-i="${i}">
       <path d="${roundedEnd(x, top, bw, hgt, pos)}" fill="${c}"/>
@@ -221,7 +231,7 @@ function roundedEnd(x, y, w, h, up) {
 /* 2px surface gaps do the separating - never a stroke around a segment.      */
 
 function drawStack(spec, w) {
-  const h = spec.h || 54, barH = 26, gap = 2;
+  const h = spec.h || 54, barH = 28, gap = 2;
   const segs = spec.segs.filter(s => s.value > 0);
   const tot = sum(segs.map(s => s.value)) || 1;
   const avail = w - gap * Math.max(0, segs.length - 1);
@@ -233,8 +243,10 @@ function drawStack(spec, w) {
              rx="${sw > 10 ? r : 1}" fill="${s.color}"/>`;
     // label inside only when it comfortably fits, otherwise it lives in the legend
     const txt = Math.round((s.value / tot) * 100) + '%';
-    if (sw > 42) out += `<text x="${(x + sw / 2).toFixed(1)}" y="${barH / 2 + 4}" text-anchor="middle"
-        style="font-size:11px;font-weight:640;fill:#fff">${txt}</text>`;
+    // a light segment cannot carry white text, so the label follows the fill
+    const on = s.on || '#fff';
+    if (sw > 42) out += `<text x="${(x + sw / 2).toFixed(1)}" y="${barH / 2 + 4.5}" text-anchor="middle"
+        style="font-size:var(--t-xs);font-weight:640;fill:${on}">${txt}</text>`;
     x += sw + gap;
   });
   return `<svg class="chart" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img"
@@ -250,12 +262,14 @@ function drawSpark(spec, w) {
   const X = i => (i / (v.length - 1)) * (w - 6) + 3;
   const Y = n => h - 4 - ((n - lo) / ((hi - lo) || 1)) * (h - 8);
   const d = v.map((n, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(n).toFixed(1)).join(' ');
-  const c = spec.color || 'var(--s1)';
+  const c = spec.color || 'var(--chart-ink)';
+  // the line is context; the accent is spent on the only point that is news
+  const dot = spec.dot || 'var(--chart-accent)';
   return `<svg class="chart" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">
     <path d="${d} L${X(v.length - 1).toFixed(1)} ${h} L${X(0).toFixed(1)} ${h} Z" fill="${c}" opacity=".10"/>
     <path d="${d}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${X(v.length - 1).toFixed(1)}" cy="${Y(v[v.length - 1]).toFixed(1)}" r="3.2"
-      fill="${c}" stroke="var(--surface)" stroke-width="2"/>
+    <circle cx="${X(v.length - 1).toFixed(1)}" cy="${Y(v[v.length - 1]).toFixed(1)}" r="3.4"
+      fill="${dot}" stroke="var(--surface)" stroke-width="2"/>
   </svg>`;
 }
 
@@ -273,10 +287,10 @@ function drawGauge(spec, w) {
       stroke-dasharray="${(C * val / 100).toFixed(1)} ${C.toFixed(1)}"
       transform="rotate(-90 ${cx} ${cy})"/>
     <text x="${cx}" y="${cy + 2}" text-anchor="middle"
-      style="font-size:${spec.display && String(spec.display).length > 3 ? 26 : 30}px;font-weight:640;fill:var(--ink)"
+      style="font-family:var(--display);font-size:${spec.display && String(spec.display).length > 3 ? 20 : 28}px;font-weight:640;fill:var(--ink)"
       >${esc(spec.display != null ? spec.display : Math.round(val))}</text>
     <text x="${cx}" y="${cy + 20}" text-anchor="middle"
-      style="font-size:10.5px;fill:var(--muted)">${esc(spec.sub != null ? spec.sub : 'out of 100')}</text>
+      style="font-size:13px;fill:var(--muted)">${esc(spec.sub != null ? spec.sub : 'out of 100')}</text>
   </svg>`;
 }
 

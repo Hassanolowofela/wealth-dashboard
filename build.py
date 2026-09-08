@@ -54,6 +54,12 @@ def build_single_file() -> Path:
     # a manifest and service worker are meaningless in a standalone file
     html = re.sub(r'\s*<link rel="manifest"[^>]*>', "", html)
 
+    # the self-hosted font has nowhere to load from in a lone file, so embed it
+    font = ROOT / "fonts" / "space-grotesk-var.woff2"
+    if font.exists():
+        uri = "data:font/woff2;base64," + base64.b64encode(font.read_bytes()).decode()
+        html = html.replace('url("fonts/space-grotesk-var.woff2")', f'url("{uri}")')
+
     # replace each <script src> with the file's contents
     for name in SCRIPTS:
         src = (ROOT / name).read_text(encoding="utf-8")
@@ -110,7 +116,7 @@ def build_web() -> Path:
         if src.exists():
             shutil.copy2(src, WEB / name)
             written.add(name)
-    for folder in ("icons", "samples"):
+    for folder in ("icons", "samples", "fonts"):
         if (ROOT / folder).exists():
             shutil.copytree(ROOT / folder, WEB / folder, dirs_exist_ok=True)
             written.update(f"{folder}/{p.name}" for p in (ROOT / folder).iterdir())

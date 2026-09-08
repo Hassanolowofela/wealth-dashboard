@@ -5,7 +5,7 @@
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.7.0';
+const APP_VERSION = '1.8.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 

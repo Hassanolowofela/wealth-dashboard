@@ -128,7 +128,7 @@ function deltaBit(cur, prev, goodUp = true, fmt = money) {
   const ar = d > 0 ? '▲' : d < 0 ? '▼' : '-';
   return `<span class="${cls}">${ar} <b>${fmt(Math.abs(d))}</b></span> vs last month`;
 }
-const toneVar = t => ({ good: 'var(--good)', warn: 'var(--warn)', serious: 'var(--serious)', crit: 'var(--crit)' }[t] || 'var(--s1)');
+const toneVar = t => ({ good: 'var(--good)', warn: 'var(--warn)', serious: 'var(--serious)', crit: 'var(--crit)' }[t] || 'var(--accent)');
 const toneIcon = t => ({ good: '✓', warn: '!', serious: '!', crit: '✕' }[t] || 'i');
 
 function catOptions(sel) {
@@ -186,12 +186,12 @@ function viewOverview() {
   const top = catRows.slice(0, 8);
   const tail = catRows.slice(8);
   const catItems = top.map(([c, v]) => ({
-    label: catName(c), value: v, color: 'var(--s1)',
+    label: catName(c), value: v, color: 'var(--chart-ink)',
     sub: st.spend > 0 ? Math.round(v / st.spend * 100) + '%' : '',
     tip: ['Share of spending', st.spend > 0 ? pct(v / st.spend * 100, 1) : '-']
   }));
   if (tail.length) catItems.push({
-    label: `Other (${tail.length})`, value: sum(tail.map(t => t[1])), color: 'var(--s1)',
+    label: `Other (${tail.length})`, value: sum(tail.map(t => t[1])), color: 'var(--chart-ink)',
     sub: st.spend > 0 ? Math.round(sum(tail.map(t => t[1])) / st.spend * 100) + '%' : ''
   });
 
@@ -221,17 +221,17 @@ function viewOverview() {
       value: money(st.net),
       tone: st.net >= 0 ? 'var(--good-ink)' : 'var(--crit-ink)',
       delta: deltaBit(st.net, prevSt.count ? prevSt.net : null, true),
-      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.net), color: 'var(--s1)' })
+      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.net), color: 'var(--chart-ink)' })
     })}
     ${tile({
       label: 'Income', value: money(st.income), help: 'income',
       delta: deltaBit(st.income, prevSt.count ? prevSt.income : null, true),
-      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.income), color: 'var(--s1)' })
+      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.income), color: 'var(--chart-ink)' })
     })}
     ${tile({
       label: 'Spending', value: money(st.spend), help: 'spending',
       delta: deltaBit(st.spend, prevSt.count ? prevSt.spend : null, false),
-      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.spend), color: 'var(--s2)' })
+      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.spend), color: 'var(--chart-ink)' })
     })}
     ${tile(K.savingsRate == null
       // no income means there is nothing to be a rate of, and "0.0%, below the
@@ -241,38 +241,38 @@ function viewOverview() {
       : { label: 'Savings rate', value: pct(K.savingsRate, 1), help: 'savingsRate',
           tone: K.savingsRate >= 20 ? 'var(--good-ink)' : K.savingsRate < 5 ? 'var(--crit-ink)' : '',
           delta: `<span class="${K.savingsRate >= 20 ? 'up' : 'flat'}">${K.savingsRate >= 20 ? 'at or above' : 'below'}</span> the 20% benchmark`,
-          spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--s3)' }) })}
+          spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--chart-ink)' }) })}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Income vs spending</h3><div class="sub">Last 12 months, household total</div>
       ${chart({
         type: 'line', h: 230, direct: true,
         x: hist.map(monthShort),
         tipTitle: i => monthLabel(hist[i]),
         series: [
-          { name: 'Income', color: 'var(--s1)', values: histStats.map(s => s.income), endLabel: compact(histStats.at(-1).income) },
-          { name: 'Spending', color: 'var(--s2)', values: histStats.map(s => s.spend), endLabel: compact(histStats.at(-1).spend) }
+          { name: 'Income', color: 'var(--chart-accent)', values: histStats.map(s => s.income), endLabel: compact(histStats.at(-1).income) },
+          { name: 'Spending', color: 'var(--chart-ink)', values: histStats.map(s => s.spend), endLabel: compact(histStats.at(-1).spend) }
         ],
         aria: 'Monthly income and spending over the last twelve months'
       })}
-      ${legend([{ name: 'Income', color: 'var(--s1)' }, { name: 'Spending', color: 'var(--s2)' }], 'swl')}
+      ${legend([{ name: 'Income', color: 'var(--chart-accent)' }, { name: 'Spending', color: 'var(--chart-ink)' }], 'swl')}
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Needs, wants and savings</h3>
       <div class="sub">The 50/30/20 guideline against your actual split</div>
       ${chart({
         type: 'stack', h: 34,
         segs: [
-          { label: 'Needs', value: st.needs, color: 'var(--s1)' },
-          { label: 'Wants', value: st.wants, color: 'var(--s2)' },
-          { label: 'Saved', value: st.totalSaved, color: 'var(--s3)' }
+          { label: 'Needs', value: st.needs, color: 'var(--chart-ink)', on: 'var(--on-ink)' },
+          { label: 'Wants', value: st.wants, color: 'var(--chart-ink-2)', on: 'var(--on-ink-2)' },
+          { label: 'Saved', value: st.totalSaved, color: 'var(--chart-accent)', on: 'var(--on-accent)' }
         ], aria: 'Share of income going to needs, wants and savings'
       })}
       <div style="margin-top:12px">
-        ${[['Needs', st.needs, 50, 'var(--s1)'], ['Wants', st.wants, 30, 'var(--s2)'], ['Saved', st.totalSaved, 20, 'var(--s3)']]
+        ${[['Needs', st.needs, 50, 'var(--chart-ink)'], ['Wants', st.wants, 30, 'var(--chart-ink-2)'], ['Saved', st.totalSaved, 20, 'var(--chart-accent)']]
           .map(([n, v, target, c]) => {
             const share = st.income > 0 ? (v / st.income) * 100 : 0;
             const ok = n === 'Saved' ? share >= target : share <= target;
@@ -281,27 +281,27 @@ function viewOverview() {
               <b class="${ok ? 'pos' : ''}">${money(v)} · ${pct(share)}</b></div>`;
           }).join('')}
       </div>
-      <div class="sub" style="margin-top:10px">Guideline only. High-cost housing markets routinely push needs past 50% - what matters is that the savings share keeps rising.</div>
+      <div class="sub" style="margin-top:8px">Guideline only. High-cost housing markets routinely push needs past 50% - what matters is that the savings share keeps rising.</div>
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Where the money went</h3><div class="sub">${esc(monthLabel(m))} · ranked by amount</div>
       ${catItems.length ? chart({ type: 'barh', items: catItems, rowH: 30, tipLabel: 'Spent',
         aria: 'Spending by category, ranked' }) : '<div class="sub">No spending recorded.</div>'}
     </div>
-    <div class="card">
+    <div class="panel">
       <h3>Spending by household member</h3>
       <div class="sub">Each person keeps the same colour everywhere</div>
       ${memItems.length ? chart({ type: 'barh', items: memItems, rowH: 32, tipLabel: 'Spent',
         aria: 'Spending by household member' })
-        : `<div class="sub" style="padding:14px 0">No members set up yet. <button class="btn sm" data-act="go-settings">Add household members</button></div>`}
+        : `<div class="sub" style="padding:16px 0">No members set up yet. <button class="btn sm" data-act="go-settings">Add household members</button></div>`}
       ${memItems.length > 1 ? legend(memItems.map(i => ({ name: i.label, color: i.color }))) : ''}
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Biggest merchants this month</h3><div class="sub">Grouped by merchant name</div>
     ${merchants.length ? `<table><tbody>${merchants.map(x => `
       <tr><td>${esc(x.name)}<div class="sub">${esc(catName(x.cat))} · ${x.n} charge${x.n === 1 ? '' : 's'}</div></td>
@@ -309,7 +309,7 @@ function viewOverview() {
       : '<div class="sub">No spending recorded.</div>'}
   </div>
 
-  ${anoms.length ? `<div class="card" style="margin-top:14px">
+  ${anoms.length ? `<div class="panel">
     <h3>Worth a look</h3><div class="sub">Categories that moved against your recent norm</div>
     ${anoms.map(a => `<div class="insight">
       <div class="ic" style="background:${a.delta > 0 ? 'var(--warn)' : 'var(--good)'}">${a.delta > 0 ? '▲' : '▼'}</div>
@@ -458,7 +458,7 @@ function spendingBody() {
   const inflow = sum(rows.filter(t => t.amount > 0).map(t => t.amount));
 
   return `
-  <div class="card noprint" style="margin-bottom:14px">
+  <div class="card noprint" style="margin-bottom:16px">
     <div class="row">
       <label class="f" style="flex:2 1 220px"><span>Search</span>
         <input type="text" id="fq" placeholder="Merchant or category" value="${esc(f.q)}"></label>
@@ -486,7 +486,7 @@ function spendingBody() {
       <td class="mono c-date">${esc(t.date.slice(5))}</td>
       <td class="c-desc">${esc(t.desc)}</td>
       <td class="c-cat"><select class="tcat" data-id="${t.id}" aria-label="Category for ${esc(t.desc)}"
-        style="padding:3px 6px;font-size:12.5px">${catOptions(t.cat)}</select></td>
+        style="padding:4px 8px;font-size:13px">${catOptions(t.cat)}</select></td>
       <td class="c-who">${t.member ? `<span class="pill tiny"><span class="dot" style="background:${memberColor(t.member)}"></span>${esc(memberName(t.member))}</span>` : '<span class="sub">-</span>'}</td>
       <td class="sub c-acct">${esc(accountName(t.account))}</td>
       <td class="num c-amt ${t.amount < 0 ? 'neg' : 'pos'}">${money2(t.amount)}</td>
@@ -553,7 +553,7 @@ function viewBudget() {
     That is counted separately, so it cannot make the figures above look over budget.
   </div>` : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Category budgets</h3>
     <div class="sub">The bar fills as you spend. The notch marks where you should be by today.</div>
     ${rows.length ? rows.map(r => {
@@ -575,7 +575,7 @@ function viewBudget() {
           </div>` : '<div class="meter"><i style="width:0"></i></div>'}
       </div>`;
     }).join('') : '<div class="sub">No spending or budgets in this month yet.</div>'}
-    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" data-act="set-budget" data-cat="">Set a category budget</button>
       <button class="btn" data-act="auto-budget">Suggest budgets from my history</button>
     </div>
@@ -603,21 +603,21 @@ function recurringBody() {
       tone: 'var(--good-ink)', delta: `over 20 years at ${S.settings.expectedReturn}%` })}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Ranked by annual cost</h3>
       <div class="sub">Small monthly numbers, sorted by what they actually cost per year</div>
       ${audit.items.length ? chart({
         type: 'barh', rowH: 30, fmt: v => money(v),
         items: audit.items.slice(0, 12).map(i => ({
           label: i.name.length > 26 ? i.name.slice(0, 25) + '…' : i.name,
-          value: i.amount * 12, color: 'var(--s1)',
+          value: i.amount * 12, color: 'var(--chart-ink)',
           tip: ['Per month', money2(i.amount)]
         })), tipLabel: 'Per year', aria: 'Recurring charges by annual cost'
       }) : '<div class="sub">Nothing recurring found yet.</div>'}
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Manage</h3><div class="sub">Declared items also seed future months</div>
       <div class="scroller">
       ${declared.length ? `<table><tbody>${S.recurring.map(r => `<tr>
@@ -631,7 +631,7 @@ function recurringBody() {
     </div>
   </div>
 
-  ${detected.length ? `<div class="card" style="margin-top:14px">
+  ${detected.length ? `<div class="panel">
     <h3>Found in your transactions</h3>
     <div class="sub">Charges that repeat at a steady amount but are not on your declared list</div>
     <table><tbody>${detected.map(d => `<tr>
@@ -641,9 +641,9 @@ function recurringBody() {
     </tr>`).join('')}</tbody></table>
   </div>` : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>The subscription question</h3>
-    <div class="sub" style="margin-bottom:10px">For each item, one question decides it</div>
+    <div class="sub" style="margin-bottom:8px">For each item, one question decides it</div>
     <p style="font-size:13px;color:var(--ink-2);margin:0">
       <b>Would I sign up for this today at this price?</b> If the answer is no, the only thing keeping it is inertia.
       Recurring costs are the highest-leverage cut available because the effort is one-time and the saving repeats forever -
@@ -669,9 +669,9 @@ function viewCards() {
 
   if (!cards.length) {
     return `
-    ${convertible.length ? `<div class="card" style="margin-top:20px">
+    ${convertible.length ? `<div class="panel">
       <h3>These look like credit cards</h3>
-      <div class="sub" style="margin-bottom:10px">They are currently in your loan list, where utilisation and
+      <div class="sub" style="margin-bottom:8px">They are currently in your loan list, where utilisation and
         statement timing can't be tracked. Convert them and add the credit limit.</div>
       ${convertible.map(d => `<div class="budrow">
         <div class="nm">${esc(d.name)}</div>
@@ -700,10 +700,10 @@ function viewCards() {
     <span class="sub">${cards.length} card${cards.length === 1 ? '' : 's'} ·
       ${money(totalReported())} reported of ${money(totalLimit())} in limits</span></div>
 
-  ${convertible.length ? `<div class="disclaim" style="border-left-color:var(--s1);margin:0 0 14px">
+  ${convertible.length ? `<div class="disclaim" style="border-left-color:var(--accent);margin:0 0 16px">
     <b>${convertible.length} item${convertible.length === 1 ? '' : 's'} in your loan list look like credit cards.</b>
     Converting them lets this tab track utilisation and statement timing.
-    ${convertible.map(d => `<button class="btn sm" style="margin:6px 6px 0 0"
+    ${convertible.map(d => `<button class="btn sm" style="margin:8px 8px 0 0"
       data-act="convert-debt" data-id="${d.id}">Convert &ldquo;${esc(d.name)}&rdquo;</button>`).join('')}
   </div>` : ''}
 
@@ -720,7 +720,7 @@ function viewCards() {
       tone: utilTone(util.agg) === 'good' ? 'var(--good-ink)' : utilTone(util.agg) === 'crit' ? 'var(--crit-ink)' : '',
       delta: util.agg > 30 ? `<span class="down">above</span> the 30% threshold`
         : util.agg > 10 ? `under 30%, above the 10% ideal` : `<span class="up">in the strongest band</span>`,
-      spark: hist.length > 1 ? chart({ type: 'spark', h: 34, values: hist.map(x => x.util), color: 'var(--s2)' }) : ''
+      spark: hist.length > 1 ? chart({ type: 'spark', h: 34, values: hist.map(x => x.util), color: 'var(--chart-ink)' }) : ''
     })}
     ${tile({
       label: 'Next payment due',
@@ -737,8 +737,8 @@ function viewCards() {
     })}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Utilisation by card</h3>
       <div class="sub">Each card is scored on its own as well as in total. Under 30% matters; under 10% is ideal.</div>
       <div style="margin-top:12px">
@@ -757,7 +757,7 @@ function viewCards() {
             </div>
           </div>`;
         }).join('')}
-        <div class="budrow" style="border-top:2px solid var(--border);margin-top:6px;padding-top:12px">
+        <div class="budrow" style="border-top:2px solid var(--border);margin-top:8px;padding-top:12px">
           <div class="nm"><b>All cards together</b></div>
           <div class="amt"><b>${pct(util.agg, 1)}</b> <span class="sub">${money(totalReported())} of ${money(totalLimit())}</span></div>
           <div class="meter ${utilClass(util.agg)}" style="position:relative">
@@ -770,7 +770,7 @@ function viewCards() {
       recalculated from the balances reported each month, so it can be fixed in a single billing cycle.</div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Credit factor scorecard</h3>
       <div class="sub" style="margin-bottom:12px">Published FICO factor weights applied to the data you entered</div>
       <div class="score-ring">
@@ -781,15 +781,15 @@ function viewCards() {
           color: toneVar(cs.tone)
         })}</div>
         <div style="flex:1 1 200px;min-width:180px">
-          <div style="font-size:19px;font-weight:640;color:${toneVar(cs.tone)}">${esc(cs.label)}</div>
-          <p class="sub" style="margin:6px 0 0">
+          <div style="font-size:20px;font-weight:640;color:${toneVar(cs.tone)}">${esc(cs.label)}</div>
+          <p class="sub" style="margin:8px 0 0">
             ${cs.reported ? `Your last reported score was <b>${cs.reported}</b>. ` : ''}
             This is a model of the factor weights, not your score. Lenders use several scoring versions and
             see data this app never will.
           </p>
         </div>
       </div>
-      <div style="margin-top:14px">
+      <div style="margin-top:16px">
         ${cs.factors.map(f => {
           if (f.score == null) return `<div class="comp">
             <div class="cn">${esc(f.name)}</div>
@@ -812,36 +812,36 @@ function viewCards() {
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Utilisation over time</h3>
       <div class="sub">Recorded automatically each month you open the dashboard</div>
       ${hist.length > 1 ? chart({
         type: 'line', h: 210, direct: true, fmt: v => pct(v, 1),
         x: hist.map(x => monthShort(x.month)),
         tipTitle: i => monthLabel(hist[i].month),
-        series: [{ name: 'Utilisation', color: 'var(--s2)', area: true,
+        series: [{ name: 'Utilisation', color: 'var(--chart-ink)', area: true,
           values: hist.map(x => x.util), endLabel: pct(hist[hist.length - 1].util, 0) }],
         aria: 'Credit utilisation percentage by month'
-      }) : `<div class="sub" style="padding:20px 0">History starts building from this month.
+      }) : `<div class="sub" style="padding:24px 0">History starts building from this month.
         Come back next month and a trend appears here.</div>`}
       <div class="sub" style="margin-top:8px">One series, so no legend is needed. The title names it.
       Lower is better; the strongest band is under 10%.</div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Payments due</h3>
       <div class="sub">Next 45 days. The close date is the one that sets your reported balance.</div>
-      ${due.length ? due.map(d => `<div style="padding:11px 0;border-bottom:1px solid var(--grid)">
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap">
+      ${due.length ? due.map(d => `<div style="padding:12px 0;border-bottom:1px solid var(--grid)">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
           <b style="font-size:13px">${esc(d.card.name)}</b>
           <span class="mono" style="font-weight:620">${money(d.amountFull)}</span>
         </div>
-        <div class="sub" style="margin-top:3px">
+        <div class="sub" style="margin-top:4px">
           Due in <b>${d.daysToDue} day${d.daysToDue === 1 ? '' : 's'}</b> (${d.card.dueDay}${ordinal(d.card.dueDay)})
           · statement closes in <b>${d.daysToClose} day${d.daysToClose === 1 ? '' : 's'}</b> (${d.card.statementDay}${ordinal(d.card.statementDay)})
         </div>
-        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <span class="pill tiny" ${d.autopay === 'none' ? 'style="color:var(--crit-ink);border-color:var(--crit)"' : ''}>
             ${d.autopay === 'none' ? '⚠ ' : '✓ '}${esc(AUTOPAY_LABEL[d.autopay])}</span>
           <span class="pill tiny">minimum ${money(d.amountMin)}</span>
@@ -852,18 +852,18 @@ function viewCards() {
     </div>
   </div>
 
-  ${totalLimit() <= 0 ? `<div class="card" style="margin-top:14px">
+  ${totalLimit() <= 0 ? `<div class="panel">
     <h3>Credit limits are missing</h3>
     <div class="sub">Utilisation is a ratio, so none of it can be calculated without each card's limit.
       Add them and this tab fills in.</div>
     <div style="margin-top:12px">${cards.map(c =>
-      `<button class="btn sm" style="margin:0 6px 6px 0" data-act="edit-card" data-id="${c.id}">Set limit for ${esc(c.name)}</button>`).join('')}</div>
+      `<button class="btn sm" style="margin:0 8px 8px 0" data-act="edit-card" data-id="${c.id}">Set limit for ${esc(c.name)}</button>`).join('')}</div>
   </div>` : `
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Pay-before-close simulator</h3>
     <div class="sub">Utilisation is measured on the statement balance. Paying before the statement closes
       changes what gets reported; paying by the due date only protects your payment history.</div>
-    <div class="row" style="margin:14px 0 4px">
+    <div class="row" style="margin:16px 0 4px">
       <label class="f" style="flex:1 1 260px">
         <span>Pay down <b>${money(payAmt)}</b> before your statements close</span>
         <input type="range" class="slider" id="utilPay" min="0" step="50"
@@ -883,9 +883,9 @@ function viewCards() {
       card's close date. A payment made after the statement cuts has no effect on that month's reported figure.</div>
   </div>`}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Your cards</h3>
-    <div class="sub" style="margin-bottom:10px">Limit, timing and rewards drive everything on this tab</div>
+    <div class="sub" style="margin-bottom:8px">Limit, timing and rewards drive everything on this tab</div>
     <div class="tbl-wrap" style="border:0"><table>
       <thead><tr><th>Card</th><th class="num">Limit</th><th class="num">Reported</th><th class="num">Used</th>
         <th class="num">APR</th><th>Closes / due</th><th class="num">Fee</th><th>Age</th><th></th></tr></thead>
@@ -911,7 +911,7 @@ function viewCards() {
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>What to do, ordered by impact</h3>
     <div class="sub" style="margin-bottom:4px">Heaviest factors and most urgent items first</div>
     ${ins.length ? ins.map(i => `<div class="insight">
@@ -920,8 +920,8 @@ function viewCards() {
     </div>`).join('') : '<div class="sub">Nothing needs attention right now.</div>'}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Rewards routing</h3>
       <div class="sub">Which card to use where, based on what you actually spend</div>
       ${ra.rows.length ? `<div class="tbl-wrap" style="border:0"><table>
@@ -935,7 +935,7 @@ function viewCards() {
           <td class="num">${money(r.bestVal)}</td>
           <td class="num ${r.gain > 1 ? 'pos' : ''}">${r.gain > 1 ? '+' + money(r.gain) : '-'}</td>
         </tr>`).join('')}</tbody></table></div>
-        <div class="kv" style="margin-top:10px"><span>Earning now</span><b>${money(ra.current)}/yr</b></div>
+        <div class="kv" style="margin-top:8px"><span>Earning now</span><b>${money(ra.current)}/yr</b></div>
         <div class="kv"><span>If every category went to its best card</span><b>${money(ra.best)}/yr</b></div>
         <div class="kv"><span>Difference</span><b class="${ra.gain > 0 ? 'pos' : ''}">${money(ra.gain)}/yr</b></div>
         ${ra.fees > 0 ? `<div class="kv"><span>Annual fees paid</span><b class="neg">${money(ra.fees)}/yr</b></div>` : ''}
@@ -949,14 +949,14 @@ function viewCards() {
         ${ra.noneClear ? `<div class="disclaim" style="border-left-color:var(--crit)">
           Every card is carrying a balance, so none of these rates are actually being earned,
           interest is outrunning them. Paying the balances off comes before any rewards decision.</div>` : ''}
-        <div class="sub" style="margin-top:10px">Chasing rewards is only worth it once balances are cleared
+        <div class="sub" style="margin-top:8px">Chasing rewards is only worth it once balances are cleared
         every month. A 3% cashback rate loses badly to a ${(Math.max(...cards.map(c => +c.apr || 0))).toFixed(1)}% interest charge.</div>`
         : '<div class="sub">Add reward rates to your cards to see routing suggestions.</div>'}
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Before you close a card</h3>
-      <div class="sub" style="margin-bottom:10px">Closing removes its limit from the calculation and eventually
+      <div class="sub" style="margin-bottom:8px">Closing removes its limit from the calculation and eventually
         shortens your average account age. That is two factors damaged by one action</div>
       ${cards.map(c => {
         const im = closeImpact(c.id);
@@ -1025,8 +1025,8 @@ function viewWealth() {
       delta: `25 × ${money(fi.annualEss)} of annual essentials` })}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Assets</h3><div class="sub">Cash, retirement and taxable accounts</div>
       ${S.assets.length ? `<table><tbody>${S.assets.map(a => `<tr>
         <td><b>${esc(a.name)}</b><div class="sub">${esc(({cash:'Cash',retirement:'Retirement',brokerage:'Brokerage',property:'Property',other:'Other'})[a.type] || a.type)}</div></td>
@@ -1036,7 +1036,7 @@ function viewWealth() {
       <div style="margin-top:12px"><button class="btn" data-act="edit-asset" data-id="">+ Add account</button></div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Debts</h3><div class="sub">Ordered by interest rate - the most expensive first</div>
       ${debtRows.length ? `<table><tbody>${debtRows.map(d => `<tr>
         <td><b>${esc(d.name)}</b>
@@ -1052,13 +1052,13 @@ function viewWealth() {
         <button class="btn" data-act="edit-debt" data-id="">+ Add loan</button>
         <button class="btn" data-act="edit-card" data-id="">+ Add credit card</button>
       </div>
-      ${cardDebt() > 0 ? `<div class="sub" style="margin-top:10px">Credit cards are also tracked on the
+      ${cardDebt() > 0 ? `<div class="sub" style="margin-top:8px">Credit cards are also tracked on the
         <button class="btn sm ghost" data-act="go-cards" style="padding:0 4px">Cards &amp; Credit tab</button>,
         where utilisation and statement timing matter as much as the balance.</div>` : ''}
     </div>
   </div>
 
-  ${debtRows.length ? `<div class="card" style="margin-top:14px">
+  ${debtRows.length ? `<div class="panel">
     <h3>Payoff strategy</h3>
     <div class="sub">Both methods pay the same minimums; they differ only in where the extra dollar goes.</div>
     <div class="row" style="margin:12px 0">
@@ -1066,21 +1066,21 @@ function viewWealth() {
         <input type="range" class="slider" id="extraDebt" min="0" max="1500" step="25" value="${extra}"></label>
     </div>
     <div class="grid g-3">
-      <div class="card" style="box-shadow:none;background:var(--surface-2)">
+      <div class="card soft">
         <h4 style="font-size:13px">Avalanche <span class="tag now">lowest cost</span></h4>
         <div class="sub" style="margin:4px 0 8px">Highest APR first</div>
         <div class="kv"><span>Debt-free in</span><b>${plans.avalanche.months} mo</b></div>
         <div class="kv"><span>Total interest</span><b>${money(plans.avalanche.interest)}</b></div>
         <div class="kv"><span>First target</span><b>${esc((plans.avalanche.order[0] || '-').slice(0, 22))}</b></div>
       </div>
-      <div class="card" style="box-shadow:none;background:var(--surface-2)">
+      <div class="card soft">
         <h4 style="font-size:13px">Snowball <span class="tag next">fastest wins</span></h4>
         <div class="sub" style="margin:4px 0 8px">Smallest balance first</div>
         <div class="kv"><span>Debt-free in</span><b>${plans.snowball.months} mo</b></div>
         <div class="kv"><span>Total interest</span><b>${money(plans.snowball.interest)}</b></div>
         <div class="kv"><span>First target</span><b>${esc((plans.snowball.order[0] || '-').slice(0, 22))}</b></div>
       </div>
-      <div class="card" style="box-shadow:none;background:var(--surface-2)">
+      <div class="card soft">
         <h4 style="font-size:13px">Minimums only</h4>
         <div class="sub" style="margin:4px 0 8px">No extra payment</div>
         <div class="kv"><span>Debt-free in</span><b>${plans.minimum.months} mo</b></div>
@@ -1096,7 +1096,7 @@ function viewWealth() {
     </div>` : ''}
   </div>` : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Goals</h3><div class="sub">Money with a name attached</div>
     ${S.goals.length ? S.goals.map(g => {
       const p = g.target > 0 ? clamp((g.saved / g.target) * 100, 0, 100) : 0;
@@ -1136,21 +1136,21 @@ function viewPlan() {
     <span class="sub">Built from ${S.txns.length} transactions across ${activeMonths().length} months</span></div>
 
   <div class="grid g-2">
-    <div class="card">
+    <div class="panel">
       <h3>Financial health score</h3>
       <div class="sub" style="margin-bottom:12px">Six measures, weighted by how much each one moves long-run outcomes</div>
       <div class="score-ring">
         <div style="flex:0 0 auto">${chart({ type: 'gauge', h: 150, value: h.total, color: toneVar(h.tone) })}</div>
         <div style="flex:1 1 200px;min-width:180px">
-          <div style="font-size:19px;font-weight:640;color:${toneVar(h.band[1])}">${esc(h.band[0])}</div>
-          <p class="sub" style="margin:6px 0 0">
+          <div style="font-size:20px;font-weight:640;color:${toneVar(h.band[1])}">${esc(h.band[0])}</div>
+          <p class="sub" style="margin:8px 0 0">
             ${h.total >= 62 ? 'The foundations are in place. The leverage now is in raising the investing rate and holding it.'
               : h.total >= 45 ? 'Solid habits with a clear gap or two. The lowest-numbered incomplete step below is where to push.'
               : 'The base needs work before growth compounds. Steps 1 to 3 below carry the most weight.'}
           </p>
         </div>
       </div>
-      <div style="margin-top:14px">
+      <div style="margin-top:16px">
         ${h.comps.map(c => {
           const p = (c.score / c.max) * 100;
           const cls = p >= 70 ? 'g' : p >= 40 ? 'w' : 'c';
@@ -1164,9 +1164,9 @@ function viewPlan() {
       </div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>What to do next, in order</h3>
-      <div class="sub" style="margin-bottom:6px">Each step is unlocked by the one above it. Your position is marked.</div>
+      <div class="sub" style="margin-bottom:8px">Each step is unlocked by the one above it. Your position is marked.</div>
       ${rungs.map((x, i) => `<div class="step ${x.status}">
         <div class="n">${x.status === 'done' ? '✓' : i + 1}</div>
         <div class="b">
@@ -1182,10 +1182,10 @@ function viewPlan() {
 
   ${activeCards().length ? (() => {
     const cs = creditScore(), u = utilisationScore(), top = creditInsights()[0];
-    return `<div class="card" style="margin-top:14px">
+    return `<div class="panel">
       <h3>Credit standing</h3>
       <div class="sub" style="margin-bottom:12px">Your borrowing cost for the next decade is set here</div>
-      <div class="grid g-kpi" style="gap:10px">
+      <div class="grid g-kpi" style="gap:8px">
         ${tile({ label: 'Modelled score', value: String(cs.estimate), tone: toneVar(cs.tone),
           delta: `${esc(cs.label)} · range ${cs.low} to ${cs.high}` })}
         ${tile({ label: 'Utilisation', value: pct(u.agg, 1),
@@ -1202,7 +1202,7 @@ function viewPlan() {
     </div>`;
   })() : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Findings from this month</h3>
     <div class="sub" style="margin-bottom:4px">Most urgent first</div>
     ${ins.length ? ins.map(i => `<div class="insight">
@@ -1211,8 +1211,8 @@ function viewPlan() {
     </div>`).join('') : '<div class="sub">Nothing stands out this month.</div>'}
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>The cost of the next dollar spent</h3>
       <div class="sub">What a recurring monthly amount becomes if invested instead, at ${r}% a year</div>
       ${chart({
@@ -1233,15 +1233,15 @@ function viewPlan() {
       A ${money(500)}/mo habit contributes ${compact(500 * 360)} over 30 years and ends near ${compact(futureValue(500, 30, r))}; the gap is compounding.</div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Trim simulator</h3>
       <div class="sub">Move the slider. Discretionary spending averages ${money(sim.wants)}/mo over your last months.</div>
-      <label class="f" style="margin-top:14px"><span>Cut discretionary spending by <b>${UI.cutPct}%</b></span>
+      <label class="f" style="margin-top:16px"><span>Cut discretionary spending by <b>${UI.cutPct}%</b></span>
         <input type="range" class="slider" id="cutPct" min="0" max="60" step="5" value="${UI.cutPct}"></label>
       <div class="kv"><span>Freed by the cut</span><b>${money(sim.freed)}/mo</b></div>
       <div class="kv"><span>Already unallocated</span><b>${money(sim.surplus)}/mo</b></div>
       <div class="kv"><span>Total investable</span><b style="color:var(--good-ink)">${money(sim.total)}/mo</b></div>
-      <div style="margin-top:14px">
+      <div style="margin-top:16px">
         ${chart({
           type: 'barv', h: 176, fmt: v => compact(v),
           items: [['5 yr', sim.y5], ['10 yr', sim.y10], ['20 yr', sim.y20], ['30 yr', sim.y30]]
@@ -1254,11 +1254,11 @@ function viewPlan() {
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Distance to financial independence</h3>
       <div class="sub">The 25× rule: assets worth 25 years of essential spending can historically sustain a 4% annual draw</div>
-      <div class="grid g-kpi" style="margin-top:12px;gap:10px">
+      <div class="grid g-kpi" style="margin-top:12px;gap:8px">
         ${tile({ label: 'Target', value: compact(fi.target), delta: `${money(fi.annualEss)} essentials a year` })}
         ${tile({ label: 'Invested today', value: compact(fi.start), delta: `${pct(fi.coverage, 1)} of target` })}
         ${tile({ label: 'Years at current pace', value: fi.yrs == null ? '-' : fi.yrs + ' yr',
@@ -1273,9 +1273,9 @@ function viewPlan() {
       </div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Principles this plan applies</h3>
-      <div class="sub" style="margin-bottom:10px">Frameworks, not picks - no security is ever named here</div>
+      <div class="sub" style="margin-bottom:8px">Frameworks, not picks - no security is ever named here</div>
       ${[
         ['Pay the guaranteed return first', 'Clearing a 20% balance beats an uncertain 7% market return. Debt above roughly 8% outranks investing.'],
         ['Automate before you optimise', 'A transfer that happens on payday beats a better strategy you have to remember. Automation is why savings rate beats stock selection for most households.'],
@@ -1284,7 +1284,7 @@ function viewPlan() {
         ['Match the horizon to the risk', 'Money needed within about five years belongs in cash or short-term instruments; a market drop should never force a sale at the wrong moment.'],
         ['Lower fixed costs twice', 'Cutting a recurring cost raises the surplus and lowers the FI target at the same time. One-off cuts do only the first.']
       ].map(([t, d]) => `<div class="insight">
-        <div class="ic" style="background:var(--s7)">•</div>
+        <div class="ic" style="background:var(--accent)">•</div>
         <div class="tx"><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('')}
     </div>
   </div>
@@ -1310,47 +1310,47 @@ function viewImport() {
     <span class="sub">Bank, card, or wallet exports · nothing is uploaded anywhere</span></div>
 
   <div class="grid g-2">
-    <div class="card">
+    <div class="panel">
       <h3>1. Bring in a file</h3>
       <div class="sub" style="margin-bottom:12px">CSV from any bank, card issuer, or transfer app</div>
       <div class="dz" id="dz">
-        <div style="font-size:26px;margin-bottom:6px">⤓</div>
+        <div style="font-size:28px;margin-bottom:8px">⤓</div>
         <b>Drop a statement here</b> or click to choose a file
-        <div class="sub" style="margin-top:6px">
+        <div class="sub" style="margin-top:8px">
           <b>CSV</b> exports, and <b>PDF</b> or <b>Word</b> statements. Everything is read on this
           computer, and no file is uploaded anywhere.
         </div>
       </div>
       <input type="file" id="fileIn" accept=".csv,.txt,.pdf,.docx,.doc" class="hide">
-      <div style="margin:14px 0 6px" class="sub">Or paste the rows directly:</div>
+      <div style="margin:16px 0 8px" class="sub">Or paste the rows directly:</div>
       <textarea id="pasteIn" rows="5" placeholder="Date,Description,Amount&#10;2026-09-01,KROGER #418,-84.21"></textarea>
-      <div style="margin-top:10px"><button class="btn primary" data-act="parse-paste">Read pasted rows</button></div>
+      <div style="margin-top:8px"><button class="btn primary" data-act="parse-paste">Read pasted rows</button></div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>How aggregation works here</h3>
-      <div class="sub" style="margin-bottom:10px">One ledger, many sources</div>
+      <div class="sub" style="margin-bottom:8px">One ledger, many sources</div>
       ${[
         ['Every source lands in one place', 'Checking, credit cards, cash wallets and transfer apps all become rows in the same ledger, so a category total is the household total rather than one bank’s view.'],
         ['Each row is tagged to a person and an account', 'That is what makes the per-member breakdown and the fairness check possible.'],
         ['Duplicates are skipped automatically', 'Rows are fingerprinted on date, amount and merchant, so re-importing an overlapping statement will not double-count.'],
         ['Column layouts are remembered', 'Save the mapping once per bank and the next import from that source needs no setup.'],
         ['Categories are assigned on arrival', 'A merchant-matching rule set does the first pass; corrections you make can be saved as permanent rules.']
-      ].map(([t, d]) => `<div class="insight"><div class="ic" style="background:var(--s1)">✓</div>
+      ].map(([t, d]) => `<div class="insight"><div class="ic" style="background:var(--accent)">✓</div>
         <div class="tx"><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('')}
     </div>
   </div>
 
-  ${Object.keys(S.profiles).length ? `<div class="card" style="margin-top:14px">
+  ${Object.keys(S.profiles).length ? `<div class="panel">
     <h3>Saved source formats</h3>
     <div class="sub">Re-used automatically when a file has matching headers</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
       ${Object.keys(S.profiles).map(p => `<span class="pill">${esc(p)}
-        <button class="x" style="font-size:14px;padding:0 3px" data-act="del-profile" data-name="${esc(p)}">×</button></span>`).join('')}
+        <button class="x" style="font-size:14px;padding:0 4px" data-act="del-profile" data-name="${esc(p)}">×</button></span>`).join('')}
     </div>
   </div>` : ''}
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Backup &amp; restore</h3>
     <div class="sub" style="margin-bottom:12px">Your data lives only in this browser. Export regularly.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -1371,9 +1371,9 @@ function viewSettings() {
   <div class="section-h"><h2>Settings</h2><span class="sub">Household, accounts and planning assumptions</span></div>
 
   <div class="grid g-2">
-    <div class="card">
+    <div class="panel">
       <h3>Household members</h3>
-      <div class="sub" style="margin-bottom:10px">Each person gets a fixed colour used across every chart</div>
+      <div class="sub" style="margin-bottom:8px">Each person gets a fixed colour used across every chart</div>
       ${S.members.length ? S.members.map(m => `<div class="budrow">
         <div class="nm"><span class="dot" style="background:${memberColor(m.id)}"></span>${esc(m.name)}
           <span class="pill tiny">${esc(m.role || 'Member')}</span></div>
@@ -1386,9 +1386,9 @@ function viewSettings() {
       </div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Accounts &amp; sources</h3>
-      <div class="sub" style="margin-bottom:10px">Where transactions come from</div>
+      <div class="sub" style="margin-bottom:8px">Where transactions come from</div>
       ${S.accounts.length ? S.accounts.map(a => `<div class="budrow">
         <div class="nm">${esc(a.name)} <span class="pill tiny">${esc(a.type)}</span></div>
         <div class="amt">${a.member ? esc(memberName(a.member)) : '<span class="sub">shared</span>'}
@@ -1398,8 +1398,8 @@ function viewSettings() {
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
+  <div class="grid g-2">
+    <div class="panel">
       <h3>Planning assumptions</h3>
       <div class="sub" style="margin-bottom:12px">These drive every projection on the Plan tab</div>
       <div class="row">
@@ -1421,13 +1421,13 @@ function viewSettings() {
         <input type="checkbox" id="setHdhp" ${st.hdhp ? 'checked' : ''} style="width:auto">
         We are on a high-deductible health plan (HSA-eligible)</span></label>
       <button class="btn primary" data-act="save-settings">Save assumptions</button>
-      <div class="sub" style="margin-top:10px">A 7% expected return is a common long-run nominal assumption for a
+      <div class="sub" style="margin-top:8px">A 7% expected return is a common long-run nominal assumption for a
       diversified equity-heavy portfolio; it is not a promise, and real returns arrive unevenly.</div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <h3>Categorisation rules</h3>
-      <div class="sub" style="margin-bottom:10px">Your rules override the ${DEFAULT_RULES.length} built-in merchant patterns</div>
+      <div class="sub" style="margin-bottom:8px">Your rules override the ${DEFAULT_RULES.length} built-in merchant patterns</div>
       ${S.rules.length ? `<div class="scroller"><table><tbody>${S.rules.map((r, i) => `<tr>
         <td>Description contains <b>${esc(r.match)}</b></td>
         <td>&rarr; ${esc(catName(r.cat))}</td>
@@ -1440,7 +1440,7 @@ function viewSettings() {
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px">
+  <div class="panel">
     <h3>Data</h3>
     <div class="sub" style="margin-bottom:12px">
       Everything is stored in this browser only (localStorage). Clearing site data, using a different
@@ -1463,7 +1463,7 @@ function viewSettings() {
       : P.fileMode ? 'running from a local file'
       : (navigator.serviceWorker && navigator.serviceWorker.controller) ? 'available offline in this browser'
       : 'running in a browser';
-    return `<div class="card" style="margin-top:14px">
+    return `<div class="panel">
     <h3>This app</h3>
     <div class="sub" style="margin-bottom:12px">Version ${APP_VERSION} &middot; ${state}</div>
 
@@ -1471,11 +1471,11 @@ function viewSettings() {
       <div class="ic" style="background:var(--good)">&#10003;</div>
       <div class="tx"><b>Installed on this computer</b><span>It runs in its own window and works
       without an internet connection. Updates arrive the next time you open it while online.</span></div></div>`
-    : P.fileMode ? `<div class="disclaim" style="border-left-color:var(--s1);margin-top:0">
+    : P.fileMode ? `<div class="disclaim" style="border-left-color:var(--accent);margin-top:0">
       <b>Opened straight from a file.</b> That works fine and is the simplest way to use it.
       To get an icon and its own window instead, the folder needs to be opened through a
       local address. The RUN-THIS-APP guide has the steps.</div>`
-    : P.iOS ? `<div class="disclaim" style="border-left-color:var(--s1);margin-top:0">
+    : P.iOS ? `<div class="disclaim" style="border-left-color:var(--accent);margin-top:0">
       <b>To install on iPhone or iPad:</b> tap the <b>Share</b> button in Safari
       (the square with an arrow pointing up), scroll down, and choose
       <b>Add to Home Screen</b>. Safari has no automatic install prompt, so this is the only
@@ -1783,7 +1783,7 @@ function cardForm(id) {
       <input type="checkbox" id="c_full" ${v.paysInFull !== false ? 'checked' : ''} style="width:auto">
       Paid in full every month (no interest charged)</span></label>
 
-    <h4 style="font-size:13px;margin:16px 0 6px">Reward rates</h4>
+    <h4 style="font-size:13px;margin:16px 0 8px">Reward rates</h4>
     <div class="sub" style="margin-bottom:8px">Use <b>*</b> for the everything-else rate.</div>
     <div id="c_rewards">
       ${rw.map((r, i) => rewardRow(r, i)).join('')}
@@ -1835,9 +1835,9 @@ function cardForm(id) {
       closeModal();
       confirmAction({
         title: 'Remove this card?',
-        body: `<p style="margin:0 0 10px">This removes <b>${esc(c.name)}</b> from the dashboard.
+        body: `<p style="margin:0 0 8px">This removes <b>${esc(c.name)}</b> from the dashboard.
           It does not close the account with ${esc(c.issuer || 'the issuer')}.</p>
-          <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+          <ul style="margin:0;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.7">
             <li>Its ${money(c.limit)} limit stops counting towards your utilisation</li>
             ${(+c.balance || 0) > 0 ? `<li>Its ${money(c.balance)} balance leaves your debt total</li>` : ''}
             ${pays ? `<li>${pays} logged payment${pays === 1 ? '' : 's'} stay in your history</li>` : ''}
@@ -1915,7 +1915,7 @@ function paymentLogView() {
   const r = paymentRecord();
   const nameOf = id => ((S.cards || []).find(c => c.id === id) || {}).name || 'Card';
   openModal('Payment history', `
-    <div class="grid g-3" style="margin-bottom:14px">
+    <div class="grid g-3" style="margin-bottom:16px">
       <div class="kv"><span>On-time streak</span><b>${r.streak}</b></div>
       <div class="kv"><span>Late payments logged</span><b class="${r.lates.length ? 'neg' : ''}">${r.lates.length}</b></div>
       <div class="kv"><span>Total logged</span><b>${r.total}</b></div>
@@ -1951,7 +1951,7 @@ function inquiriesForm() {
         ${(monthsSince(q.date) || 0) >= 12 ? '<span class="pill tiny">no longer scored</span>' : ''}</td>
       <td><button class="btn sm ghost" data-act="del-inquiry" data-i="${i}">&times;</button></td>
     </tr>`).join('')}</tbody></table>` : '<div class="sub">None recorded.</div>'}
-    <div class="row" style="margin-top:14px">
+    <div class="row" style="margin-top:16px">
       <label class="f"><span>Date</span><input type="date" id="q_date" value="${todayISO()}"></label>
       <label class="f" style="flex:2 1 200px"><span>What for</span>
         <input type="text" id="q_label" placeholder="e.g. car loan application"></label>
@@ -2075,7 +2075,7 @@ function fixUncategorised() {
     ${items.map(t => `<tr data-uid="${t.id}">
       <td><b>${esc(t.desc)}</b><div class="sub">${esc(t.date)} · ${money2(t.amount)}</div></td>
       <td style="width:190px"><select class="uCat">${catOptions('misc')}</select></td>
-      <td style="width:80px"><label class="sub" style="display:flex;gap:5px;align-items:center">
+      <td style="width:80px"><label class="sub" style="display:flex;gap:4px;align-items:center">
         <input type="checkbox" class="uRule" style="width:auto"> rule</label></td>
     </tr>`).join('')}
     </tbody></table></div>`,
@@ -2196,13 +2196,13 @@ function importModal() {
         <input type="text" id="mProf" value="${esc(IMP.source)}" placeholder="e.g. Chase checking"></label>
     </div>
 
-    ${p.span ? `<div class="disclaim" style="border-left-color:${p.spanMonths > 3 ? 'var(--warn)' : 'var(--s1)'};margin-top:14px">
+    ${p.span ? `<div class="disclaim" style="border-left-color:${p.spanMonths > 3 ? 'var(--warn)' : 'var(--accent)'};margin-top:16px">
       Dates read as <b>${esc(p.span[0])}</b> to <b>${esc(p.span[1])}</b>${p.spanMonths > 3
         ? `. That spans ${p.spanMonths} months. If this file covers a single statement period,
             the date order above is probably wrong; switch it and the preview will update.`
         : '.'}
     </div>` : ''}
-    <div class="kv" style="margin-top:6px"><span>Rows read</span><b>${p.total}</b></div>
+    <div class="kv" style="margin-top:8px"><span>Rows read</span><b>${p.total}</b></div>
     <div class="kv"><span>New transactions to add</span><b style="color:var(--good-ink)">${p.fresh.length}</b></div>
     <div class="kv"><span>Duplicates skipped</span><b>${p.dupes.length}</b></div>
 
@@ -2439,10 +2439,10 @@ let STMT = null;   // in-flight document review
 /** Reads a PDF or Word statement and opens the review screen. */
 async function statementFlow(file, preloadedText) {
   openModal('Reading ' + (file.name || 'document'), `
-    <div style="text-align:center;padding:26px 10px">
-      <div style="font-size:30px;margin-bottom:10px">&#8987;</div>
+    <div style="text-align:center;padding:24px 8px">
+      <div style="font-size:28px;margin-bottom:8px">&#8987;</div>
       <b>Reading the document</b>
-      <div class="sub" style="margin-top:6px">Large PDFs can take a few seconds. This happens entirely
+      <div class="sub" style="margin-top:8px">Large PDFs can take a few seconds. This happens entirely
       on your computer.</div>
     </div>`, '');
   await new Promise(r => setTimeout(r, 30));   // let the modal paint first
@@ -2516,20 +2516,20 @@ function documentError(doc, file) {
     <div class="disclaim" style="border-left-color:var(--crit);margin-top:0">
       ${esc(doc.error || 'This file could not be read.')}
     </div>
-    <h4 style="font-size:13px;margin:18px 0 8px">What usually works instead</h4>
-    <ol style="font-size:13px;color:var(--ink-2);padding-left:20px;line-height:1.8;margin:0">
+    <h4 style="font-size:13px;margin:16px 0 8px">What usually works instead</h4>
+    <ol style="font-size:13px;color:var(--ink-2);padding-left:24px;line-height:1.8;margin:0">
       <li>Sign in to the bank or card website.</li>
       <li>Look for <b>Download</b>, <b>Export</b> or <b>Download transactions</b>.</li>
       <li>Choose <b>CSV</b> as the format.</li>
       <li>Drop that file here instead. CSV always works and is more accurate.</li>
     </ol>
-    ${isPdf ? `<p class="sub" style="margin-top:14px">A quick way to tell whether a PDF can be read
+    ${isPdf ? `<p class="sub" style="margin-top:16px">A quick way to tell whether a PDF can be read
       at all: open it and try to select a line of text with your mouse. If nothing highlights, the page
       is a picture and there is no text to extract.</p>` : ''}
-    ${doc.text ? `<details style="margin-top:14px"><summary class="sub" style="cursor:pointer">
+    ${doc.text ? `<details style="margin-top:16px"><summary class="sub" style="cursor:pointer">
       Show what was read from the file</summary>
-      <pre style="white-space:pre-wrap;font-size:11px;max-height:220px;overflow:auto;
-        background:var(--surface-2);padding:10px;border-radius:7px;margin-top:8px">${esc(doc.text.slice(0, 3000))}</pre>
+      <pre style="white-space:pre-wrap;font-size:13px;max-height:220px;overflow:auto;
+        background:var(--surface-2);padding:8px;border-radius:7px;margin-top:8px">${esc(doc.text.slice(0, 3000))}</pre>
       </details>` : ''}
   `, `<button class="btn primary" data-close>Close</button>`);
 }
@@ -2550,7 +2550,7 @@ function statementReview() {
   const kindLabel = { card: 'Credit card statement', bank: 'Bank statement', unknown: 'Statement' }[a.kind];
 
   openModal('Review what was found', `
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px">
       <span class="pill">${esc(doc.name || STMT.file.name)}</span>
       <span class="pill">${esc(kindLabel)}</span>
       ${doc.pages ? `<span class="pill">${doc.pages} page${doc.pages === 1 ? '' : 's'}</span>` : ''}
@@ -2562,14 +2562,14 @@ function statementReview() {
       <b>Old Word format.</b> Text was pulled out as best it could be, so check the rows below
       carefully. Saving the file as .docx or PDF and importing that gives a cleaner result.</div>` : ''}
 
-    ${a.txns.some(t => t.transfer) ? `<div class="disclaim" style="border-left-color:var(--s1);margin-top:0">
+    ${a.txns.some(t => t.transfer) ? `<div class="disclaim" style="border-left-color:var(--accent);margin-top:0">
       <b>${a.txns.filter(t => t.transfer).length} payment row(s) to this card have been left out.</b>
       Paying a card moves money between your own accounts, so counting it would look like income and
       would double-count the spending once you import the account that paid it. Include them below if
       you want them anyway.</div>` : ''}
 
     ${a.txns.length ? `
-    <div class="grid g-3" style="gap:10px;margin-bottom:14px">
+    <div class="grid g-3" style="gap:8px;margin-bottom:16px">
       <div class="kv"><span>Transactions found</span><b>${a.txns.length}</b></div>
       <div class="kv"><span>Money out</span><b>${money(outflow)}</b></div>
       <div class="kv"><span>Money in</span><b>${money(inflow)}</b></div>
@@ -2589,7 +2589,7 @@ function statementReview() {
             Some rows may be missing or duplicated, so compare against the paper statement before applying.`) : ''}
     </div>
 
-    <div class="row" style="margin:14px 0 6px">
+    <div class="row" style="margin:16px 0 8px">
       <label class="f"><span>Assign to account</span>
         <select id="stAcc">${accountOptions(STMT.account, 'None')}</select></label>
       <label class="f"><span>Assign to person</span>
@@ -2615,7 +2615,7 @@ function statementReview() {
           <td class="mono">${esc(t.date)}</td>
           <td>${esc(t.desc.slice(0, 46))}${t.transfer
             ? ' <span class="pill tiny">card payment</span>' : ''}</td>
-          <td><select class="stCat" data-i="${i}" style="padding:3px 6px;font-size:12.5px">${catOptions(t.cat)}</select></td>
+          <td><select class="stCat" data-i="${i}" style="padding:4px 8px;font-size:13px">${catOptions(t.cat)}</select></td>
           <td class="num ${amt < 0 ? 'neg' : 'pos'}">${money2(amt)}</td>
           <td><button class="btn sm ghost" data-stskip="${i}">${off ? 'Include' : 'Drop'}</button></td>
         </tr>`;
@@ -2625,7 +2625,7 @@ function statementReview() {
       this document, but the account figures below were. Applying them still updates your card.</div>`}
 
     ${a.kind === 'card' && updates.length ? `
-      <h4 style="font-size:13px;margin:18px 0 8px">Card details found in this statement</h4>
+      <h4 style="font-size:13px;margin:16px 0 8px">Card details found in this statement</h4>
       <label class="f"><span>Apply these to</span>
         <select id="stCard">
           <option value="">Do not update any card</option>
@@ -2644,8 +2644,8 @@ function statementReview() {
 
     <details style="margin-top:16px"><summary class="sub" style="cursor:pointer">
       Show the raw text read from the file</summary>
-      <pre style="white-space:pre-wrap;font-size:11px;max-height:240px;overflow:auto;
-        background:var(--surface-2);padding:10px;border-radius:7px;margin-top:8px">${esc((doc.text || '').slice(0, 6000))}</pre>
+      <pre style="white-space:pre-wrap;font-size:13px;max-height:240px;overflow:auto;
+        background:var(--surface-2);padding:8px;border-radius:7px;margin-top:8px">${esc((doc.text || '').slice(0, 6000))}</pre>
     </details>
   `, `<button class="btn" data-close>Cancel</button>
       <button class="btn primary" id="stApply">Apply${fresh.length ? ' ' + fresh.length + ' transaction' + (fresh.length === 1 ? '' : 's') : ''}</button>`,
@@ -2795,7 +2795,7 @@ document.addEventListener('click', e => {
     case 'goto-month': UI.month = a.dataset.m; render(); break;
     case 'explain': {
       const h = METRIC_HELP[a.dataset.key];
-      if (h) openModal(h[0], `<p style="margin:0;font-size:13.5px;max-width:66ch">${esc(h[1])}</p>`,
+      if (h) openModal(h[0], `<p style="margin:0;font-size:13px;max-width:66ch">${esc(h[1])}</p>`,
         `<button class="btn primary" data-close>Got it</button>`);
       break;
     }
@@ -2822,9 +2822,9 @@ document.addEventListener('click', e => {
     case 'dismiss-backup': { const w = $('#backupWarn'); if (w) w.remove(); break; }
     case 'about-sharing':
       openModal('Sharing this dashboard', `
-        <p style="margin-top:0;font-size:13.5px">Anyone can run their own copy. Nothing is shared between
+        <p style="margin-top:0;font-size:13px">Anyone can run their own copy. Nothing is shared between
         copies. Each person's figures stay in their own browser, on their own device.</p>
-        <h4 style="font-size:13px;margin:16px 0 6px">Send them the single file</h4>
+        <h4 style="font-size:13px;margin:16px 0 8px">Send them the single file</h4>
         <p class="sub" style="margin:0">Email or message them <b>wealth-dashboard.html</b> from the
         <code>dist</code> folder. It is the entire app in one file: they save it anywhere and double-click it.
         No install, no folder, no internet needed.</p>
@@ -2832,11 +2832,11 @@ document.addEventListener('click', e => {
         <p class="sub" style="margin:0">Copy the whole <code>finance-dashboard</code> folder to a shared
         drive or a USB stick. They open <code>index.html</code> inside it. Same result, and it keeps the
         separate files if they ever want to change something.</p>
-        <h4 style="font-size:13px;margin:16px 0 6px">For a phone or tablet, send a link</h4>
+        <h4 style="font-size:13px;margin:16px 0 8px">For a phone or tablet, send a link</h4>
         <p class="sub" style="margin:0">Phones have no good way to open a downloaded HTML file, so put
         the folder on any static host and send the address. They open it once, add it to their home
         screen, and it works offline from then on. <b>DEPLOY.md</b> has the steps.</p>
-        <h4 style="font-size:13px;margin:16px 0 6px">What they will see</h4>
+        <h4 style="font-size:13px;margin:16px 0 8px">What they will see</h4>
         <p class="sub" style="margin:0">A setup screen asking for their own household members and accounts.
         Your data is never part of what you send. It lives only in your browser's storage, not in the
         files.</p>
@@ -2917,9 +2917,9 @@ document.addEventListener('click', e => {
       // real data is about to be replaced, so offer to save it first
       confirmAction({
         title: 'Replace your data with the sample household?',
-        body: `<p style="margin:0 0 10px">This removes what is currently in the dashboard and puts
+        body: `<p style="margin:0 0 8px">This removes what is currently in the dashboard and puts
           a made-up family in its place.</p>
-          <ul style="margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+          <ul style="margin:0 0 12px;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.7">
             <li><b>${S.txns.length}</b> transactions</li>
             <li><b>${S.members.length}</b> household members and ${S.accounts.length} accounts</li>
             ${(S.cards || []).length ? `<li><b>${S.cards.length}</b> credit cards</li>` : ''}
@@ -2943,14 +2943,14 @@ document.addEventListener('click', e => {
     case 'wipe': {
       confirmAction({
         title: 'Clear all data?',
-        body: `<p style="margin:0 0 10px">This removes everything you have entered from this browser:</p>
-          <ul style="margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+        body: `<p style="margin:0 0 8px">This removes everything you have entered from this browser:</p>
+          <ul style="margin:0 0 12px;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.7">
             <li><b>${S.txns.length}</b> transactions</li>
             <li>${(S.cards || []).length} credit cards and ${(S.debts || []).length} loans</li>
             <li>${(S.goals || []).length} goals, ${(S.assets || []).length} assets, ${(S.recurring || []).length} recurring items</li>
             <li>All budgets and categorisation rules</li>
           </ul>
-          <p style="margin:0 0 10px;font-size:13px"><b>${S.members.length} household members and
+          <p style="margin:0 0 8px;font-size:13px"><b>${S.members.length} household members and
             ${S.accounts.length} accounts are kept</b>, so you do not have to set them up again.</p>
           <div class="quiet-note" style="margin:0">Download a backup first if there is any chance you
             want this back.</div>`,
@@ -3063,7 +3063,7 @@ async function storageInfo() {
       on your own computer.
     </div>` : ''}
 
-    <h4 style="font-size:13px;margin:18px 0 6px">How safe is this?</h4>
+    <h4 style="font-size:13px;margin:16px 0 8px">How safe is this?</h4>
     ${P.iOS ? `<div class="disclaim" style="border-left-color:var(--crit)">
       <b>On iPhone and iPad, treat backups as mandatory.</b> Safari reclaims website storage from
       sites you have not opened in a while, and it ignores the standard request to mark storage as
@@ -3080,8 +3080,8 @@ async function storageInfo() {
            that much less likely. Either way it does not exist on any other device or browser.`}
     </div>`}
 
-    <h4 style="font-size:13px;margin:18px 0 6px">What always loses the data</h4>
-    <ul style="font-size:12.5px;color:var(--ink-2);margin:0;padding-left:18px;line-height:1.7">
+    <h4 style="font-size:13px;margin:16px 0 8px">What always loses the data</h4>
+    <ul style="font-size:13px;color:var(--ink-2);margin:0;padding-left:16px;line-height:1.7">
       <li>Clearing browsing data or site data for this page</li>
       <li>Private or incognito windows, where nothing is kept at all</li>
       <li>Opening it in a different browser, a different device, or another Windows user account</li>
@@ -3112,26 +3112,26 @@ function setupWizard(step) {
 
   const dots = [0, 1, 2].map(i =>
     `<span style="width:7px;height:7px;border-radius:99px;display:inline-block;
-      background:${i === WIZ.step ? 'var(--s1)' : 'var(--surface-3)'}"></span>`).join(' ');
+      background:${i === WIZ.step ? 'var(--accent)' : 'var(--surface-3)'}"></span>`).join(' ');
 
   const body = [
     // ---------- step 1: who lives here ----------
     () => `
-      <p style="margin-top:0;font-size:13.5px">This dashboard tracks what a household spends across every
+      <p style="margin-top:0;font-size:13px">This dashboard tracks what a household spends across every
       account and person, then uses those numbers to model savings, debt payoff, credit and long-term growth.</p>
-      <p style="font-size:13.5px"><b>Nothing leaves this device.</b> There is no server, no account and no
+      <p style="font-size:13px"><b>Nothing leaves this device.</b> There is no server, no account and no
       sign-in. Everything is stored in this browser, which is also why backups matter.</p>
       <label class="f"><span>What should we call this household?</span>
         <input type="text" id="wzName" value="${esc(WIZ.name)}" placeholder="e.g. The Smith Household"></label>
-      <h4 style="font-size:13px;margin:18px 0 6px">Who lives here?</h4>
-      <div class="sub" style="margin-bottom:10px">Each person gets a fixed colour used on every chart, so you can
+      <h4 style="font-size:13px;margin:16px 0 8px">Who lives here?</h4>
+      <div class="sub" style="margin-bottom:8px">Each person gets a fixed colour used on every chart, so you can
       see at a glance who spent what. Include children if you want their spending tracked separately.</div>
       <div id="wzPeople">${WIZ.people.map((p, i) => personRow(p, i)).join('')}</div>
       <button class="btn sm" type="button" id="wzAddPerson">+ Add another person</button>`,
 
     // ---------- step 2: where the money sits ----------
     () => `
-      <p style="margin-top:0;font-size:13.5px">Add the accounts you'll import statements from: current
+      <p style="margin-top:0;font-size:13px">Add the accounts you'll import statements from: current
       accounts, credit cards, cash wallets, transfer apps. Every one of them feeds the same ledger, which is
       what makes a category total the <i>household</i> total rather than one bank's view.</p>
       <div class="sub" style="margin-bottom:12px">You can skip this and add them later from Settings.
@@ -3141,21 +3141,21 @@ function setupWizard(step) {
 
     // ---------- step 3: get some data in ----------
     () => `
-      <p style="margin-top:0;font-size:13.5px"><b>${esc(WIZ.name || 'Your household')}</b> is set up with
+      <p style="margin-top:0;font-size:13px"><b>${esc(WIZ.name || 'Your household')}</b> is set up with
       ${WIZ.people.filter(p => p.name.trim()).length} member(s)
       and ${WIZ.accounts.filter(a => a.name.trim()).length} account(s).</p>
-      <p style="font-size:13.5px">The dashboard needs transactions before it can tell you anything. Pick how
+      <p style="font-size:13px">The dashboard needs transactions before it can tell you anything. Pick how
       you'd like to begin:</p>
-      <div style="display:grid;gap:10px;margin-top:14px">
-        <button class="btn" id="wzImport" style="justify-content:flex-start;padding:14px;height:auto;text-align:left">
+      <div style="display:grid;gap:8px;margin-top:16px">
+        <button class="btn" id="wzImport" style="justify-content:flex-start;padding:16px;height:auto;text-align:left">
           <div><b style="display:block">Import a bank or card statement</b>
           <span class="sub">A CSV export from any bank. Columns are detected for you. This is the fastest route.</span></div>
         </button>
-        <button class="btn" id="wzManual" style="justify-content:flex-start;padding:14px;height:auto;text-align:left">
+        <button class="btn" id="wzManual" style="justify-content:flex-start;padding:16px;height:auto;text-align:left">
           <div><b style="display:block">Add transactions by hand</b>
           <span class="sub">Good if you mostly spend cash, or just want to try it out.</span></div>
         </button>
-        <button class="btn" id="wzSample" style="justify-content:flex-start;padding:14px;height:auto;text-align:left">
+        <button class="btn" id="wzSample" style="justify-content:flex-start;padding:16px;height:auto;text-align:left">
           <div><b style="display:block">Explore a sample household first</b>
           <span class="sub">A fictional family with nine months of activity, so every screen has something to show.
           Replaces your setup, and you can clear it from Settings afterwards.</span></div>
@@ -3168,13 +3168,13 @@ function setupWizard(step) {
   ][WIZ.step]();
 
   const footer = WIZ.step === 0
-    ? `<span style="margin-right:auto;display:flex;gap:5px;align-items:center">${dots}</span>
+    ? `<span style="margin-right:auto;display:flex;gap:4px;align-items:center">${dots}</span>
        <button class="btn primary" id="wzNext">Continue</button>`
     : WIZ.step === 1
-    ? `<span style="margin-right:auto;display:flex;gap:5px;align-items:center">${dots}</span>
+    ? `<span style="margin-right:auto;display:flex;gap:4px;align-items:center">${dots}</span>
        <button class="btn" id="wzBack">Back</button>
        <button class="btn primary" id="wzNext">Continue</button>`
-    : `<span style="margin-right:auto;display:flex;gap:5px;align-items:center">${dots}</span>
+    : `<span style="margin-right:auto;display:flex;gap:4px;align-items:center">${dots}</span>
        <button class="btn" id="wzBack">Back</button>`;
 
   openModal(['Welcome', 'Accounts and cards', 'Ready'][WIZ.step], body, footer, root => {
