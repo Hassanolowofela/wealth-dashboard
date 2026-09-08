@@ -281,21 +281,39 @@ function ladder() {
 
 /* -------------------------------------------------------------- insights --- */
 
-/** Category spend this month vs the trailing median, biggest movers first. */
+/**
+ * Category spend this month against the trailing median, biggest movers first.
+ *
+ * A change has to clear two bars to be worth saying out loud: large in money,
+ * and large relative to what that category normally costs. The money bar scales
+ * with income, because $60 means something different to different households.
+ *
+ * A category with no history has no median to be a percentage of. Treating its
+ * first purchase as a 100% rise, which the previous version did, turned every
+ * new merchant into an alert.
+ */
 function categoryAnomalies(m) {
   const prior = activeMonths().filter(x => x < m).slice(-3);
   if (prior.length < 2) return [];
-  const cur = monthStats(m, 'all').byCat;
+  const st = monthStats(m, 'all');
+  const cur = st.byCat;
+  const floor = Math.max(45, st.income * 0.01);
   const out = [];
   for (const c of CATS) {
     if (c.bucket === 'income' || c.bucket === 'save') continue;
     const hist = prior.map(p => monthStats(p, 'all').byCat[c.id] || 0);
     const med = median(hist);
     const now = cur[c.id] || 0;
-    if (med < 40 && now < 40) continue;
     const delta = now - med;
-    const rel = med > 0 ? (delta / med) * 100 : (now > 0 ? 100 : 0);
-    if (Math.abs(rel) >= 25 && Math.abs(delta) >= 45) out.push({ cat: c.id, now, med, delta, rel });
+    if (Math.abs(delta) < floor) continue;
+
+    if (med <= 0) {
+      // new spending, not a spike: no percentage is computable or meaningful
+      if (now >= floor * 2) out.push({ cat: c.id, now, med: 0, delta, rel: null, isNew: true });
+      continue;
+    }
+    const rel = (delta / med) * 100;
+    if (Math.abs(rel) >= 25) out.push({ cat: c.id, now, med, delta, rel, isNew: false });
   }
   return out.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
@@ -362,9 +380,14 @@ function insights(m) {
   }
 
   for (const a of categoryAnomalies(m).slice(0, 4)) {
-    out.push([a.delta > 0 ? 'warn' : 'good',
-      `${catName(a.cat)} ${a.delta > 0 ? 'up' : 'down'} ${pct(Math.abs(a.rel))} vs your recent norm`,
-      `${money(a.now)} this month against a ${money(a.med)} median over the last ${prior.length} months - a ${a.delta > 0 ? 'rise' : 'drop'} of ${money(Math.abs(a.delta))}.`]);
+    if (a.isNew) {
+      out.push(['warn', `${money(a.now)} on ${catName(a.cat)}, which is new`,
+        `Nothing was spent here in the last ${prior.length} months, so there is no normal to compare against yet.`]);
+    } else {
+      out.push([a.delta > 0 ? 'warn' : 'good',
+        `${catName(a.cat)} ${a.delta > 0 ? 'up' : 'down'} ${pct(Math.abs(a.rel))} vs your recent norm`,
+        `${money(a.now)} this month against a ${money(a.med)} median over the last ${prior.length} months, a ${a.delta > 0 ? 'rise' : 'drop'} of ${money(Math.abs(a.delta))}.`]);
+    }
   }
 
   const fees = st.byCat.fees || 0;

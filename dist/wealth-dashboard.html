@@ -12,7 +12,7 @@
   frame-ancestors is deliberately absent: browsers ignore it in a meta tag, so
   claiming it here would be false comfort. Set it as a header if your host can.
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-l9fzxjyrFaM0M0lE1RPLnYCKCqbZwEqVX1KalnYi9Y8=' 'sha256-2IMRorplZ+lMPMpHJ2NqU0CPQ3s5ISOka8culWm6DQk=' 'sha256-xwz4tc6W1wzM2dKTLWLhYMekFlNd3LKJ28ESqvP9+Os=' 'sha256-OwfkNNnpCj2j0ayPtngkOjwZ87+pH2y5fmu90uVoV4I=' 'sha256-22mz6GZ0luQnAtpqKzFz6U/QC7SOV/duTs7No2hg2qg=' 'sha256-xOBc298furZED/Oflxp0981fRGucM6ZqJV3oJ6QBafI=' 'sha256-k5MXG8xbVQLcTPLPQa15Uz6lHHt0jgOdCRu8lNT/+qU=' 'sha256-HAxPeZGic43H3oGnXNY7yhE16MzyRBuuPTWhRkKnBHo='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+vWa0A4otyCuJmx60daAJOTa0JHaYQaUw+eKt7ZE2FQ=' 'sha256-2IMRorplZ+lMPMpHJ2NqU0CPQ3s5ISOka8culWm6DQk=' 'sha256-xwz4tc6W1wzM2dKTLWLhYMekFlNd3LKJ28ESqvP9+Os=' 'sha256-haAopVdXryaos4X4s1hQEItBW2sEZ99uMptk517A7h8=' 'sha256-22mz6GZ0luQnAtpqKzFz6U/QC7SOV/duTs7No2hg2qg=' 'sha256-xOBc298furZED/Oflxp0981fRGucM6ZqJV3oJ6QBafI=' 'sha256-k5MXG8xbVQLcTPLPQa15Uz6lHHt0jgOdCRu8lNT/+qU=' 'sha256-Oj3hDCXGor2SpzG+4E80BRVhkGreRc0Pfa1GXinKnMs='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Household Wealth Dashboard</title>
 <meta name="description" content="Private, offline household spending tracker, credit card manager and financial planner. All data stays on your device.">
 <meta name="theme-color" content="#2a78d6" media="(prefers-color-scheme: light)">
@@ -243,6 +243,17 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 .empty p{max-width:440px;margin:0 auto 18px;font-size:13.5px;color:var(--muted)}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--page);padding:10px 18px;border-radius:99px;font-size:13px;font-weight:520;z-index:200;transition:transform .22s cubic-bezier(.2,.8,.3,1);box-shadow:0 6px 24px rgba(0,0,0,.24)}
 .toast.on{transform:translateX(-50%) translateY(0)}
+.toast.with-action{display:flex;align-items:center;gap:14px;padding:9px 9px 9px 18px;border-radius:12px}
+.toast.with-action .btn{background:transparent;border-color:rgba(255,255,255,.35);color:var(--page);
+  font-weight:620;padding:5px 12px}
+.toast.with-action .btn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.6)}
+
+/* validation belongs beside the field that is wrong, not in a toast that
+   disappears before it has been read */
+.field-error{display:block;margin-top:5px;font-size:12.5px;color:var(--crit-ink);font-weight:520}
+.field-warn{display:block;margin-top:5px;font-size:12.5px;color:var(--warn-ink);font-weight:520}
+input.invalid,select.invalid{border-color:var(--crit)}
+input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,transparent)}
 .dz{border:2px dashed var(--border-2);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
 .dz:hover,.dz.over{border-color:var(--s1);background:color-mix(in srgb,var(--s1) 5%,var(--surface))}
 .scroller{max-height:380px;overflow:auto}
@@ -363,7 +374,7 @@ header.top{padding-top:env(safe-area-inset-top,0px)}
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.6.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
@@ -522,9 +533,91 @@ const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(
 
 function toast(msg) {
   const t = $('#toast');
-  t.textContent = msg; t.classList.add('on');
+  t.textContent = msg;
+  t.className = 'toast on';
+  t.setAttribute('role', 'status');
   clearTimeout(toast._t);
   toast._t = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+/**
+ * Destructive changes apply and persist straight away, but keep a snapshot of
+ * the whole document so one press puts it back.
+ *
+ * Persisting immediately rather than deferring the commit is deliberate: a
+ * pending change that only lands after a timer is lost if the tab closes in
+ * between, which is a worse failure than a delete the user can reverse.
+ */
+function undoable(message, mutate, seconds = 6) {
+  const snapshot = JSON.stringify(S);
+  mutate();
+  save();
+  render();
+
+  const t = $('#toast');
+  t.className = 'toast on with-action';
+  t.setAttribute('role', 'status');
+  t.innerHTML = `<span>${esc(message)}</span><button class="btn sm" id="undoBtn">Undo</button>`;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('on'), seconds * 1000);
+
+  $('#undoBtn').onclick = () => {
+    clearTimeout(toast._t);
+    S = migrate(JSON.parse(snapshot));
+    save();
+    render();
+    toast('Restored');
+  };
+}
+
+/**
+ * The app's own confirmation, so a destructive step can name exactly what it
+ * is about to remove. A native confirm() cannot show a list, cannot be styled
+ * for the theme, and reads as a browser warning rather than part of the app.
+ */
+function confirmAction(o) {
+  openModal(o.title, o.body,
+    `<button class="btn" data-close>${esc(o.cancelLabel || 'Cancel')}</button>
+     <button class="btn ${o.danger === false ? 'primary' : 'danger'}" id="cfmGo">${esc(o.confirmLabel || 'Delete')}</button>`,
+    root => {
+      const go = root.querySelector('#cfmGo');
+      go.onclick = () => { closeModal(); o.onConfirm(); };
+      go.focus();
+    });
+}
+
+/** Shows a message beside the field itself, where it can be read and re-read. */
+function fieldError(el, message, kind = 'error') {
+  clearFieldError(el);
+  el.classList.add('invalid');
+  const note = document.createElement('span');
+  note.className = kind === 'warn' ? 'field-warn' : 'field-error';
+  note.textContent = message;
+  note.setAttribute('role', 'alert');
+  (el.closest('label') || el.parentNode).appendChild(note);
+  el.focus();
+  el.setAttribute('aria-invalid', 'true');
+}
+
+function clearFieldError(el) {
+  el.classList.remove('invalid');
+  el.removeAttribute('aria-invalid');
+  const holder = el.closest('label') || el.parentNode;
+  holder.querySelectorAll('.field-error, .field-warn').forEach(n => n.remove());
+}
+
+/**
+ * A sanity check on a typed amount, not a limit. Catches the missing decimal
+ * point and the extra zero, which are the mistakes that actually happen.
+ */
+function amountLooksWrong(amt) {
+  const abs = Math.abs(+amt || 0);
+  if (abs > 1000000) return 'That is over $1,000,000.';
+  const largest = S.txns.length ? Math.max(...S.txns.map(t => Math.abs(+t.amount || 0))) : 0;
+  if (largest > 0 && abs > largest * 10) {
+    return `That is more than ten times your largest recorded transaction (${money(largest)}).`;
+  }
+  return null;
 }
 
 /* --------------------------------------------------------------------- state */
@@ -1921,21 +2014,39 @@ function ladder() {
 
 /* -------------------------------------------------------------- insights --- */
 
-/** Category spend this month vs the trailing median, biggest movers first. */
+/**
+ * Category spend this month against the trailing median, biggest movers first.
+ *
+ * A change has to clear two bars to be worth saying out loud: large in money,
+ * and large relative to what that category normally costs. The money bar scales
+ * with income, because $60 means something different to different households.
+ *
+ * A category with no history has no median to be a percentage of. Treating its
+ * first purchase as a 100% rise, which the previous version did, turned every
+ * new merchant into an alert.
+ */
 function categoryAnomalies(m) {
   const prior = activeMonths().filter(x => x < m).slice(-3);
   if (prior.length < 2) return [];
-  const cur = monthStats(m, 'all').byCat;
+  const st = monthStats(m, 'all');
+  const cur = st.byCat;
+  const floor = Math.max(45, st.income * 0.01);
   const out = [];
   for (const c of CATS) {
     if (c.bucket === 'income' || c.bucket === 'save') continue;
     const hist = prior.map(p => monthStats(p, 'all').byCat[c.id] || 0);
     const med = median(hist);
     const now = cur[c.id] || 0;
-    if (med < 40 && now < 40) continue;
     const delta = now - med;
-    const rel = med > 0 ? (delta / med) * 100 : (now > 0 ? 100 : 0);
-    if (Math.abs(rel) >= 25 && Math.abs(delta) >= 45) out.push({ cat: c.id, now, med, delta, rel });
+    if (Math.abs(delta) < floor) continue;
+
+    if (med <= 0) {
+      // new spending, not a spike: no percentage is computable or meaningful
+      if (now >= floor * 2) out.push({ cat: c.id, now, med: 0, delta, rel: null, isNew: true });
+      continue;
+    }
+    const rel = (delta / med) * 100;
+    if (Math.abs(rel) >= 25) out.push({ cat: c.id, now, med, delta, rel, isNew: false });
   }
   return out.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
@@ -2002,9 +2113,14 @@ function insights(m) {
   }
 
   for (const a of categoryAnomalies(m).slice(0, 4)) {
-    out.push([a.delta > 0 ? 'warn' : 'good',
-      `${catName(a.cat)} ${a.delta > 0 ? 'up' : 'down'} ${pct(Math.abs(a.rel))} vs your recent norm`,
-      `${money(a.now)} this month against a ${money(a.med)} median over the last ${prior.length} months - a ${a.delta > 0 ? 'rise' : 'drop'} of ${money(Math.abs(a.delta))}.`]);
+    if (a.isNew) {
+      out.push(['warn', `${money(a.now)} on ${catName(a.cat)}, which is new`,
+        `Nothing was spent here in the last ${prior.length} months, so there is no normal to compare against yet.`]);
+    } else {
+      out.push([a.delta > 0 ? 'warn' : 'good',
+        `${catName(a.cat)} ${a.delta > 0 ? 'up' : 'down'} ${pct(Math.abs(a.rel))} vs your recent norm`,
+        `${money(a.now)} this month against a ${money(a.med)} median over the last ${prior.length} months, a ${a.delta > 0 ? 'rise' : 'drop'} of ${money(Math.abs(a.delta))}.`]);
+    }
   }
 
   const fees = st.byCat.fees || 0;
@@ -5228,8 +5344,18 @@ function txForm(id) {
       if (g && g !== 'misc') root.querySelector('#tCat').value = g;
     });
     root.querySelector('#tSave').onclick = () => {
-      const amt = round2(parseFloat(root.querySelector('#tAmt').value));
-      if (!isFinite(amt) || amt === 0) return toast('Enter an amount.');
+      const amtEl = root.querySelector('#tAmt');
+      const amt = round2(parseFloat(amtEl.value));
+      if (!isFinite(amt) || amt === 0) return fieldError(amtEl, 'Enter an amount.');
+
+      // an unusual amount is usually a typo, so ask once rather than refuse
+      const odd = amountLooksWrong(amt);
+      if (odd && amtEl.dataset.confirmed !== String(amt)) {
+        amtEl.dataset.confirmed = String(amt);
+        return fieldError(amtEl, `${odd} Press Save again if that is right.`, 'warn');
+      }
+      clearFieldError(amtEl);
+
       const dir = root.querySelector('#tDir').value;
       const rec = {
         id: t ? t.id : uid(),
@@ -5247,8 +5373,10 @@ function txForm(id) {
       toast(t ? 'Transaction updated' : 'Transaction added');
     };
     if (!isNew) root.querySelector('#tDel').onclick = () => {
-      S.txns = S.txns.filter(x => x.id !== t.id);
-      save(); closeModal(); render(); toast('Deleted');
+      closeModal();
+      undoable(`Deleted "${t.desc.slice(0, 32)}"`, () => {
+        S.txns = S.txns.filter(x => x.id !== t.id);
+      });
     };
   });
 }
@@ -5327,8 +5455,10 @@ function recordForm(kind, id) {
       save(); closeModal(); render(); toast('Saved');
     };
     if (rec) root.querySelector('#rDel').onclick = () => {
-      S[conf.list] = S[conf.list].filter(x => x.id !== rec.id);
-      save(); closeModal(); render(); toast('Deleted');
+      closeModal();
+      undoable(`Removed ${esc(rec.name || conf.title)}`, () => {
+        S[conf.list] = S[conf.list].filter(x => x.id !== rec.id);
+      });
     };
   });
 }
@@ -5437,9 +5567,22 @@ function cardForm(id) {
       save(); closeModal(); render(); toast('Card saved');
     };
     if (c) root.querySelector('#c_del').onclick = () => {
-      if (!confirm(`Remove ${c.name} from the dashboard? This does not close the account with the issuer.`)) return;
-      S.cards = S.cards.filter(x => x.id !== c.id);
-      save(); closeModal(); render(); toast('Card removed');
+      const pays = (S.cardPayments || []).filter(p => p.cardId === c.id).length;
+      closeModal();
+      confirmAction({
+        title: 'Remove this card?',
+        body: `<p style="margin:0 0 10px">This removes <b>${esc(c.name)}</b> from the dashboard.
+          It does not close the account with ${esc(c.issuer || 'the issuer')}.</p>
+          <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+            <li>Its ${money(c.limit)} limit stops counting towards your utilisation</li>
+            ${(+c.balance || 0) > 0 ? `<li>Its ${money(c.balance)} balance leaves your debt total</li>` : ''}
+            ${pays ? `<li>${pays} logged payment${pays === 1 ? '' : 's'} stay in your history</li>` : ''}
+          </ul>`,
+        confirmLabel: 'Remove card',
+        onConfirm: () => undoable(`Removed ${c.name}`, () => {
+          S.cards = S.cards.filter(x => x.id !== c.id);
+        })
+      });
     };
   }, true);
 }
@@ -6358,13 +6501,23 @@ document.addEventListener('click', e => {
     case 'edit-card': cardForm(id); break;
     case 'log-payment': logPaymentForm(id); break;
     case 'payment-log': paymentLogView(); break;
-    case 'del-payment':
-      S.cardPayments = S.cardPayments.filter(p => p.id !== id);
-      save(); paymentLogView(); break;
+    case 'del-payment': {
+      const p = (S.cardPayments || []).find(x => x.id === id);
+      closeModal();
+      undoable(`Removed the ${p ? money2(p.amount) : ''} payment`.trim(), () => {
+        S.cardPayments = S.cardPayments.filter(x => x.id !== id);
+      });
+      break;
+    }
     case 'edit-inquiries': inquiriesForm(); break;
-    case 'del-inquiry':
-      S.creditProfile.inquiries.splice(+a.dataset.i, 1);
-      save(); inquiriesForm(); break;
+    case 'del-inquiry': {
+      const q = S.creditProfile.inquiries[+a.dataset.i];
+      closeModal();
+      undoable(`Removed "${q ? q.label : 'inquiry'}"`, () => {
+        S.creditProfile.inquiries.splice(+a.dataset.i, 1);
+      });
+      break;
+    }
     case 'set-reported-score': reportedScoreForm(); break;
     case 'convert-debt': {
       const c = convertDebtToCard(id);
@@ -6423,13 +6576,23 @@ document.addEventListener('click', e => {
       if (!t || !t.value.trim()) return toast('Paste some rows first.');
       startImport(t.value, 'Pasted rows'); break;
     }
-    case 'del-profile': delete S.profiles[a.dataset.name]; save(); render(); break;
+    case 'del-profile': {
+      const n = a.dataset.name;
+      undoable(`Removed the "${n}" import layout`, () => { delete S.profiles[n]; });
+      break;
+    }
     case 'adopt-rec': {
       S.recurring.push({ id: uid(), name: a.dataset.name, amount: +a.dataset.amt,
         cat: a.dataset.cat, day: 1, member: null, account: null, active: true });
       save(); render(); toast('Now tracked as recurring'); break;
     }
-    case 'del-rule': S.rules.splice(+a.dataset.i, 1); save(); render(); break;
+    case 'del-rule': {
+      const r = S.rules[+a.dataset.i];
+      undoable(`Removed the rule for "${r ? r.match : 'that merchant'}"`, () => {
+        S.rules.splice(+a.dataset.i, 1);
+      });
+      break;
+    }
     case 'add-rule': {
       openModal('Add a categorisation rule', `
         <label class="f"><span>When the description contains</span>
@@ -6464,17 +6627,59 @@ document.addEventListener('click', e => {
       save(); render(); toast('Settings saved'); break;
     }
     case 'load-sample': {
-      if (S.txns.length && !confirm('This replaces everything currently in the dashboard. Continue?')) return;
-      S = seedSample(); save(); UI.month = thisMonth(); UI.tab = 'overview'; render();
-      toast('Sample household loaded'); break;
+      const loadIt = () => {
+        S = seedSample(); save(); UI.month = thisMonth(); UI.tab = 'overview'; render();
+        toast('Sample household loaded');
+      };
+      if (!S.txns.length) { loadIt(); break; }
+      // real data is about to be replaced, so offer to save it first
+      confirmAction({
+        title: 'Replace your data with the sample household?',
+        body: `<p style="margin:0 0 10px">This removes what is currently in the dashboard and puts
+          a made-up family in its place.</p>
+          <ul style="margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+            <li><b>${S.txns.length}</b> transactions</li>
+            <li><b>${S.members.length}</b> household members and ${S.accounts.length} accounts</li>
+            ${(S.cards || []).length ? `<li><b>${S.cards.length}</b> credit cards</li>` : ''}
+          </ul>
+          <div class="quiet-note" style="margin:0">Take a backup first and you can put all of it back
+            afterwards from Import, Restore backup.</div>`,
+        confirmLabel: 'Replace it',
+        cancelLabel: 'Keep my data',
+        onConfirm: () => confirmAction({
+          title: 'Save a backup first?',
+          body: `<p style="margin:0">Download a copy of your data before it is replaced. It restores
+            in one click from the Import tab.</p>`,
+          confirmLabel: 'Download backup, then replace',
+          cancelLabel: 'Replace without a backup',
+          danger: false,
+          onConfirm: () => { exportJSON(); loadIt(); }
+        })
+      });
+      break;
     }
     case 'wipe': {
-      if (!confirm('Erase all transactions, cards, budgets and balances from this browser?\n\n'
-        + 'Your household members are kept. Download a backup first if you may want any of it back.')) return;
-      const keepMembers = S.members, keepAccounts = S.accounts, keepName = S.household.name;
-      S = blankState();
-      S.members = keepMembers; S.accounts = keepAccounts; S.household.name = keepName;
-      save(); UI.tab = 'overview'; render(); toast('Cleared - household members kept'); break;
+      confirmAction({
+        title: 'Clear all data?',
+        body: `<p style="margin:0 0 10px">This removes everything you have entered from this browser:</p>
+          <ul style="margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+            <li><b>${S.txns.length}</b> transactions</li>
+            <li>${(S.cards || []).length} credit cards and ${(S.debts || []).length} loans</li>
+            <li>${(S.goals || []).length} goals, ${(S.assets || []).length} assets, ${(S.recurring || []).length} recurring items</li>
+            <li>All budgets and categorisation rules</li>
+          </ul>
+          <p style="margin:0 0 10px;font-size:13px"><b>${S.members.length} household members and
+            ${S.accounts.length} accounts are kept</b>, so you do not have to set them up again.</p>
+          <div class="quiet-note" style="margin:0">Download a backup first if there is any chance you
+            want this back.</div>`,
+        confirmLabel: 'Clear everything',
+        onConfirm: () => undoable('Cleared. Members and accounts kept', () => {
+          const keepMembers = S.members, keepAccounts = S.accounts, keepName = S.household.name;
+          S = blankState();
+          S.members = keepMembers; S.accounts = keepAccounts; S.household.name = keepName;
+        }, 10)
+      });
+      break;
     }
   }
 });

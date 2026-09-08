@@ -1404,8 +1404,18 @@ function txForm(id) {
       if (g && g !== 'misc') root.querySelector('#tCat').value = g;
     });
     root.querySelector('#tSave').onclick = () => {
-      const amt = round2(parseFloat(root.querySelector('#tAmt').value));
-      if (!isFinite(amt) || amt === 0) return toast('Enter an amount.');
+      const amtEl = root.querySelector('#tAmt');
+      const amt = round2(parseFloat(amtEl.value));
+      if (!isFinite(amt) || amt === 0) return fieldError(amtEl, 'Enter an amount.');
+
+      // an unusual amount is usually a typo, so ask once rather than refuse
+      const odd = amountLooksWrong(amt);
+      if (odd && amtEl.dataset.confirmed !== String(amt)) {
+        amtEl.dataset.confirmed = String(amt);
+        return fieldError(amtEl, `${odd} Press Save again if that is right.`, 'warn');
+      }
+      clearFieldError(amtEl);
+
       const dir = root.querySelector('#tDir').value;
       const rec = {
         id: t ? t.id : uid(),
@@ -1423,8 +1433,10 @@ function txForm(id) {
       toast(t ? 'Transaction updated' : 'Transaction added');
     };
     if (!isNew) root.querySelector('#tDel').onclick = () => {
-      S.txns = S.txns.filter(x => x.id !== t.id);
-      save(); closeModal(); render(); toast('Deleted');
+      closeModal();
+      undoable(`Deleted "${t.desc.slice(0, 32)}"`, () => {
+        S.txns = S.txns.filter(x => x.id !== t.id);
+      });
     };
   });
 }
@@ -1503,8 +1515,10 @@ function recordForm(kind, id) {
       save(); closeModal(); render(); toast('Saved');
     };
     if (rec) root.querySelector('#rDel').onclick = () => {
-      S[conf.list] = S[conf.list].filter(x => x.id !== rec.id);
-      save(); closeModal(); render(); toast('Deleted');
+      closeModal();
+      undoable(`Removed ${esc(rec.name || conf.title)}`, () => {
+        S[conf.list] = S[conf.list].filter(x => x.id !== rec.id);
+      });
     };
   });
 }
@@ -1613,9 +1627,22 @@ function cardForm(id) {
       save(); closeModal(); render(); toast('Card saved');
     };
     if (c) root.querySelector('#c_del').onclick = () => {
-      if (!confirm(`Remove ${c.name} from the dashboard? This does not close the account with the issuer.`)) return;
-      S.cards = S.cards.filter(x => x.id !== c.id);
-      save(); closeModal(); render(); toast('Card removed');
+      const pays = (S.cardPayments || []).filter(p => p.cardId === c.id).length;
+      closeModal();
+      confirmAction({
+        title: 'Remove this card?',
+        body: `<p style="margin:0 0 10px">This removes <b>${esc(c.name)}</b> from the dashboard.
+          It does not close the account with ${esc(c.issuer || 'the issuer')}.</p>
+          <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+            <li>Its ${money(c.limit)} limit stops counting towards your utilisation</li>
+            ${(+c.balance || 0) > 0 ? `<li>Its ${money(c.balance)} balance leaves your debt total</li>` : ''}
+            ${pays ? `<li>${pays} logged payment${pays === 1 ? '' : 's'} stay in your history</li>` : ''}
+          </ul>`,
+        confirmLabel: 'Remove card',
+        onConfirm: () => undoable(`Removed ${c.name}`, () => {
+          S.cards = S.cards.filter(x => x.id !== c.id);
+        })
+      });
     };
   }, true);
 }
@@ -2534,13 +2561,23 @@ document.addEventListener('click', e => {
     case 'edit-card': cardForm(id); break;
     case 'log-payment': logPaymentForm(id); break;
     case 'payment-log': paymentLogView(); break;
-    case 'del-payment':
-      S.cardPayments = S.cardPayments.filter(p => p.id !== id);
-      save(); paymentLogView(); break;
+    case 'del-payment': {
+      const p = (S.cardPayments || []).find(x => x.id === id);
+      closeModal();
+      undoable(`Removed the ${p ? money2(p.amount) : ''} payment`.trim(), () => {
+        S.cardPayments = S.cardPayments.filter(x => x.id !== id);
+      });
+      break;
+    }
     case 'edit-inquiries': inquiriesForm(); break;
-    case 'del-inquiry':
-      S.creditProfile.inquiries.splice(+a.dataset.i, 1);
-      save(); inquiriesForm(); break;
+    case 'del-inquiry': {
+      const q = S.creditProfile.inquiries[+a.dataset.i];
+      closeModal();
+      undoable(`Removed "${q ? q.label : 'inquiry'}"`, () => {
+        S.creditProfile.inquiries.splice(+a.dataset.i, 1);
+      });
+      break;
+    }
     case 'set-reported-score': reportedScoreForm(); break;
     case 'convert-debt': {
       const c = convertDebtToCard(id);
@@ -2599,13 +2636,23 @@ document.addEventListener('click', e => {
       if (!t || !t.value.trim()) return toast('Paste some rows first.');
       startImport(t.value, 'Pasted rows'); break;
     }
-    case 'del-profile': delete S.profiles[a.dataset.name]; save(); render(); break;
+    case 'del-profile': {
+      const n = a.dataset.name;
+      undoable(`Removed the "${n}" import layout`, () => { delete S.profiles[n]; });
+      break;
+    }
     case 'adopt-rec': {
       S.recurring.push({ id: uid(), name: a.dataset.name, amount: +a.dataset.amt,
         cat: a.dataset.cat, day: 1, member: null, account: null, active: true });
       save(); render(); toast('Now tracked as recurring'); break;
     }
-    case 'del-rule': S.rules.splice(+a.dataset.i, 1); save(); render(); break;
+    case 'del-rule': {
+      const r = S.rules[+a.dataset.i];
+      undoable(`Removed the rule for "${r ? r.match : 'that merchant'}"`, () => {
+        S.rules.splice(+a.dataset.i, 1);
+      });
+      break;
+    }
     case 'add-rule': {
       openModal('Add a categorisation rule', `
         <label class="f"><span>When the description contains</span>
@@ -2640,17 +2687,59 @@ document.addEventListener('click', e => {
       save(); render(); toast('Settings saved'); break;
     }
     case 'load-sample': {
-      if (S.txns.length && !confirm('This replaces everything currently in the dashboard. Continue?')) return;
-      S = seedSample(); save(); UI.month = thisMonth(); UI.tab = 'overview'; render();
-      toast('Sample household loaded'); break;
+      const loadIt = () => {
+        S = seedSample(); save(); UI.month = thisMonth(); UI.tab = 'overview'; render();
+        toast('Sample household loaded');
+      };
+      if (!S.txns.length) { loadIt(); break; }
+      // real data is about to be replaced, so offer to save it first
+      confirmAction({
+        title: 'Replace your data with the sample household?',
+        body: `<p style="margin:0 0 10px">This removes what is currently in the dashboard and puts
+          a made-up family in its place.</p>
+          <ul style="margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+            <li><b>${S.txns.length}</b> transactions</li>
+            <li><b>${S.members.length}</b> household members and ${S.accounts.length} accounts</li>
+            ${(S.cards || []).length ? `<li><b>${S.cards.length}</b> credit cards</li>` : ''}
+          </ul>
+          <div class="quiet-note" style="margin:0">Take a backup first and you can put all of it back
+            afterwards from Import, Restore backup.</div>`,
+        confirmLabel: 'Replace it',
+        cancelLabel: 'Keep my data',
+        onConfirm: () => confirmAction({
+          title: 'Save a backup first?',
+          body: `<p style="margin:0">Download a copy of your data before it is replaced. It restores
+            in one click from the Import tab.</p>`,
+          confirmLabel: 'Download backup, then replace',
+          cancelLabel: 'Replace without a backup',
+          danger: false,
+          onConfirm: () => { exportJSON(); loadIt(); }
+        })
+      });
+      break;
     }
     case 'wipe': {
-      if (!confirm('Erase all transactions, cards, budgets and balances from this browser?\n\n'
-        + 'Your household members are kept. Download a backup first if you may want any of it back.')) return;
-      const keepMembers = S.members, keepAccounts = S.accounts, keepName = S.household.name;
-      S = blankState();
-      S.members = keepMembers; S.accounts = keepAccounts; S.household.name = keepName;
-      save(); UI.tab = 'overview'; render(); toast('Cleared - household members kept'); break;
+      confirmAction({
+        title: 'Clear all data?',
+        body: `<p style="margin:0 0 10px">This removes everything you have entered from this browser:</p>
+          <ul style="margin:0 0 12px;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7">
+            <li><b>${S.txns.length}</b> transactions</li>
+            <li>${(S.cards || []).length} credit cards and ${(S.debts || []).length} loans</li>
+            <li>${(S.goals || []).length} goals, ${(S.assets || []).length} assets, ${(S.recurring || []).length} recurring items</li>
+            <li>All budgets and categorisation rules</li>
+          </ul>
+          <p style="margin:0 0 10px;font-size:13px"><b>${S.members.length} household members and
+            ${S.accounts.length} accounts are kept</b>, so you do not have to set them up again.</p>
+          <div class="quiet-note" style="margin:0">Download a backup first if there is any chance you
+            want this back.</div>`,
+        confirmLabel: 'Clear everything',
+        onConfirm: () => undoable('Cleared. Members and accounts kept', () => {
+          const keepMembers = S.members, keepAccounts = S.accounts, keepName = S.household.name;
+          S = blankState();
+          S.members = keepMembers; S.accounts = keepAccounts; S.household.name = keepName;
+        }, 10)
+      });
+      break;
     }
   }
 });

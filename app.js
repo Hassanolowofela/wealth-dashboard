@@ -5,7 +5,7 @@
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.6.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
@@ -164,9 +164,91 @@ const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(
 
 function toast(msg) {
   const t = $('#toast');
-  t.textContent = msg; t.classList.add('on');
+  t.textContent = msg;
+  t.className = 'toast on';
+  t.setAttribute('role', 'status');
   clearTimeout(toast._t);
   toast._t = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+/**
+ * Destructive changes apply and persist straight away, but keep a snapshot of
+ * the whole document so one press puts it back.
+ *
+ * Persisting immediately rather than deferring the commit is deliberate: a
+ * pending change that only lands after a timer is lost if the tab closes in
+ * between, which is a worse failure than a delete the user can reverse.
+ */
+function undoable(message, mutate, seconds = 6) {
+  const snapshot = JSON.stringify(S);
+  mutate();
+  save();
+  render();
+
+  const t = $('#toast');
+  t.className = 'toast on with-action';
+  t.setAttribute('role', 'status');
+  t.innerHTML = `<span>${esc(message)}</span><button class="btn sm" id="undoBtn">Undo</button>`;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('on'), seconds * 1000);
+
+  $('#undoBtn').onclick = () => {
+    clearTimeout(toast._t);
+    S = migrate(JSON.parse(snapshot));
+    save();
+    render();
+    toast('Restored');
+  };
+}
+
+/**
+ * The app's own confirmation, so a destructive step can name exactly what it
+ * is about to remove. A native confirm() cannot show a list, cannot be styled
+ * for the theme, and reads as a browser warning rather than part of the app.
+ */
+function confirmAction(o) {
+  openModal(o.title, o.body,
+    `<button class="btn" data-close>${esc(o.cancelLabel || 'Cancel')}</button>
+     <button class="btn ${o.danger === false ? 'primary' : 'danger'}" id="cfmGo">${esc(o.confirmLabel || 'Delete')}</button>`,
+    root => {
+      const go = root.querySelector('#cfmGo');
+      go.onclick = () => { closeModal(); o.onConfirm(); };
+      go.focus();
+    });
+}
+
+/** Shows a message beside the field itself, where it can be read and re-read. */
+function fieldError(el, message, kind = 'error') {
+  clearFieldError(el);
+  el.classList.add('invalid');
+  const note = document.createElement('span');
+  note.className = kind === 'warn' ? 'field-warn' : 'field-error';
+  note.textContent = message;
+  note.setAttribute('role', 'alert');
+  (el.closest('label') || el.parentNode).appendChild(note);
+  el.focus();
+  el.setAttribute('aria-invalid', 'true');
+}
+
+function clearFieldError(el) {
+  el.classList.remove('invalid');
+  el.removeAttribute('aria-invalid');
+  const holder = el.closest('label') || el.parentNode;
+  holder.querySelectorAll('.field-error, .field-warn').forEach(n => n.remove());
+}
+
+/**
+ * A sanity check on a typed amount, not a limit. Catches the missing decimal
+ * point and the extra zero, which are the mistakes that actually happen.
+ */
+function amountLooksWrong(amt) {
+  const abs = Math.abs(+amt || 0);
+  if (abs > 1000000) return 'That is over $1,000,000.';
+  const largest = S.txns.length ? Math.max(...S.txns.map(t => Math.abs(+t.amount || 0))) : 0;
+  if (largest > 0 && abs > largest * 10) {
+    return `That is more than ten times your largest recorded transaction (${money(largest)}).`;
+  }
+  return null;
 }
 
 /* --------------------------------------------------------------------- state */
