@@ -331,16 +331,31 @@ function subscriptionAudit() {
     if (!key) continue;
     (groups[key] = groups[key] || []).push(t);
   }
+  // Categories where repeat visits are shopping, not a subscription. A household
+  // buys groceries weekly at similar amounts, which otherwise looks identical to
+  // a monthly charge and turned the grocery run into a "recurring commitment".
+  const NEVER_SUBSCRIPTION = new Set(['groceries', 'dining', 'transport', 'fees']);
+
   const detected = [];
   for (const [key, list] of Object.entries(groups)) {
     if (list.length < 3) continue;
     const amts = list.map(t => -t.amount);
     const med = median(amts);
     if (med < 3) continue;
+    if (NEVER_SUBSCRIPTION.has(list[0].cat)) continue;
+
+    // a subscription bills at the same amount, so most charges must agree,
+    // not merely three of however many there are
     const consistent = amts.filter(a => Math.abs(a - med) / (med || 1) < 0.1).length;
-    if (consistent < 3) continue;
+    if (consistent < 3 || consistent / amts.length < 0.8) continue;
+
     const monthsSeen = new Set(list.map(t => ym(t.date))).size;
     if (monthsSeen < 3) continue;
+
+    // and it bills about once a month. Several charges inside one month is a
+    // merchant you visit often, which is a different thing entirely.
+    if (list.length / monthsSeen > 1.35) continue;
+
     if (known.some(k => normDesc(k.name).includes(key) || key.includes(normDesc(k.name).split(' ')[0]))) continue;
     detected.push({ name: list[0].desc, amount: med, cat: list[0].cat, member: list[0].member, source: 'detected', n: monthsSeen });
   }

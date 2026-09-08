@@ -80,10 +80,148 @@ a{color:var(--s1)}
 .wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px}
 header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--page) 88%, transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
 .top-in{max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+/* the household name is also the way into settings, import and backups, so it
+   is a real button rather than a heading with a menu bolted beside it */
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0;
+  background:none;border:1px solid transparent;border-radius:var(--r-sm);
+  padding:5px 9px 5px 5px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.brand:hover{background:var(--surface-2);border-color:var(--border)}
+.brand:focus-visible{outline:2px solid var(--s1);outline-offset:1px}
+.brand[aria-expanded="true"]{background:var(--surface-2);border-color:var(--border-2)}
+.brand-text{min-width:0}
 .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(140deg,var(--s1),var(--s7));flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
-.brand h1{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brand small{display:block;color:var(--muted);font-size:11.5px;font-weight:450;letter-spacing:0}
+.brand-name{display:block;font-size:15px;font-weight:620;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;color:var(--muted);font-size:11.5px;font-weight:450;letter-spacing:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.caret{color:var(--muted);font-size:10px;flex:none;margin-left:2px}
+
+.menu-panel{position:fixed;z-index:60;background:var(--surface);border:1px solid var(--border-2);
+  border-radius:var(--r);box-shadow:0 12px 34px rgba(0,0,0,.18);padding:6px;min-width:240px}
+.menu-panel button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;
+  padding:9px 11px;border-radius:var(--r-sm);cursor:pointer;font-size:13.5px;text-align:left;
+  color:var(--ink)}
+.menu-panel button:hover{background:var(--surface-2)}
+.menu-panel button:focus-visible{outline:2px solid var(--s1);outline-offset:-2px}
+.menu-panel .sep{height:1px;background:var(--border);margin:5px 8px}
+.menu-panel .mlabel{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  padding:8px 11px 4px;font-weight:640}
+.menu-scrim{position:fixed;inset:0;z-index:55}
+
+/* the month said plainly, before any number is shown */
+.headline{font-size:20px;line-height:1.45;font-weight:520;letter-spacing:-.01em;
+  margin:4px 0 18px;max-width:52ch;color:var(--ink);text-wrap:balance}
+
+/* insights: at most three, each with one dismiss */
+.feed{display:flex;flex-direction:column;gap:0;margin-bottom:20px;
+  border:1px solid var(--border);border-radius:var(--r);background:var(--surface);
+  box-shadow:var(--shadow);overflow:hidden}
+.feed-item{display:flex;gap:12px;padding:14px 14px 14px 16px;align-items:flex-start;
+  border-bottom:1px solid var(--grid)}
+.feed-item:last-of-type{border-bottom:0}
+.feed .ic{width:22px;height:22px;border-radius:6px;flex:none;display:grid;place-items:center;
+  font-size:12px;font-weight:700;color:#fff;margin-top:1px}
+.feed-b{min-width:0;flex:1}
+.feed-b b{display:block;font-size:13.5px;margin-bottom:2px}
+.feed-b .sub{font-size:12.5px;line-height:1.5;display:block;max-width:68ch}
+.feed-x{flex:none;color:var(--muted);font-size:16px;line-height:1;padding:2px 7px}
+.feed-x:hover{color:var(--ink)}
+.feed > .btn{margin:10px 14px 14px;align-self:flex-start}
+
+/* the quiet state, which is the one worth designing for */
+.calm{display:flex;gap:12px;align-items:center;padding:16px 18px;margin-bottom:20px;
+  border:1px solid var(--border);border-radius:var(--r);background:var(--surface);
+  box-shadow:var(--shadow)}
+.calm-tick{width:24px;height:24px;border-radius:99px;flex:none;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good-ink);font-weight:700}
+.calm b{display:block;font-size:13.5px}
+.calm .sub{display:block;margin-top:1px}
+
+/* sections: a summary row you can open, so a long screen arrives short.
+   Separated by a rule and space rather than being boxed like everything else. */
+.sect{border-top:1px solid var(--border);margin-top:8px}
+.sect:first-of-type{border-top:0;margin-top:0}
+.sect-h{display:flex;align-items:baseline;gap:12px;width:100%;background:none;border:0;
+  padding:18px 2px 14px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.sect-h:hover .sect-title{color:var(--s1)}
+.sect-h:focus-visible{outline:2px solid var(--s1);outline-offset:2px;border-radius:var(--r-sm)}
+.sect-title{font-size:16px;font-weight:620;letter-spacing:-.01em;flex:none}
+.sect-sum{font-size:12.5px;color:var(--muted);margin-left:auto;text-align:right;min-width:0}
+.sect-caret{color:var(--muted);font-size:11px;flex:none}
+.sect-b{padding-bottom:20px}
+
+.skiplink{position:absolute;left:-9999px;top:0;z-index:100;background:var(--s1);color:#fff;
+  padding:10px 16px;border-radius:0 0 var(--r-sm) 0;font-weight:620}
+.skiplink:focus{left:0}
+
+
+/* Installed to a home screen there is no browser chrome, so the page has to
+   clear the status bar, notch and home indicator itself. */
+header.top{padding-top:env(safe-area-inset-top,0px)}
+.top-in,nav.tabs{padding-left:calc(20px + env(safe-area-inset-left,0px));
+                 padding-right:calc(20px + env(safe-area-inset-right,0px))}
+.wrap{padding-left:calc(20px + env(safe-area-inset-left,0px));
+      padding-right:calc(20px + env(safe-area-inset-right,0px));
+      padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+.modal-f{padding-bottom:calc(13px + env(safe-area-inset-bottom,0px))}
+/* keep the narrow-screen gutters, just widened by the inset */
+@media (max-width:700px){
+  .top-in,nav.tabs{padding-left:calc(12px + env(safe-area-inset-left,0px));
+                   padding-right:calc(12px + env(safe-area-inset-right,0px))}
+  .wrap{padding-left:calc(12px + env(safe-area-inset-left,0px));
+        padding-right:calc(12px + env(safe-area-inset-right,0px));
+        padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+}
+
+/* bottom navigation replaces the scrolling tab strip on a phone */
+.bottomnav{display:none}
+@media (max-width:700px){
+  .bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:45;
+    background:color-mix(in srgb,var(--page) 94%, transparent);backdrop-filter:blur(12px);
+    border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom,0px)}
+  .bottomnav button{flex:1 1 0;background:none;border:0;cursor:pointer;padding:8px 2px 7px;
+    display:flex;flex-direction:column;align-items:center;gap:3px;min-height:56px;
+    color:var(--muted);font-size:10.5px;font-weight:560;letter-spacing:.01em}
+  .bottomnav button .ic{font-size:17px;line-height:1}
+  .bottomnav button[aria-selected="true"]{color:var(--s1)}
+  .bottomnav button:focus-visible{outline:2px solid var(--s1);outline-offset:-3px}
+  header.top nav.tabs{display:none}   /* outranks the base rule regardless of order */
+
+  /* One header row on a phone: identity, month, add. The household name and
+     net worth are on screen everywhere else, so they do not need to cost a
+     whole row of a small display. */
+  .top-in{flex-wrap:nowrap;gap:8px;padding:8px 12px}
+  .brand{margin-right:0;padding:4px;flex:none}
+  .brand .brand-text{display:none}
+  .brand .caret{display:none}
+  .monthnav{flex:1 1 auto;justify-content:space-between;min-width:0}
+  .monthnav .lbl{min-width:0;flex:1 1 auto;font-size:14px}
+  .top-in .btn{flex:none}
+  .top-in #btnAdd{padding:0;width:46px;justify-content:center;font-size:0}
+  .top-in #btnAdd::before{content:"+";font-size:22px;font-weight:400;line-height:1}
+
+  /* Transactions become list rows on a phone. A six-column table at 390px is
+     unreadable however it is scrolled, so the same markup is re-laid out:
+     merchant and amount lead, the rest sits underneath as supporting detail. */
+  .txtable thead{display:none}
+  .txtable, .txtable tbody, .txtable tr, .txtable td{display:block;width:auto}
+  .txtable tr{display:grid;grid-template-columns:1fr auto;gap:3px 12px;
+    padding:13px 14px;border-bottom:1px solid var(--grid);align-items:center}
+  .txtable tr:last-child{border-bottom:0}
+  .txtable td{padding:0;border:0}
+  .txtable .c-desc{grid-column:1;grid-row:1;font-weight:520;font-size:14px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .txtable .c-amt{grid-column:2;grid-row:1;font-size:15px;font-weight:620;text-align:right}
+  .txtable .c-cat{grid-column:1;grid-row:2}
+  .txtable .c-cat select{max-width:100%;font-size:13px}
+  .txtable .c-who{grid-column:2;grid-row:2;justify-self:end}
+  .txtable .c-date{grid-column:1;grid-row:3;font-size:12.5px;color:var(--muted)}
+  .txtable .c-edit{grid-column:2;grid-row:3;justify-self:end}
+  .txtable .c-acct{display:none}   /* account is filterable, not worth a row here */
+  .wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
 
 nav.tabs{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 nav.tabs::-webkit-scrollbar{display:none}
@@ -288,24 +426,6 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
   td{padding:12px}
   .insight,.step,.comp,.budrow{padding-top:13px;padding-bottom:13px}
 }
-/* Installed to a home screen there is no browser chrome, so the page has to
-   clear the status bar, notch and home indicator itself. */
-header.top{padding-top:env(safe-area-inset-top,0px)}
-.top-in,nav.tabs{padding-left:calc(20px + env(safe-area-inset-left,0px));
-                 padding-right:calc(20px + env(safe-area-inset-right,0px))}
-.wrap{padding-left:calc(20px + env(safe-area-inset-left,0px));
-      padding-right:calc(20px + env(safe-area-inset-right,0px));
-      padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
-.toast{bottom:calc(22px + env(safe-area-inset-bottom,0px))}
-.modal-f{padding-bottom:calc(13px + env(safe-area-inset-bottom,0px))}
-/* keep the narrow-screen gutters, just widened by the inset */
-@media (max-width:700px){
-  .top-in,nav.tabs{padding-left:calc(12px + env(safe-area-inset-left,0px));
-                   padding-right:calc(12px + env(safe-area-inset-right,0px))}
-  .wrap{padding-left:calc(12px + env(safe-area-inset-left,0px));
-        padding-right:calc(12px + env(safe-area-inset-right,0px));
-        padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
-}
 
 @media print{ .noprint{display:none!important} body{background:#fff} }
 @media (max-width:700px){
@@ -338,32 +458,39 @@ header.top{padding-top:env(safe-area-inset-top,0px)}
 </head>
 <body>
 
+<a href="#main" class="skiplink">Skip to content</a>
+
 <header class="top noprint">
   <div class="top-in">
-    <div class="brand">
-      <div class="logo">W</div>
-      <div>
-        <h1 id="hhName">Household Wealth Dashboard</h1>
+    <button class="brand" id="hhMenu" aria-haspopup="true" aria-expanded="false"
+            aria-label="Household menu: settings, import and backups">
+      <span class="logo" id="hhInitial">W</span>
+      <span class="brand-text">
+        <span class="brand-name" id="hhName">Household Wealth Dashboard</span>
         <small id="hhSub">Loading&hellip;</small>
-      </div>
-    </div>
+      </span>
+      <span class="caret" aria-hidden="true">&#9662;</span>
+    </button>
     <div class="monthnav" id="monthNav">
-      <button id="mPrev" title="Previous month">&#8249;</button>
+      <button id="mPrev" title="Previous month" aria-label="Previous month">&#8249;</button>
       <div class="lbl" id="mLabel">-</div>
-      <button id="mNext" title="Next month">&#8250;</button>
+      <button id="mNext" title="Next month" aria-label="Next month">&#8250;</button>
     </div>
-    <button class="btn" id="btnAdd">+ Transaction</button>
-    <button class="btn" id="btnImport">Import</button>
-    <button class="btn ghost" id="btnTheme" title="Toggle light / dark">&#9788;</button>
+    <button class="btn primary" id="btnAdd">+ Transaction</button>
+    <button class="btn ghost" id="btnTheme" title="Toggle light and dark"
+            aria-label="Toggle light and dark">&#9788;</button>
   </div>
-  <nav class="tabs" id="tabs" role="tablist"></nav>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Sections"></nav>
 </header>
+
+<div id="hhMenuPanel" class="menu-panel" hidden></div>
 
 <div class="wrap">
   <div id="memberBar" class="noprint" style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:16px 0 4px"></div>
-  <main id="view"></main>
+  <main id="view" tabindex="-1"></main>
 </div>
 
+<nav class="bottomnav noprint" id="bottomNav" aria-label="Sections"></nav>
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
 <script src="app.js"></script>

@@ -3,17 +3,112 @@
    ========================================================================== */
 'use strict';
 
+/**
+ * Six destinations, each answering one question. Import and Settings are
+ * housekeeping rather than places you visit to learn something, so they live
+ * under the household name instead of competing with the six.
+ * `icon` is only used by the bottom navigation on phones.
+ */
 const TABS = [
-  ['overview',  'Overview'],
-  ['spending',  'Spending'],
-  ['budget',    'Budget'],
-  ['recurring', 'Recurring'],
-  ['cards',     'Cards & Credit'],
-  ['wealth',    'Wealth'],
-  ['plan',      'Plan & Advice'],
-  ['import',    'Import'],
-  ['settings',  'Settings']
+  ['home',   'Home',           '◎'],
+  ['money',  'Money',          '≡'],
+  ['budget', 'Budget',         '◔'],
+  ['cards',  'Credit & Debt',  '▤'],
+  ['wealth', 'Wealth',         '▲'],
+  ['plan',   'Plan',           '⚑']
 ];
+/** Reachable by routing but not shown as destinations. */
+const SUB_VIEWS = ['import', 'settings'];
+const ALL_VIEWS = TABS.map(t => t[0]).concat(SUB_VIEWS);
+
+/* ------------------------------------------------------------------ routing */
+
+/**
+ * The URL is the state: `#/money/2026-09`. That makes every screen a link
+ * worth sending, and makes the back button behave the way people expect
+ * rather than leaving the app entirely.
+ */
+let ROUTING = false;
+
+function readRoute() {
+  const raw = (location.hash || '').replace(/^#\/?/, '');
+  const [view, month] = raw.split('/');
+  const out = {};
+  if (view && ALL_VIEWS.includes(view)) out.tab = view;
+  if (month && /^\d{4}-\d{2}$/.test(month)) out.month = month;
+  return out;
+}
+
+function writeRoute(replace) {
+  const hash = `#/${UI.tab}/${UI.month}`;
+  if (location.hash === hash) return;
+  ROUTING = true;                       // our own change, not a back button
+  if (replace) history.replaceState(null, '', hash);
+  else history.pushState(null, '', hash);
+  ROUTING = false;
+}
+
+function applyRoute() {
+  const r = readRoute();
+  let changed = false;
+  if (r.tab && r.tab !== UI.tab) { UI.tab = r.tab; changed = true; }
+  if (r.month && r.month !== UI.month) { UI.month = r.month; changed = true; }
+  if (changed) render(false);
+}
+
+/** Navigate, which means updating the URL and letting the route drive render. */
+function go(tab, month) {
+  if (tab) UI.tab = tab;
+  if (month) UI.month = month;
+  writeRoute(false);
+  render(false);
+  const main = $('#view');
+  if (main) main.scrollIntoView({ block: 'start' });
+  window.scrollTo(0, 0);
+}
+
+/* ------------------------------------------------------------ household menu */
+
+/**
+ * Settings, import and backups hang off the household name. They are things
+ * you do to the app rather than places you go to learn something, so they do
+ * not earn a slot next to the six destinations.
+ */
+function toggleHouseholdMenu(force) {
+  const btn = $('#hhMenu'), panel = $('#hhMenuPanel');
+  const open = force !== undefined ? force : panel.hidden;
+  if (!open) {
+    panel.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    const scrim = $('#menuScrim');
+    if (scrim) scrim.remove();
+    return;
+  }
+  panel.innerHTML = `
+    <div class="mlabel">${esc(S.household.name || 'Household')}</div>
+    <button data-act="go-tab" data-tab="import"><span aria-hidden="true">&#8681;</span> Import a statement</button>
+    <button data-act="export-json"><span aria-hidden="true">&#8659;</span> Download backup</button>
+    <div class="sep"></div>
+    <button data-act="go-tab" data-tab="settings"><span aria-hidden="true">&#9881;</span> Settings</button>
+    <button data-act="run-setup"><span aria-hidden="true">&#9788;</span> Household and people</button>
+    <div class="sep"></div>
+    <button data-act="storage-info"><span aria-hidden="true">&#9974;</span> Storage and durability</button>
+    <button data-act="about-sharing"><span aria-hidden="true">&#8599;</span> Share this app</button>`;
+  panel.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+
+  const r = btn.getBoundingClientRect();
+  panel.style.top = (r.bottom + 6) + 'px';
+  panel.style.left = Math.max(8, Math.min(r.left, innerWidth - panel.offsetWidth - 8)) + 'px';
+
+  const scrim = document.createElement('div');
+  scrim.className = 'menu-scrim';
+  scrim.id = 'menuScrim';
+  scrim.onclick = () => toggleHouseholdMenu(false);
+  document.body.appendChild(scrim);
+  const first = panel.querySelector('button');
+  if (first) first.focus();
+}
 
 /* ------------------------------------------------------------- small parts */
 
@@ -116,6 +211,10 @@ function viewOverview() {
     <span class="sub">${st.count} transaction${st.count === 1 ? '' : 's'}${UI.member !== 'all' ? ' · ' + esc(memberName(UI.member)) : ' · whole household'}</span>
   </div>
 
+  ${UI.member === 'all' ? `<p class="headline">${esc(headlineSentence(m))}</p>` : ''}
+
+  ${UI.member === 'all' ? insightFeed(m) : ''}
+
   <div class="grid g-kpi">
     ${tile({
       label: 'Left over this month', hero: true, help: 'leftOver',
@@ -202,27 +301,12 @@ function viewOverview() {
     </div>
   </div>
 
-  <div class="grid g-2" style="margin-top:14px">
-    <div class="card">
-      <h3>Monthly surplus and shortfall</h3>
-      <div class="sub">Income minus everything, by month. Above the line is money kept.</div>
-      ${chart({
-        type: 'barv', h: 200,
-        items: hist.map((x, i) => ({ label: monthShort(x), value: histStats[i].net })),
-        tipLabel: 'Left over', aria: 'Net surplus or shortfall by month'
-      })}
-      <div class="legend">
-        <span class="li"><span class="sw" style="background:var(--s1)"></span>Surplus</span>
-        <span class="li"><span class="sw" style="background:var(--s8)"></span>Shortfall</span>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Biggest merchants this month</h3><div class="sub">Grouped by merchant name</div>
-      ${merchants.length ? `<table><tbody>${merchants.map(x => `
-        <tr><td>${esc(x.name)}<div class="sub">${esc(catName(x.cat))} · ${x.n} charge${x.n === 1 ? '' : 's'}</div></td>
-        <td class="num"><b>${money(x.total)}</b></td></tr>`).join('')}</tbody></table>`
-        : '<div class="sub">No spending recorded.</div>'}
-    </div>
+  <div class="card" style="margin-top:14px">
+    <h3>Biggest merchants this month</h3><div class="sub">Grouped by merchant name</div>
+    ${merchants.length ? `<table><tbody>${merchants.map(x => `
+      <tr><td>${esc(x.name)}<div class="sub">${esc(catName(x.cat))} · ${x.n} charge${x.n === 1 ? '' : 's'}</div></td>
+      <td class="num"><b>${money(x.total)}</b></td></tr>`).join('')}</tbody></table>`
+      : '<div class="sub">No spending recorded.</div>'}
   </div>
 
   ${anoms.length ? `<div class="card" style="margin-top:14px">
@@ -238,7 +322,122 @@ function viewOverview() {
 
 /* ============================================================== SPENDING === */
 
-function viewSpending() {
+/**
+ * A collapsible section. Only the first section of a screen is open by
+ * default; the rest show a one-line summary until asked for, which is what
+ * keeps a long screen from arriving as a wall of equal cards.
+ * The open set is remembered in settings so a choice survives a reload.
+ */
+function section(id, title, summary, body, openByDefault = false) {
+  const store = (S.settings.openSections = S.settings.openSections || {});
+  const open = store[id] === undefined ? openByDefault : store[id];
+  return `<section class="sect${open ? ' open' : ''}" data-sect="${id}">
+    <button class="sect-h" data-act="toggle-sect" data-id="${id}" aria-expanded="${open}"
+            aria-controls="sect-body-${id}">
+      <span class="sect-title">${esc(title)}</span>
+      <span class="sect-sum">${summary}</span>
+      <span class="sect-caret" aria-hidden="true">${open ? '&#9652;' : '&#9662;'}</span>
+    </button>
+    <div class="sect-b" id="sect-body-${id}"${open ? '' : ' hidden'}>${open ? body : ''}</div>
+  </section>`;
+}
+
+/* ----------------------------------------------------------------- home --- */
+
+/**
+ * The month in a sentence, written from the data.
+ *
+ * A row of tiles makes the reader do the summarising. Saying it plainly is the
+ * job the screen exists to do, so this leads and the numbers support it.
+ */
+function headlineSentence(m) {
+  const K = monthKpis(m, 'all');
+  const parts = [];
+
+  if (K.leftOver != null) {
+    parts.push(K.leftOver >= 0
+      ? `You kept ${money(K.leftOver)} this month.`
+      : `You spent ${money(-K.leftOver)} more than came in this month.`);
+  }
+
+  // the single most notable movement, if there is one worth naming
+  const an = categoryAnomalies(m).filter(a => a.delta > 0)[0];
+  if (an) {
+    parts.push(an.isNew
+      ? `${catName(an.cat)} is new this month.`
+      : `${catName(an.cat)} is running hot.`);
+  }
+
+  // the next thing with a date on it
+  const due = typeof upcomingPayments === 'function' ? upcomingPayments(10)[0] : null;
+  if (due) {
+    parts.push(due.daysToDue === 0
+      ? `${due.card.name} is due today.`
+      : `${due.card.name} is due in ${due.daysToDue} day${due.daysToDue === 1 ? '' : 's'}.`);
+  }
+  return parts.join(' ');
+}
+
+const insightKey = t => 'i:' + String(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 48);
+
+/** Insights, capped at three, each dismissible and remembered for the month. */
+function insightFeed(m) {
+  const dismissed = (S.settings.dismissed = S.settings.dismissed || {});
+  const all = insights(m).filter(i => dismissed[insightKey(i.title)] !== m);
+  const shown = all.slice(0, 3);
+
+  if (!shown.length) {
+    return `<div class="calm">
+      <span class="calm-tick" aria-hidden="true">&#10003;</span>
+      <div><b>Nothing needs your attention this month.</b>
+      <span class="sub">Spending is in line with your recent months and no payment is close.</span></div>
+    </div>`;
+  }
+
+  return `<div class="feed">
+    ${shown.map(i => `
+      <article class="feed-item">
+        <span class="ic" style="background:${toneVar(i.tone)}" aria-hidden="true">${toneIcon(i.tone)}</span>
+        <div class="feed-b">
+          <b>${esc(i.title)}</b>
+          <span class="sub">${esc(i.text)}</span>
+        </div>
+        <button class="btn sm ghost feed-x" data-act="dismiss-insight" data-k="${esc(insightKey(i.title))}"
+          aria-label="Dismiss: ${esc(i.title)}">&times;</button>
+      </article>`).join('')}
+    ${all.length > shown.length
+      ? `<button class="btn sm ghost" data-act="go-tab" data-tab="plan">
+           ${all.length - shown.length} more on Plan &rarr;</button>` : ''}
+  </div>`;
+}
+
+/** Money: what came in and went out, and what repeats every month. */
+function viewMoney() {
+  if (!S.txns.length) {
+    return emptyCard('Nothing to show yet',
+      'Import a bank or card statement, or add a transaction by hand, and everything fills in.',
+      `<button class="btn primary" data-act="import">Import a statement</button>
+       <button class="btn" data-act="add-tx" style="margin-left:8px">Add a transaction</button>`);
+  }
+  const st = monthStats(UI.month);
+  const audit = subscriptionAudit();
+  return `
+  <div class="section-h"><h2>Money &middot; ${esc(monthLabel(UI.month))}</h2>
+    <span class="sub">${st.count} transaction${st.count === 1 ? '' : 's'}</span></div>
+
+  ${section('tx', 'Transactions',
+    `${st.count} this month &middot; ${money(st.spend)} out, ${money(st.income)} in`,
+    spendingBody(), true)}
+
+  ${section('recurring', 'Recurring and subscriptions',
+    audit.items.length
+      ? `${audit.items.length} items &middot; ${money(audit.monthly)}/mo &middot; ${money(audit.monthly * 12)}/yr`
+      : 'none declared yet',
+    recurringBody())}
+  `;
+}
+
+function spendingBody() {
   const f = UI.txFilter;
   let rows = S.txns.filter(t => ym(t.date) === UI.month);
   if (UI.member !== 'all') rows = rows.filter(t => t.member === UI.member);
@@ -259,9 +458,6 @@ function viewSpending() {
   const inflow = sum(rows.filter(t => t.amount > 0).map(t => t.amount));
 
   return `
-  <div class="section-h"><h2>Transactions</h2>
-    <span class="sub">${rows.length} shown · ${money(outflow)} out · ${money(inflow)} in</span></div>
-
   <div class="card noprint" style="margin-bottom:14px">
     <div class="row">
       <label class="f" style="flex:2 1 220px"><span>Search</span>
@@ -278,7 +474,7 @@ function viewSpending() {
       <button class="btn sm" data-act="fix-uncat">Review them</button></div>` : ''}
   </div>
 
-  ${rows.length ? `<div class="tbl-wrap"><table>
+  ${rows.length ? `<div class="tbl-wrap"><table class="txtable">
     <thead><tr>
       <th data-sort="date" style="cursor:pointer">Date${f.sort === 'date' ? (f.dir < 0 ? ' ↓' : ' ↑') : ''}</th>
       <th data-sort="desc" style="cursor:pointer">Description</th>
@@ -287,13 +483,15 @@ function viewSpending() {
       <th></th>
     </tr></thead><tbody>
     ${rows.map(t => `<tr data-id="${t.id}">
-      <td class="mono">${esc(t.date.slice(5))}</td>
-      <td>${esc(t.desc)}</td>
-      <td><select class="tcat" data-id="${t.id}" style="padding:3px 6px;font-size:12.5px">${catOptions(t.cat)}</select></td>
-      <td>${t.member ? `<span class="pill tiny"><span class="dot" style="background:${memberColor(t.member)}"></span>${esc(memberName(t.member))}</span>` : '<span class="sub">-</span>'}</td>
-      <td class="sub">${esc(accountName(t.account))}</td>
-      <td class="num ${t.amount < 0 ? 'neg' : 'pos'}">${money2(t.amount)}</td>
-      <td><button class="btn sm ghost" data-act="edit-tx" data-id="${t.id}">Edit</button></td>
+      <td class="mono c-date">${esc(t.date.slice(5))}</td>
+      <td class="c-desc">${esc(t.desc)}</td>
+      <td class="c-cat"><select class="tcat" data-id="${t.id}" aria-label="Category for ${esc(t.desc)}"
+        style="padding:3px 6px;font-size:12.5px">${catOptions(t.cat)}</select></td>
+      <td class="c-who">${t.member ? `<span class="pill tiny"><span class="dot" style="background:${memberColor(t.member)}"></span>${esc(memberName(t.member))}</span>` : '<span class="sub">-</span>'}</td>
+      <td class="sub c-acct">${esc(accountName(t.account))}</td>
+      <td class="num c-amt ${t.amount < 0 ? 'neg' : 'pos'}">${money2(t.amount)}</td>
+      <td class="c-edit"><button class="btn sm ghost" data-act="edit-tx" data-id="${t.id}"
+        aria-label="Edit ${esc(t.desc)}">Edit</button></td>
     </tr>`).join('')}
     </tbody></table></div>`
     : emptyCard('Nothing matches', 'Try clearing the filters, or move to a different month.', '')}
@@ -387,7 +585,7 @@ function viewBudget() {
 
 /* ============================================================= RECURRING === */
 
-function viewRecurring() {
+function recurringBody() {
   const audit = subscriptionAudit();
   const inc = avgIncome(3);
   const declared = audit.items.filter(i => i.source === 'declared');
@@ -395,9 +593,6 @@ function viewRecurring() {
   const fv = futureValue(audit.monthly * 0.3, 20, S.settings.expectedReturn);
 
   return `
-  <div class="section-h"><h2>Recurring charges</h2>
-    <span class="sub">Decisions you make once but pay every month</span></div>
-
   <div class="grid g-kpi">
     ${tile({ label: 'Recurring per month', value: money(audit.monthly), hero: true })}
     ${tile({ label: 'Per year', value: money(audit.annual),
@@ -1310,21 +1505,30 @@ function viewSettings() {
 
 /* ================================================================ RENDER === */
 
-function render() {
+function render(updateUrl = true) {
+  if (updateUrl) writeRoute(true);
+
   // header
-  $('#hhName').textContent = S.household.name || 'Household Wealth Dashboard';
+  const name = S.household.name || 'Household Wealth Dashboard';
+  $('#hhName').textContent = name;
+  $('#hhInitial').textContent = (name.replace(/^The\s+/i, '').trim()[0] || 'W').toUpperCase();
   const nw = netWorth();
   $('#hhSub').textContent = S.txns.length
     ? `${S.members.length} member${S.members.length === 1 ? '' : 's'} · net worth ${money(nw)}`
     : 'Private · stored on this device only';
   $('#mLabel').textContent = monthLabel(UI.month);
 
-  // tabs
-  $('#tabs').innerHTML = TABS.map(([id, name]) =>
-    `<button role="tab" data-tab="${id}" aria-selected="${UI.tab === id}">${name}</button>`).join('');
+  // destinations, as a tab strip on desktop and a bottom bar on phones
+  $('#tabs').innerHTML = TABS.map(([id, label]) =>
+    `<button role="tab" data-tab="${id}" id="tab-${id}"
+       aria-selected="${UI.tab === id}" aria-controls="view"
+       tabindex="${UI.tab === id ? 0 : -1}">${esc(label)}</button>`).join('');
+  $('#bottomNav').innerHTML = TABS.map(([id, label, icon]) =>
+    `<button role="tab" data-tab="${id}" aria-selected="${UI.tab === id}" aria-controls="view">
+       <span class="ic" aria-hidden="true">${icon}</span>${esc(label)}</button>`).join('');
 
   // member filter
-  const showMembers = ['overview', 'spending'].includes(UI.tab) && S.members.length > 0;
+  const showMembers = ['home', 'money'].includes(UI.tab) && S.members.length > 0;
   const mb = $('#memberBar');
   mb.style.display = showMembers ? 'flex' : 'none';
   if (showMembers) {
@@ -1336,8 +1540,8 @@ function render() {
 
   CHARTS.clear();
   const v = {
-    overview: viewOverview, spending: viewSpending, budget: viewBudget,
-    recurring: viewRecurring, cards: viewCards, wealth: viewWealth, plan: viewPlan,
+    home: viewOverview, money: viewMoney, budget: viewBudget,
+    cards: viewCards, wealth: viewWealth, plan: viewPlan,
     import: viewImport, settings: viewSettings
   }[UI.tab] || viewOverview;
 
@@ -2047,7 +2251,7 @@ function importModal() {
       save(); closeModal();
       const months = [...new Set(pv.fresh.map(t => ym(t.date)))].sort();
       if (months.length) UI.month = months[months.length - 1];
-      UI.tab = 'overview'; render();
+      UI.tab = 'home'; render();
       toast(`${pv.fresh.length} added, ${pv.dupes.length} duplicate(s) skipped`);
     };
   }, true);
@@ -2201,7 +2405,7 @@ function wireView() {
         S = migrate({ ...blankState(), ...d });
         render();                          // throws here if anything is unusable
         save();
-        UI.tab = 'overview';
+        UI.tab = 'home';
         render();
         toast(`Backup restored: ${S.txns.length} transactions`);
       } catch (e) {
@@ -2530,7 +2734,7 @@ function applyStatement() {
   closeModal();
   const months = [...new Set(a.txns.map(t => ym(t.date)))].sort();
   if (months.length) UI.month = months[months.length - 1];
-  UI.tab = added ? 'overview' : 'cards';
+  UI.tab = added ? 'home' : 'cards';
   STMT = null;
   render();
   toast(`${added} added${skipped ? `, ${skipped} duplicate${skipped === 1 ? '' : 's'} skipped` : ''}${cardMsg}`);
@@ -2540,7 +2744,7 @@ function applyStatement() {
 
 document.addEventListener('click', e => {
   const tab = e.target.closest('[data-tab]');
-  if (tab) { UI.tab = tab.dataset.tab; window.scrollTo(0, 0); render(); return; }
+  if (tab) { go(tab.dataset.tab); return; }
 
   const mem = e.target.closest('[data-member]');
   if (mem) { UI.member = mem.dataset.member; render(); return; }
@@ -2587,12 +2791,30 @@ document.addEventListener('click', e => {
       cardForm(c.id);
       break;
     }
-    case 'go-cards': UI.tab = 'cards'; window.scrollTo(0, 0); render(); break;
+    case 'go-cards': go('cards'); break;
     case 'goto-month': UI.month = a.dataset.m; render(); break;
     case 'explain': {
       const h = METRIC_HELP[a.dataset.key];
       if (h) openModal(h[0], `<p style="margin:0;font-size:13.5px;max-width:66ch">${esc(h[1])}</p>`,
         `<button class="btn primary" data-close>Got it</button>`);
+      break;
+    }
+    case 'toggle-sect': {
+      const id = a.dataset.id;
+      const store = (S.settings.openSections = S.settings.openSections || {});
+      store[id] = !store[id];
+      save();
+      render(false);
+      // keep the section the user just acted on under the pointer
+      const h = document.querySelector(`[data-sect="${id}"] .sect-h`);
+      if (h) h.focus();
+      break;
+    }
+    case 'go-tab': go(a.dataset.tab); break;
+    case 'dismiss-insight': {
+      const d = (S.settings.dismissed = S.settings.dismissed || {});
+      d[a.dataset.k] = UI.month;          // gone for this month, back next month
+      save(); render(false);
       break;
     }
     case 'run-setup': WIZ = null; setupWizard(0); break;
@@ -2625,12 +2847,12 @@ document.addEventListener('click', e => {
     case 'set-budget': budgetForm(a.dataset.cat); break;
     case 'auto-budget': autoBudget(); break;
     case 'fix-uncat': fixUncategorised(); break;
-    case 'import': UI.tab = 'import'; render(); break;
+    case 'import': go('import'); break;
     case 'go-plan': UI.tab = 'plan'; window.scrollTo(0, 0); render(); break;
     case 'go-settings': UI.tab = 'settings'; render(); break;
     case 'export-json': exportJSON(); break;
     case 'export-csv': exportCSV(); break;
-    case 'import-json': { UI.tab = 'import'; render(); setTimeout(() => $('#jsonIn') && $('#jsonIn').click(), 60); break; }
+    case 'import-json': { go('import'); setTimeout(() => $('#jsonIn') && $('#jsonIn').click(), 60); break; }
     case 'parse-paste': {
       const t = $('#pasteIn');
       if (!t || !t.value.trim()) return toast('Paste some rows first.');
@@ -2688,7 +2910,7 @@ document.addEventListener('click', e => {
     }
     case 'load-sample': {
       const loadIt = () => {
-        S = seedSample(); save(); UI.month = thisMonth(); UI.tab = 'overview'; render();
+        S = seedSample(); save(); UI.month = thisMonth(); UI.tab = 'home'; render();
         toast('Sample household loaded');
       };
       if (!S.txns.length) { loadIt(); break; }
@@ -2746,10 +2968,35 @@ document.addEventListener('click', e => {
 
 /* ------------------------------------------------------------------- header */
 
-$('#mPrev').onclick = () => { UI.month = addMonths(UI.month, -1); render(); };
-$('#mNext').onclick = () => { UI.month = addMonths(UI.month, 1); render(); };
+$('#mPrev').onclick = () => go(null, addMonths(UI.month, -1));
+$('#mNext').onclick = () => go(null, addMonths(UI.month, 1));
 $('#btnAdd').onclick = () => txForm(null);
-$('#btnImport').onclick = () => { UI.tab = 'import'; render(); };
+$('#hhMenu').onclick = () => toggleHouseholdMenu();
+
+// the back button should move between screens, not out of the app
+window.addEventListener('popstate', () => { if (!ROUTING) applyRoute(); });
+window.addEventListener('hashchange', () => { if (!ROUTING) applyRoute(); });
+
+// arrow keys move along the destinations, as a tab list should
+$('#tabs').addEventListener('keydown', e => {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+  const ids = TABS.map(t => t[0]);
+  const i = ids.indexOf(UI.tab);
+  let n = i;
+  if (e.key === 'ArrowLeft') n = (i - 1 + ids.length) % ids.length;
+  if (e.key === 'ArrowRight') n = (i + 1) % ids.length;
+  if (e.key === 'Home') n = 0;
+  if (e.key === 'End') n = ids.length - 1;
+  e.preventDefault();
+  go(ids[n]);
+  const btn = $('#tab-' + ids[n]);
+  if (btn) btn.focus();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('#hhMenuPanel').hidden) toggleHouseholdMenu(false);
+});
+
 $('#btnTheme').onclick = () => {
   const cur = document.documentElement.getAttribute('data-theme');
   const next = cur === 'dark' ? 'light' : cur === 'light' ? '' : 'dark';
@@ -2994,7 +3241,7 @@ function setupWizard(step) {
 
     const go = (fn) => { commitWizard(); fn(); };
     const imp = root.querySelector('#wzImport');
-    if (imp) imp.onclick = () => go(() => { closeModal(); UI.tab = 'import'; render(); });
+    if (imp) imp.onclick = () => go(() => { closeModal(); go('import'); });
     const man = root.querySelector('#wzManual');
     if (man) man.onclick = () => go(() => { closeModal(); render(); txForm(null); });
     const smp = root.querySelector('#wzSample');
@@ -3152,6 +3399,12 @@ window.addEventListener('appinstalled', () => { deferredInstall = null; render()
 
   const months = activeMonths();
   if (months.length && !months.includes(thisMonth())) UI.month = months[months.length - 1];
+
+  // a shared link decides where we land, ahead of any default
+  const route = readRoute();
+  if (route.tab) UI.tab = route.tab;
+  if (route.month) UI.month = route.month;
+
   render();
   if (!canStore) showStorageWarning(); else maybeNudgeBackup();
 })();

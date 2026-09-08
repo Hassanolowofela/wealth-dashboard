@@ -5,7 +5,7 @@
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.7.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
@@ -255,7 +255,7 @@ function amountLooksWrong(amt) {
 
 let S = null;               // the whole household document
 let UI = {
-  tab: 'overview',
+  tab: 'home',
   month: thisMonth(),
   member: 'all',            // 'all' | member id
   txFilter: { q: '', cat: 'all', account: 'all', sort: 'date', dir: -1 },
