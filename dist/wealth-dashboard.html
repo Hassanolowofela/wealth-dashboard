@@ -12,7 +12,7 @@
   frame-ancestors is deliberately absent: browsers ignore it in a meta tag, so
   claiming it here would be false comfort. Set it as a header if your host can.
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ma6VoUM7nd8//FfXKQu/YI3I2097qxyuMJPWKOf5evc=' 'sha256-VzCjy/eUbbkC61iOaFbM9puL/Ik4+Qw6WCMujPO72Vk=' 'sha256-JPFYBxKHmZ4e6ng2VvUKQB9eGWJPCsZtabTHHRzDv5w=' 'sha256-L7XjJ8tNye/VOcoTEJKB9ibFZEHbcayGPQw6iy7Jih0=' 'sha256-ng16W5eioGFt2W9Vj//1kGBncNv6NCre/ZZp8oNU/lU=' 'sha256-xOBc298furZED/Oflxp0981fRGucM6ZqJV3oJ6QBafI=' 'sha256-k5MXG8xbVQLcTPLPQa15Uz6lHHt0jgOdCRu8lNT/+qU=' 'sha256-6isyFPIfTvZFOopcI6+JVyV+HDBgpq1L9b8X7TWSbXI=' 'sha256-LB8MJhP4E7mTRqM7LE8+Ahpp5KiLB9WM6NlyovsZQlE='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eGPkuQC5FHR2hsseP4unuMJ+zFY9SLrduQi5uBSV8RI=' 'sha256-VzCjy/eUbbkC61iOaFbM9puL/Ik4+Qw6WCMujPO72Vk=' 'sha256-JPFYBxKHmZ4e6ng2VvUKQB9eGWJPCsZtabTHHRzDv5w=' 'sha256-L7XjJ8tNye/VOcoTEJKB9ibFZEHbcayGPQw6iy7Jih0=' 'sha256-ng16W5eioGFt2W9Vj//1kGBncNv6NCre/ZZp8oNU/lU=' 'sha256-xOBc298furZED/Oflxp0981fRGucM6ZqJV3oJ6QBafI=' 'sha256-k5MXG8xbVQLcTPLPQa15Uz6lHHt0jgOdCRu8lNT/+qU=' 'sha256-6isyFPIfTvZFOopcI6+JVyV+HDBgpq1L9b8X7TWSbXI=' 'sha256-LB8MJhP4E7mTRqM7LE8+Ahpp5KiLB9WM6NlyovsZQlE='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Household Wealth Dashboard</title>
 <meta name="description" content="Private, offline household spending tracker, credit card manager and financial planner. All data stays on your device.">
 <meta name="theme-color" content="#2a78d6" media="(prefers-color-scheme: light)">
@@ -203,12 +203,14 @@ header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--p
    Separated by a rule and space rather than being boxed like everything else. */
 .sect{border-top:1px solid var(--border);margin-top:8px}
 .sect:first-of-type{border-top:0;margin-top:0}
-.sect-h{display:flex;align-items:baseline;gap:12px;width:100%;background:none;border:0;
+.sect-h{display:flex;align-items:baseline;gap:12px;width:100%;max-width:100%;background:none;border:0;
   padding:16px 2px 16px;cursor:pointer;text-align:left;font:inherit;color:inherit}
 .sect-h:hover .sect-title{color:var(--accent)}
 .sect-h:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-sm)}
-.sect-title{font-family:var(--display);font-size:var(--t-lg);font-weight:620;letter-spacing:-.015em;flex:none}
-.sect-sum{font-size:13px;color:var(--muted);margin-left:auto;text-align:right;min-width:0}
+.sect-title{font-family:var(--display);font-size:var(--t-lg);font-weight:620;letter-spacing:-.015em;
+  flex:0 1 auto;min-width:0;text-align:left}
+.sect-sum{font-size:13px;color:var(--muted);margin-left:auto;text-align:right;min-width:0;
+  flex:0 1 auto;overflow-wrap:anywhere}
 .sect-caret{color:var(--muted);font-size:13px;flex:none}
 .sect-b{padding-bottom:24px}
 
@@ -263,8 +265,14 @@ header.top{padding-top:env(safe-area-inset-top,0px)}
   .monthnav{flex:1 1 auto;justify-content:space-between;min-width:0}
   .monthnav .lbl{min-width:0;flex:1 1 auto;font-size:14px}
   .top-in .btn{flex:none}
-  .top-in #btnAdd{padding:0;width:46px;justify-content:center;font-size:0}
+  /* 44px is the smallest a thumb reliably hits, and flex:none stops the
+     button being squeezed below it when the header runs out of room. */
+  .top-in #btnAdd{padding:0;width:46px;min-width:46px;height:44px;flex:none;
+    justify-content:center;font-size:0}
+  .top-in .btn, .top-in .brand{min-height:44px}
+  .monthnav button{min-height:40px;min-width:36px}
   .top-in #btnAdd::before{content:"+";font-size:20px;font-weight:400;line-height:1}
+
 
   /* Transactions become list rows on a phone. A six-column table at 390px is
      unreadable however it is scrolled, so the same markup is re-laid out:
@@ -348,13 +356,13 @@ label.f > span{display:block;font-size:13px;color:var(--ink-2);margin-bottom:4px
 .headline, .sect-b > p{max-width:var(--prose)}
 .sub{color:var(--muted);font-size:13px}
 .grid{display:grid;gap:var(--sp-5)}
-.g-kpi{grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:var(--sp-5) var(--sp-4)}
+.g-kpi{grid-template-columns:repeat(auto-fit,minmax(min(176px,100%),1fr));gap:var(--sp-5) var(--sp-4)}
 /* The tiles inside the band are separated by space, which is the only
    separator that survives wrapping. The band itself needs no rule of its own:
    whatever follows is a panel, and panels already begin with one. */
 #view > .g-kpi{padding-bottom:var(--sp-2)}
-.g-2{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
-.g-3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.g-2{grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr))}
+.g-3{grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr))}
 .section-h{display:flex;align-items:baseline;gap:8px;margin:24px 0 12px;flex-wrap:wrap}
 .section-h h2{font-size:16px}
 .section-h .sub{margin-left:auto}
@@ -509,25 +517,37 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
    trackpad keeps the denser sizing, so this costs nothing there. */
 @media (pointer: coarse){
   .btn{min-height:44px;padding:8px 16px}
-  .btn.sm{min-height:38px;padding:8px 12px}
-  .btn.ghost{min-height:40px}
+  .btn.sm{min-height:44px;padding:8px 12px}
+  .btn.ghost{min-height:44px}
   .monthnav{padding:0}
   .monthnav button{min-width:46px;min-height:46px;font-size:20px}
   .monthnav .lbl{min-height:46px;display:flex;align-items:center;justify-content:center}
   nav.tabs button{min-height:46px;padding:12px 16px}
-  .chip{min-height:40px;padding:8px 16px}
-  .seg button{min-height:40px;padding:8px 16px}
+  .chip{min-height:44px;padding:8px 16px}
+  .seg button{min-height:44px;padding:8px 16px}
   .x{min-width:44px;min-height:44px;display:grid;place-items:center}
   input[type=text],input[type=number],input[type=date],input[type=month],select,textarea{
     min-height:44px;font-size:16px}          /* 16px stops iOS zooming on focus */
-  td select,.tcat{min-height:40px;font-size:14px}
+  td select,.tcat{min-height:44px;font-size:14px}
   /* checkboxes carry an inline width:auto, so this needs to win outright */
   input[type=checkbox]{width:22px!important;height:22px;min-height:22px;flex:none}
-  input[type=range]{min-height:0}
-  .slider{height:36px}
+  /* a range input centres its track, so a taller box is a taller hit area
+     without a fatter-looking slider */
+  input[type=range]{min-height:44px}
+  .slider{height:44px}
   th{padding:12px}
   td{padding:12px}
   .insight,.step,.comp,.budrow{padding-top:12px;padding-bottom:12px}
+  .sect-h{min-height:48px}
+  a.skiplink{min-height:44px;display:flex;align-items:center}
+  details.disclosure > summary{min-height:44px;align-items:center}
+
+  /* Small round controls stay small: the "?" beside a figure and the "x" on a
+     row are deliberately quiet, and growing them would shout. They get the
+     touch area instead of the size, pushed outward so nothing moves. */
+  .helpbtn, .feed-x, .moment-x{position:relative}
+  .helpbtn::after, .feed-x::after, .moment-x::after{content:"";position:absolute;
+    top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px}
 }
 
 @media print{ .noprint{display:none!important} body{background:#fff} }
@@ -610,7 +630,7 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
 .recap-n{font-family:var(--display);font-size:var(--t-2xl);font-weight:640;letter-spacing:-.03em;
   line-height:1.05;color:var(--ink)}
 .recap-hero .sub{max-width:46ch;margin:var(--sp-2) auto 0}
-.recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+.recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(120px,100%),1fr));
   gap:var(--sp-4);padding:var(--sp-4) 0;border-top:1px solid var(--grid);border-bottom:1px solid var(--grid)}
 .recap-grid > div{display:flex;flex-direction:column;gap:2px}
 .recap-grid b{font-family:var(--display);font-size:var(--t-lg);font-weight:620}
@@ -678,7 +698,7 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '2.0.1';
+const APP_VERSION = '2.0.2';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
