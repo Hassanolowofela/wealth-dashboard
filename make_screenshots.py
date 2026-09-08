@@ -108,7 +108,7 @@ async def main():
             await shot(page, "04-how-to-start")
 
             # ---------------- 05: the import screen ----------------
-            await page.evaluate("S=seedSample(); save(); closeModal(); go('import');")
+            await page.evaluate("S=seedSample(); S.settings.recapSeen=addMonths(thisMonth(),-1); save(); closeModal(); go('import');")
             await shot(page, "05-import-tab")
 
             # ---------------- 06: statement review ----------------
@@ -121,7 +121,7 @@ async def main():
             await shot(page, "06-review")
 
             # ---------------- 07: overview ----------------
-            await page.evaluate("closeModal(); S=seedSample(); save(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
+            await page.evaluate("closeModal(); S=seedSample(); S.settings.recapSeen=addMonths(thisMonth(),-1); save(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
             await shot(page, "07-overview")
 
             # ---------------- 08: cards and credit ----------------
@@ -148,7 +148,7 @@ async def main():
                             "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 "
                             "Mobile/15E148 Safari/604.1"))
             p2 = await fresh(pctx, base)
-            await p2.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
+            await p2.evaluate("S=seedSample(); S.settings.recapSeen=addMonths(thisMonth(),-1); save(); closeModal(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
             await shot(p2, "13-phone-overview")
             await p2.evaluate("go('cards'); window.scrollTo(0,0);")
             await shot(p2, "14-phone-cards")
@@ -162,7 +162,7 @@ async def main():
             rctx = await browser.new_context(viewport={"width": 1360, "height": 900},
                                              device_scale_factor=2)
             r = await fresh(rctx, base)
-            await r.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth();")
+            await r.evaluate("S=seedSample(); S.settings.recapSeen=addMonths(thisMonth(),-1); save(); closeModal(); UI.month=thisMonth();")
 
             async def framed(name, setup, until, theme=None, cap=1000, pad=26):
                 """
@@ -190,11 +190,6 @@ async def main():
                                    clip={"x": 0, "y": 0, "width": 1360, "height": height})
                 print(f"  {path.relative_to(ROOT)}  ({height}px tall)")
 
-            # The recap offer only appears in the first days of a month. It is a
-            # real feature but a transient one, so it does not belong in the
-            # picture that says "this is what the dashboard looks like".
-            await r.evaluate("S.settings.recapSeen = addMonths(thisMonth(), -1); save();")
-
             # the headline, what needs attention, and the four figures with their trends
             await framed("readme-overview", "go('home'); window.scrollTo(0,0);",
                          until="#view > .g-kpi")
@@ -214,7 +209,7 @@ async def main():
             # the statement importer, which is the least obvious feature
             await r.evaluate("document.documentElement.removeAttribute('data-theme')")
             await r.evaluate("""async () => {
-                S = seedSample(); save(); go('import');
+                S = seedSample(); S.settings.recapSeen=addMonths(thisMonth(),-1); save(); go('import');
                 const f = new File([await fetch('samples/sample_card_statement.pdf')
                     .then(x => x.blob())], 'sample_card_statement.pdf');
                 await statementFlow(f);
@@ -226,7 +221,7 @@ async def main():
             p3 = await browser.new_context(
                 viewport=PHONE, device_scale_factor=2, is_mobile=True, has_touch=True)
             p3page = await fresh(p3, base)
-            await p3page.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
+            await p3page.evaluate("S=seedSample(); S.settings.recapSeen=addMonths(thisMonth(),-1); save(); closeModal(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
             await shot(p3page, "readme-phone-overview")
             await p3page.evaluate("go('cards'); window.scrollTo(0,0);")
             await shot(p3page, "readme-phone-cards")
