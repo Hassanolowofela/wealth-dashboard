@@ -104,11 +104,11 @@ python -m http.server 8777
 
 **Step 4.** Open Chrome or Edge and go to `http://localhost:8777`
 
-**Step 5.** Open the **Settings** tab in the dashboard and click
-**Install as an app**. You can also use the small install icon at the right-hand
+**Step 5.** Click your household name at the top left to open the household menu,
+choose **Settings**, and click **Install as an app**. You can also use the small install icon at the right-hand
 end of the browser address bar.
 
-![The Settings tab, showing the version and the install button](docs/img/11-settings-install.png)
+![Settings, showing the version and the install button](docs/img/11-settings-install.png)
 
 **Step 6.** The dashboard is now in your Start menu. You can close the black
 window. It works offline from now on.
@@ -138,9 +138,10 @@ screen.
 **Step 4.** Close Safari and open the app from your new home screen icon. It now
 has its own window and works without internet.
 
-The dashboard shows you these same steps under **Settings**, near the bottom:
+The dashboard shows you these same steps under **Settings**, which is in the menu
+behind your household name at the top left:
 
-![The Settings tab on iPhone, showing the Add to Home Screen steps](docs/img/15-phone-install.png)
+![Settings on iPhone, showing the Add to Home Screen steps](docs/img/15-phone-install.png)
 
 > ### Please read this if you use an iPhone or iPad
 >
@@ -169,7 +170,7 @@ Use **Chrome**, **Edge** or **Samsung Internet**.
   are finished.
 - If no banner appears, tap the **three dots** menu in the top corner, then tap
   **Install app** or **Add to Home screen**.
-- You can also open the dashboard's **Settings** tab and tap
+- You can also tap your household name at the top left, choose **Settings**, and tap
   **Install as an app**.
 
 **Step 4.** Open it from your home screen icon. It now has its own window and
@@ -210,8 +211,8 @@ accounts, for example "Chase checking" or "Amex card".
 Click **+ Add another account** for each extra one you have: current accounts,
 savings, credit cards, cash apps.
 
-Do not worry about getting this perfect. You can change all of it later in
-**Settings**.
+Do not worry about getting this perfect. You can change all of it later: click
+your household name at the top left, then **Household and people**.
 
 Click **Continue**.
 
@@ -226,8 +227,9 @@ Click **Continue**.
 | **Explore a sample household first** | Fills the app with a made-up family so you can look around safely. |
 
 > **New to this?** Choose **Explore a sample household first**. Click through
-> every tab to see what it does, using pretend numbers. When you are ready, go to
-> **Settings** and click **Clear all data**. That removes the pretend numbers but
+> every screen to see what it does, using pretend numbers. When you are ready,
+> open **Settings** from the household menu and click **Clear all data**. That
+> removes the pretend numbers but
 > keeps the household members you just entered.
 
 ---
@@ -257,10 +259,10 @@ The app reads three kinds of file:
 
 ### Step 2: bring it into the app
 
-Click the **Import** tab at the top, then drag your file onto the dotted box, or
-click the box and choose the file.
+Click your household name at the top left, then **Import a statement**. Drag your file
+onto the dotted box, or click **Choose a statement file**.
 
-![The Import tab, with a box to drop a file onto](docs/img/05-import-tab.png)
+![The import screen, with a box to drop a file onto](docs/img/05-import-tab.png)
 
 A PDF takes a few seconds to read. Everything happens on your own device and
 nothing is uploaded anywhere.
@@ -313,9 +315,9 @@ for you.
 
 Backing up takes five seconds.
 
-![The Import tab, showing the backup and restore buttons](docs/img/10-backup.png)
+![The import screen, showing the backup and restore buttons](docs/img/10-backup.png)
 
-**Step 1.** Click the **Import** tab.
+**Step 1.** Click your household name at the top left.
 
 **Step 2.** Click **Download backup**.
 
@@ -326,8 +328,9 @@ Do this once a month. The app reminds you if 30 days go by without one.
 
 ### To restore a backup
 
-Click **Import**, then **Restore backup**, then pick your saved file. Everything
-returns exactly as it was.
+Click your household name at the top left, then **Import a statement**, then
+**Restore backup**, then pick your saved file. Everything returns exactly as it
+was.
 
 This is also how you **move to a new device**, or copy your figures from your
 computer to your phone. Each device keeps its own separate copy, so they do not
@@ -337,44 +340,44 @@ sync automatically.
 
 ## 8. Have a look around
 
-### Overview
+### Home
 
-Your month at a glance: what came in, what went out, what is left, and where it
-went.
+Your month in a sentence, then anything that needs attention, then the figures
+behind it.
 
-![The Overview tab](docs/img/07-overview.png)
+![The Home screen](docs/img/07-overview.png)
 
-### Cards and credit
+### Credit and debt
 
 Every card's utilisation, when each statement closes, what is due next, and a
 scorecard of the things that affect a credit score.
 
-![The Cards and Credit tab](docs/img/08-cards.png)
+![The Credit and Debt screen](docs/img/08-cards.png)
 
 The same screen on a phone, in a single column:
 
-![The Cards and Credit tab on a phone](docs/img/14-phone-cards.png)
+![Credit and Debt on a phone](docs/img/14-phone-cards.png)
 
-### Plan and advice
+### Plan
 
 A health score, a priority list of what to do next, and long-term projections
 built from your own numbers.
 
-![The Plan and Advice tab](docs/img/09-plan.png)
+![The Plan screen](docs/img/09-plan.png)
 
-### Everything else
+### The six destinations
 
-| Tab | What it is for |
+| Where | What it is for |
 |---|---|
-| **Overview** | The month at a glance |
-| **Spending** | Every transaction, searchable. Change a category here |
+| **Home** | The month in a sentence, and anything that needs attention |
+| **Money** | Every transaction, searchable. Change a category here |
 | **Budget** | Spending limits per category, with a pace marker |
-| **Recurring** | Subscriptions and bills, ranked by yearly cost |
-| **Cards & Credit** | Credit cards, utilisation and score factors |
+| **Credit & Debt** | Credit cards, utilisation, payment timing and score factors |
 | **Wealth** | Net worth, debts, savings goals, debt payoff plans |
-| **Plan & Advice** | Health score, next steps, projections |
-| **Import** | Bring data in, take backups out |
-| **Settings** | People, accounts, and the assumptions behind the maths |
+| **Plan** | Health score, next steps, projections |
+
+Importing a statement, downloading a backup, and settings all live behind your
+household name at the top left.
 
 Use the arrows either side of the month name to move between months. Use the
 coloured name buttons to see one person's spending on its own.
@@ -405,8 +408,9 @@ print it to a new PDF without the password, then import that.
 
 ### The charts are empty
 
-The app needs transactions before it can show anything. Go to **Import** and add
-a statement, or load the sample data from **Settings** to see how it looks.
+The dashboard needs transactions before it can show you anything. Open the
+household menu, choose **Import a statement**, and add one. Or load the sample
+data from **Settings** to see how it all looks.
 
 ### I closed the tab and lost everything
 

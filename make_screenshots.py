@@ -108,7 +108,7 @@ async def main():
             await shot(page, "04-how-to-start")
 
             # ---------------- 05: the import screen ----------------
-            await page.evaluate("S=seedSample(); save(); closeModal(); UI.tab='import'; render();")
+            await page.evaluate("S=seedSample(); save(); closeModal(); go('import');")
             await shot(page, "05-import-tab")
 
             # ---------------- 06: statement review ----------------
@@ -121,23 +121,23 @@ async def main():
             await shot(page, "06-review")
 
             # ---------------- 07: overview ----------------
-            await page.evaluate("closeModal(); S=seedSample(); save(); UI.month=thisMonth(); UI.tab='overview'; render(); window.scrollTo(0,0);")
+            await page.evaluate("closeModal(); S=seedSample(); save(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
             await shot(page, "07-overview")
 
             # ---------------- 08: cards and credit ----------------
-            await page.evaluate("UI.tab='cards'; render(); window.scrollTo(0,0);")
+            await page.evaluate("go('cards'); window.scrollTo(0,0);")
             await shot(page, "08-cards")
 
             # ---------------- 09: plan and advice ----------------
-            await page.evaluate("UI.tab='plan'; render(); window.scrollTo(0,0);")
+            await page.evaluate("go('plan'); window.scrollTo(0,0);")
             await shot(page, "09-plan")
 
             # ---------------- 10: backup ----------------
-            await page.evaluate("UI.tab='import'; render(); window.scrollTo(0, document.body.scrollHeight);")
+            await page.evaluate("go('import'); window.scrollTo(0, document.body.scrollHeight);")
             await shot(page, "10-backup")
 
             # ---------------- 11: settings, install ----------------
-            await page.evaluate("UI.tab='settings'; render(); window.scrollTo(0, document.body.scrollHeight);")
+            await page.evaluate("go('settings'); window.scrollTo(0, document.body.scrollHeight);")
             await shot(page, "11-settings-install")
             await page.close()
 
@@ -148,11 +148,11 @@ async def main():
                             "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 "
                             "Mobile/15E148 Safari/604.1"))
             p2 = await fresh(pctx, base)
-            await p2.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth(); UI.tab='overview'; render(); window.scrollTo(0,0);")
+            await p2.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
             await shot(p2, "13-phone-overview")
-            await p2.evaluate("UI.tab='cards'; render(); window.scrollTo(0,0);")
+            await p2.evaluate("go('cards'); window.scrollTo(0,0);")
             await shot(p2, "14-phone-cards")
-            await p2.evaluate("UI.tab='settings'; render(); window.scrollTo(0, document.body.scrollHeight);")
+            await p2.evaluate("go('settings'); window.scrollTo(0, document.body.scrollHeight);")
             await shot(p2, "15-phone-install")
             await p2.close()
 
@@ -164,47 +164,57 @@ async def main():
             r = await fresh(rctx, base)
             await r.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth();")
 
-            async def framed(name, setup, cards=2, theme=None):
+            async def framed(name, setup, until, theme=None, cap=1000, pad=26):
                 """
-                Crop to the bottom of the Nth card rather than a fixed height, so
-                the image never ends halfway through a panel. A guessed height
-                looks broken the moment the layout changes.
+                Crop to the bottom of a named landmark rather than to a guessed
+                height, so the image never ends halfway through a chart or a
+                row of figures. A fixed height looks broken the moment the
+                layout changes, which is exactly what happened to these shots
+                when the panels replaced the card grid.
                 """
                 if theme:
                     await r.evaluate(f"document.documentElement.setAttribute('data-theme','{theme}')")
                 else:
                     await r.evaluate("document.documentElement.removeAttribute('data-theme')")
                 await r.evaluate(setup)
-                await r.wait_for_timeout(450)
-                height = await r.evaluate("""(n) => {
-                    const els = document.querySelectorAll('#view .card, #view .tile');
-                    if (!els.length) return 760;
-                    // walk down until we pass n full rows of panels
-                    let bottom = 0, seenRows = 0, lastTop = -1;
-                    for (const el of els) {
-                        const b = el.getBoundingClientRect();
-                        if (Math.abs(b.top - lastTop) > 8) { seenRows++; lastTop = b.top; }
-                        if (seenRows > n) break;
-                        bottom = Math.max(bottom, b.bottom);
-                    }
-                    return Math.min(Math.round(bottom + 6), 1000);
-                }""", cards)
+                await r.wait_for_timeout(600)
+                height = await r.evaluate("""([sel, pad]) => {
+                    const el = document.querySelector(sel);
+                    if (!el) return 760;
+                    return Math.round(el.getBoundingClientRect().bottom + pad);
+                }""", [until, pad])
+                height = min(height, cap)
                 OUT.mkdir(parents=True, exist_ok=True)
                 path = OUT / f"{name}.png"
                 await r.screenshot(path=str(path),
                                    clip={"x": 0, "y": 0, "width": 1360, "height": height})
                 print(f"  {path.relative_to(ROOT)}  ({height}px tall)")
 
-            await framed("readme-overview", "UI.tab='overview'; render(); window.scrollTo(0,0);", cards=2)
-            await framed("readme-cards", "UI.tab='cards'; render(); window.scrollTo(0,0);", cards=2)
-            await framed("readme-plan", "UI.tab='plan'; render(); window.scrollTo(0,0);", cards=2)
-            await framed("readme-dark", "UI.tab='overview'; render(); window.scrollTo(0,0);",
-                         cards=2, theme="dark")
+            # The recap offer only appears in the first days of a month. It is a
+            # real feature but a transient one, so it does not belong in the
+            # picture that says "this is what the dashboard looks like".
+            await r.evaluate("S.settings.recapSeen = addMonths(thisMonth(), -1); save();")
+
+            # the headline, what needs attention, and the four figures with their trends
+            await framed("readme-overview", "go('home'); window.scrollTo(0,0);",
+                         until="#view > .g-kpi")
+            await framed("readme-dark", "go('home'); window.scrollTo(0,0);",
+                         until="#view > .g-kpi", theme="dark")
+            # the ledger: every row tagged to a person and an account
+            await framed("readme-money", "go('money'); window.scrollTo(0,0);",
+                         until=".txtable tbody tr:nth-child(9)", cap=1100, pad=0)
+            # utilisation per card, which is the thing that moves a credit score
+            # grid columns stretch to the tallest in the row, so the landmark is the last
+            # thing inside the panel rather than the panel itself
+            await framed("readme-cards", "go('cards'); window.scrollTo(0,0);",
+                         until="#view > .grid > .panel:nth-child(1) > :last-child", cap=1100)
+            await framed("readme-plan", "go('plan'); window.scrollTo(0,0);",
+                         until="#view > .grid > .panel:nth-child(1) > :last-child", cap=1100)
 
             # the statement importer, which is the least obvious feature
             await r.evaluate("document.documentElement.removeAttribute('data-theme')")
             await r.evaluate("""async () => {
-                S = seedSample(); save(); UI.tab='import'; render();
+                S = seedSample(); save(); go('import');
                 const f = new File([await fetch('samples/sample_card_statement.pdf')
                     .then(x => x.blob())], 'sample_card_statement.pdf');
                 await statementFlow(f);
@@ -216,9 +226,9 @@ async def main():
             p3 = await browser.new_context(
                 viewport=PHONE, device_scale_factor=2, is_mobile=True, has_touch=True)
             p3page = await fresh(p3, base)
-            await p3page.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth(); UI.tab='overview'; render(); window.scrollTo(0,0);")
+            await p3page.evaluate("S=seedSample(); save(); closeModal(); UI.month=thisMonth(); go('home'); window.scrollTo(0,0);")
             await shot(p3page, "readme-phone-overview")
-            await p3page.evaluate("UI.tab='cards'; render(); window.scrollTo(0,0);")
+            await p3page.evaluate("go('cards'); window.scrollTo(0,0);")
             await shot(p3page, "readme-phone-cards")
             await p3page.close()
 
@@ -245,7 +255,7 @@ def shrink_readme_images():
         print("  (Pillow not installed, skipping image downscale)")
         return
     targets = {"readme-overview": 1600, "readme-cards": 1600, "readme-plan": 1600,
-               "readme-dark": 1600, "readme-import": 1600,
+               "readme-dark": 1600, "readme-import": 1600, "readme-money": 1600,
                "readme-phone-overview": 540, "readme-phone-cards": 540}
     before_total = after_total = 0
     for name, width in targets.items():
