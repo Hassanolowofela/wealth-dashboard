@@ -134,6 +134,16 @@ function deltaBit(cur, prev, goodUp = true, fmt = money) {
   return `<span class="${cls}">${ar} <b>${fmt(Math.abs(d))}</b></span> vs last month`;
 }
 const toneVar = t => ({ good: 'var(--good)', warn: 'var(--warn)', serious: 'var(--serious)', crit: 'var(--crit)' }[t] || 'var(--accent)');
+/**
+ * The same status, at text weight.
+ *
+ * The bright status colours are built for fills, bars and borders, where a
+ * large block of colour carries the meaning. As text they fall well under the
+ * 4.5:1 minimum: amber on the page background measured 1.79:1. So anything
+ * that says a status in words or figures uses these instead.
+ */
+const toneInk = t => ({ good: 'var(--good-ink)', warn: 'var(--warn-ink)',
+  serious: 'var(--serious-ink)', crit: 'var(--crit-ink)' }[t] || 'var(--accent-ink)');
 const toneIcon = t => ({ good: '✓', warn: '!', serious: '!', crit: '✕' }[t] || 'i');
 
 function catOptions(sel) {
@@ -315,7 +325,7 @@ function viewOverview() {
   <div class="panel">
     <h3>Biggest merchants this month</h3><div class="sub">Grouped by merchant name</div>
     ${merchants.length ? `<table><tbody>${merchants.map(x => `
-      <tr><td>${esc(x.name)}<div class="sub">${esc(catName(x.cat))} · ${plural(x.n, 'charge')}</div></td>
+      <tr><td>${esc(merchantName(x.name))}<div class="sub">${esc(catName(x.cat))} · ${plural(x.n, 'charge')}</div></td>
       <td class="num"><b>${money(x.total)}</b></td></tr>`).join('')}</tbody></table>`
       : '<div class="sub">No spending recorded.</div>'}
   </div>
@@ -525,15 +535,15 @@ function spendingBody() {
       <th></th>
     </tr></thead><tbody>
     ${rows.map(t => `<tr data-id="${t.id}">
-      <td class="mono c-date">${esc(t.date.slice(5))}</td>
-      <td class="c-desc">${esc(t.desc)}</td>
-      <td class="c-cat"><select class="tcat" data-id="${t.id}" aria-label="Category for ${esc(t.desc)}"
+      <td class="mono c-date">${esc(ledgerDate(t.date))}</td>
+      <td class="c-desc">${esc(merchantName(t.desc))}</td>
+      <td class="c-cat"><select class="tcat" data-id="${t.id}" aria-label="Category for ${esc(merchantName(t.desc))}"
         style="padding:4px 8px;font-size:13px">${catOptions(t.cat)}</select></td>
       <td class="c-who">${t.member ? memberBadge(t.member) : '<span class="sub">-</span>'}</td>
       <td class="sub c-acct">${esc(accountName(t.account))}</td>
       <td class="num c-amt ${t.amount < 0 ? 'neg' : 'pos'}">${money2(t.amount)}</td>
       <td class="c-edit"><button class="btn sm ghost" data-act="edit-tx" data-id="${t.id}"
-        aria-label="Edit ${esc(t.desc)}">Edit</button></td>
+        aria-label="Edit ${esc(merchantName(t.desc))}">Edit</button></td>
     </tr>`).join('')}
     </tbody></table></div>`
     : emptyCard('Nothing matches', 'Try clearing the filters, or move to a different month.', '')}
@@ -753,7 +763,7 @@ function viewCards() {
     ${tile({
       label: 'Estimated score', hero: true,
       value: String(cs.estimate),
-      tone: toneVar(cs.tone),
+      tone: toneInk(cs.tone),
       delta: `<span class="${cs.tone === 'good' ? 'up' : cs.tone === 'crit' ? 'down' : 'flat'}">${esc(cs.label)}</span>
               · model range ${cs.low} to ${cs.high}`
     })}
@@ -823,7 +833,7 @@ function viewCards() {
           color: toneVar(cs.tone)
         })}</div>
         <div style="flex:1 1 200px;min-width:180px">
-          <div style="font-size:20px;font-weight:640;color:${toneVar(cs.tone)}">${esc(cs.label)}</div>
+          <div style="font-size:20px;font-weight:640;color:${toneInk(cs.tone)}">${esc(cs.label)}</div>
           <p class="sub" style="margin:8px 0 0">
             ${cs.reported ? `Your last reported score was <b>${cs.reported}</b>. ` : ''}
             This is a model of the factor weights, not your score. Lenders use several scoring versions and
@@ -912,8 +922,8 @@ function viewCards() {
           max="${Math.max(500, Math.ceil(totalReported() / 50) * 50)}" value="${payAmt}"></label>
     </div>
     <div class="grid g-3">
-      <div class="kv"><span>Reported now</span><b style="color:${toneVar(utilTone(simulated.before))}">${pct(simulated.before, 1)}</b></div>
-      <div class="kv"><span>Reported after</span><b style="color:${toneVar(utilTone(simulated.after))}">${pct(simulated.after, 1)}</b></div>
+      <div class="kv"><span>Reported now</span><b style="color:${toneInk(utilTone(simulated.before))}">${pct(simulated.before, 1)}</b></div>
+      <div class="kv"><span>Reported after</span><b style="color:${toneInk(utilTone(simulated.after))}">${pct(simulated.after, 1)}</b></div>
       <div class="kv"><span>To reach 9%</span><b>${money(payToReach(9))}</b></div>
     </div>
     <div class="meter ${utilClass(simulated.after)}" style="margin-top:12px;height:10px;position:relative">
@@ -938,7 +948,7 @@ function viewCards() {
             ${c.paysInFull === false ? '· <span style="color:var(--crit-ink)">carrying a balance</span>' : '· paid in full'}</div></td>
           <td class="num">${money(c.limit)}</td>
           <td class="num">${money(reportedBalance(c))}</td>
-          <td class="num" style="color:${toneVar(utilTone(u))};font-weight:620">${pct(u, 0)}</td>
+          <td class="num" style="color:${toneInk(utilTone(u))};font-weight:620">${pct(u, 0)}</td>
           <td class="num">${(+c.apr || 0).toFixed(1)}%</td>
           <td class="mono">${c.statementDay}${ordinal(c.statementDay)} / ${c.dueDay}${ordinal(c.dueDay)}</td>
           <td class="num">${c.annualFee ? money(c.annualFee) : '-'}</td>
@@ -1009,7 +1019,7 @@ function viewCards() {
           <div class="amt">${money(im.limitLost)} limit lost</div>
           <div class="sub" style="grid-column:1/-1;margin-top:2px">
             Utilisation would go ${pct(im.utilBefore, 1)} &rarr;
-            <b style="color:${toneVar(utilTone(im.utilAfter))}">${pct(im.utilAfter, 1)}</b>
+            <b style="color:${toneInk(utilTone(im.utilAfter))}">${pct(im.utilAfter, 1)}</b>
             ${worse > 0.5 ? `(${pct(worse, 1)} worse)` : '(little change)'}${reportedBalance(c) > 0
               ? ` · you would still owe the ${money(reportedBalance(c))} on it. Closing removes the limit, not the debt.` : ''}${im.isOldest
               ? ' · this is your oldest account, so closing it also starts a clock you cannot restart.' : ''}
@@ -1183,7 +1193,7 @@ function viewPlan() {
       <div class="score-ring">
         <div style="flex:0 0 auto">${chart({ type: 'gauge', h: 150, value: h.total, color: toneVar(h.tone) })}</div>
         <div style="flex:1 1 200px;min-width:180px">
-          <div style="font-size:20px;font-weight:640;color:${toneVar(h.band[1])}">${esc(h.band[0])}</div>
+          <div style="font-size:20px;font-weight:640;color:${toneInk(h.band[1])}">${esc(h.band[0])}</div>
           <p class="sub" style="margin:8px 0 0">
             ${h.total >= 62 ? 'The foundations are in place. The leverage now is in raising the investing rate and holding it.'
               : h.total >= 45 ? 'Solid habits with a clear gap or two. The lowest-numbered incomplete step below is where to push.'
@@ -1227,10 +1237,10 @@ function viewPlan() {
       <h3>Credit standing</h3>
       <div class="sub" style="margin-bottom:12px">Your borrowing cost for the next decade is set here</div>
       <div class="grid g-kpi" style="gap:8px">
-        ${tile({ label: 'Modelled score', value: String(cs.estimate), tone: toneVar(cs.tone),
+        ${tile({ label: 'Modelled score', value: String(cs.estimate), tone: toneInk(cs.tone),
           delta: `${esc(cs.label)} · range ${cs.low} to ${cs.high}` })}
         ${tile({ label: 'Utilisation', value: pct(u.agg, 1),
-          tone: toneVar(utilTone(u.agg)),
+          tone: toneInk(utilTone(u.agg)),
           delta: u.agg > 30 ? 'above the 30% threshold' : u.agg > 10 ? 'under 30%, above the 10% ideal' : 'strongest band' })}
         ${tile({ label: 'Card interest', value: money(cardInterestMonthly() * 12) + '/yr',
           tone: cardInterestMonthly() > 0 ? 'var(--crit-ink)' : 'var(--good-ink)',
@@ -1354,16 +1364,19 @@ function viewImport() {
       <h3>1. Bring in a file</h3>
       <div class="sub" style="margin-bottom:12px">CSV from any bank, card issuer, or transfer app</div>
       <div class="dz" id="dz">
-        <div style="font-size:28px;margin-bottom:8px">⤓</div>
-        <b>Drop a statement here</b> or click to choose a file
+        <div style="font-size:28px;margin-bottom:8px" aria-hidden="true">⤓</div>
+        <!-- A real button, because dropping a file is a mouse gesture and a
+             keyboard user needs the same door into this. -->
+        <button type="button" class="btn primary" id="pickFile">Choose a statement file</button>
+        <div style="margin-top:8px">or drop one anywhere in this box</div>
         <div class="sub" style="margin-top:8px">
           <b>CSV</b> exports, and <b>PDF</b> or <b>Word</b> statements. Everything is read on this
           computer, and no file is uploaded anywhere.
         </div>
       </div>
       <input type="file" id="fileIn" accept=".csv,.txt,.pdf,.docx,.doc" class="hide">
-      <div style="margin:16px 0 8px" class="sub">Or paste the rows directly:</div>
-      <textarea id="pasteIn" rows="5" placeholder="Date,Description,Amount&#10;2026-09-01,KROGER #418,-84.21"></textarea>
+      <label class="f" style="margin-top:16px"><span>Or paste the rows directly</span>
+        <textarea id="pasteIn" rows="5" placeholder="Date,Description,Amount&#10;2026-09-01,KROGER #418,-84.21"></textarea></label>
       <div style="margin-top:8px"><button class="btn primary" data-act="parse-paste">Read pasted rows</button></div>
     </div>
 
@@ -1564,7 +1577,8 @@ function render(updateUrl = true) {
        aria-selected="${UI.tab === id}" aria-controls="view"
        tabindex="${UI.tab === id ? 0 : -1}">${esc(label)}</button>`).join('');
   $('#bottomNav').innerHTML = TABS.map(([id, label, icon]) =>
-    `<button role="tab" data-tab="${id}" aria-selected="${UI.tab === id}" aria-controls="view">
+    `<button role="tab" data-tab="${id}" id="btab-${id}" aria-selected="${UI.tab === id}"
+       aria-controls="view" tabindex="${UI.tab === id ? 0 : -1}">
        <span class="ic" aria-hidden="true">${icon}</span>${esc(label)}</button>`).join('');
 
   // member filter
@@ -1601,23 +1615,71 @@ function render(updateUrl = true) {
 
 /* ================================================================ MODALS === */
 
+/** What everything focusable looks like, in document order. */
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),' +
+                  'textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])';
+
+/** Where focus was before a dialog took it, so it can be handed straight back. */
+let MODAL_RETURN = null;
+let MODAL_SEQ = 0;
+
 function openModal(title, body, footer, onMount, wide) {
+  // Remember what the reader was on. Without this, closing a dialog drops focus
+  // onto <body> and a keyboard user restarts from the top of the page every
+  // time, which is the single most common way a dialog gets a11y wrong.
+  MODAL_RETURN = document.activeElement;
+
+  const id = 'mt' + (++MODAL_SEQ);
   $('#modalRoot').innerHTML = `<div class="modal-bg" data-close-bg>
-    <div class="modal${wide ? ' wide' : ''}" role="dialog" aria-modal="true">
-      <div class="modal-h"><h3>${esc(title)}</h3><button class="x" data-close>&times;</button></div>
+    <div class="modal${wide ? ' wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="${id}"
+         tabindex="-1">
+      <div class="modal-h"><h3 id="${id}">${esc(title)}</h3>
+        <button class="x" data-close aria-label="Close ${esc(title)}">&times;</button></div>
       <div class="modal-b">${body}</div>
       ${footer ? `<div class="modal-f">${footer}</div>` : ''}
     </div></div>`;
   const root = $('#modalRoot');
   root.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal);
   root.querySelector('[data-close-bg]').onclick = e => { if (e.target.hasAttribute('data-close-bg')) closeModal(); };
-  document.addEventListener('keydown', escClose);
+  document.addEventListener('keydown', modalKeys);
   if (onMount) onMount(root);
-  const first = root.querySelector('input,select,textarea');
+
+  // A dialog with no field to fill still has to receive focus, or Tab carries
+  // on through the page behind it as though the dialog were not there.
+  const first = root.querySelector('input,select,textarea') || root.querySelector('.modal');
   if (first) setTimeout(() => first.focus(), 30);
 }
-function closeModal() { $('#modalRoot').innerHTML = ''; document.removeEventListener('keydown', escClose); }
-function escClose(e) { if (e.key === 'Escape') closeModal(); }
+
+function closeModal() {
+  if (!$('#modalRoot').innerHTML) return;
+  $('#modalRoot').innerHTML = '';
+  document.removeEventListener('keydown', modalKeys);
+  // hand focus back to whatever opened this, if it is still on the page
+  const back = MODAL_RETURN;
+  MODAL_RETURN = null;
+  if (back && document.contains(back) && back.focus) back.focus();
+}
+
+/**
+ * Escape closes, and Tab is kept inside. A dialog that says aria-modal="true"
+ * is telling assistive technology the rest of the page is inert, so Tab must
+ * behave that way too.
+ */
+function modalKeys(e) {
+  if (e.key === 'Escape') { closeModal(); return; }
+  if (e.key !== 'Tab') return;
+  const modal = $('#modalRoot .modal');
+  if (!modal) return;
+  const items = Array.from(modal.querySelectorAll(FOCUSABLE))
+    .filter(el => el.offsetParent !== null || el === document.activeElement);
+  if (!items.length) { e.preventDefault(); modal.focus(); return; }
+  const first = items[0], last = items[items.length - 1];
+  if (!e.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) {
+    e.preventDefault(); first.focus();
+  } else if (e.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) {
+    e.preventDefault(); last.focus();
+  }
+}
 
 /* --------------------------------------------------------- transaction form */
 
@@ -1687,7 +1749,7 @@ function txForm(id) {
     };
     if (!isNew) root.querySelector('#tDel').onclick = () => {
       closeModal();
-      undoable(`Deleted "${t.desc.slice(0, 32)}"`, () => {
+      undoable(`Deleted "${merchantName(t.desc).slice(0, 32)}"`, () => {
         S.txns = S.txns.filter(x => x.id !== t.id);
       });
     };
@@ -2122,7 +2184,7 @@ function fixUncategorised() {
     merchant automatically from now on.</p>
     <div class="scroller"><table><tbody>
     ${items.map(t => `<tr data-uid="${t.id}">
-      <td><b>${esc(t.desc)}</b><div class="sub">${esc(t.date)} · ${money2(t.amount)}</div></td>
+      <td><b>${esc(merchantName(t.desc))}</b><div class="sub">${esc(t.date)} · ${money2(t.amount)}</div></td>
       <td style="width:190px"><select class="uCat">${catOptions('misc')}</select></td>
       <td style="width:80px"><label class="sub" style="display:flex;gap:4px;align-items:center">
         <input type="checkbox" class="uRule" style="width:auto"> rule</label></td>
@@ -2259,7 +2321,7 @@ function importModal() {
     ${p.fresh.length ? `<div class="tbl-wrap" style="max-height:260px;overflow:auto"><table>
       <thead><tr><th>Date</th><th>Description</th><th>Category</th><th class="num">Amount</th></tr></thead>
       <tbody>${p.fresh.slice(0, 12).map(t => `<tr><td class="mono">${esc(t.date)}</td>
-        <td>${esc(t.desc.slice(0, 42))}</td><td class="sub">${esc(catName(t.cat))}</td>
+        <td>${esc(merchantName(t.desc).slice(0, 42))}</td><td class="sub">${esc(catName(t.cat))}</td>
         <td class="num ${t.amount < 0 ? 'neg' : 'pos'}">${money2(t.amount)}</td></tr>`).join('')}
       </tbody></table></div>`
       : `<div class="disclaim">No usable rows with this mapping. Check that the date and amount
@@ -2414,7 +2476,10 @@ function wireView() {
   // import drop zone
   const dz = view.querySelector('#dz'), fileIn = view.querySelector('#fileIn');
   if (dz && fileIn) {
-    dz.onclick = () => fileIn.click();
+    const pick = view.querySelector('#pickFile');
+    if (pick) pick.onclick = e => { e.stopPropagation(); fileIn.click(); };
+    // the whole box stays clickable for the mouse; the button owns the keyboard
+    dz.onclick = e => { if (!e.target.closest('#pickFile')) fileIn.click(); };
     dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
     dz.ondragleave = () => dz.classList.remove('over');
     dz.ondrop = e => {
@@ -2656,7 +2721,7 @@ function statementReview() {
         const off = STMT.skip.has(i);
         return `<tr style="${off ? 'opacity:.4' : ''}">
           <td class="mono">${esc(t.date)}</td>
-          <td>${esc(t.desc.slice(0, 46))}${t.transfer
+          <td>${esc(merchantName(t.desc).slice(0, 46))}${t.transfer
             ? ' <span class="pill tiny">card payment</span>' : ''}</td>
           <td><select class="stCat" data-i="${i}" style="padding:4px 8px;font-size:13px">${catOptions(t.cat)}</select></td>
           <td class="num ${amt < 0 ? 'neg' : 'pos'}">${money2(amt)}</td>
@@ -3030,21 +3095,30 @@ $('#hhMenu').onclick = () => toggleHouseholdMenu();
 window.addEventListener('popstate', () => { if (!ROUTING) applyRoute(); });
 window.addEventListener('hashchange', () => { if (!ROUTING) applyRoute(); });
 
-// arrow keys move along the destinations, as a tab list should
-$('#tabs').addEventListener('keydown', e => {
-  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
-  const ids = TABS.map(t => t[0]);
-  const i = ids.indexOf(UI.tab);
-  let n = i;
-  if (e.key === 'ArrowLeft') n = (i - 1 + ids.length) % ids.length;
-  if (e.key === 'ArrowRight') n = (i + 1) % ids.length;
-  if (e.key === 'Home') n = 0;
-  if (e.key === 'End') n = ids.length - 1;
-  e.preventDefault();
-  go(ids[n]);
-  const btn = $('#tab-' + ids[n]);
-  if (btn) btn.focus();
-});
+/**
+ * Arrow keys move along the destinations, as a tab list should. Both lists get
+ * it: the strip on a desktop and the bar at the bottom of a phone are the same
+ * control, and a keyboard attached to a narrow window has to reach the one on
+ * screen. Only one of the two is ever visible, so only one is ever focusable.
+ */
+function tabListKeys(prefix) {
+  return e => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+    const ids = TABS.map(t => t[0]);
+    const i = ids.indexOf(UI.tab);
+    let n = i;
+    if (e.key === 'ArrowLeft') n = (i - 1 + ids.length) % ids.length;
+    if (e.key === 'ArrowRight') n = (i + 1) % ids.length;
+    if (e.key === 'Home') n = 0;
+    if (e.key === 'End') n = ids.length - 1;
+    e.preventDefault();
+    go(ids[n]);
+    const btn = $('#' + prefix + ids[n]);
+    if (btn) btn.focus();
+  };
+}
+$('#tabs').addEventListener('keydown', tabListKeys('tab-'));
+$('#bottomNav').addEventListener('keydown', tabListKeys('btab-'));
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !$('#hhMenuPanel').hidden) toggleHouseholdMenu(false);

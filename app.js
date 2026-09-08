@@ -5,7 +5,7 @@
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.9.0';
+const APP_VERSION = '2.0.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
@@ -438,6 +438,36 @@ function normDesc(s) {
     .replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * A merchant name a person would write, from the shouting a bank sends.
+ *
+ * Statements arrive as "DOORDASH*CHIPOTLE 4471" or "KROGER #418", which is a
+ * machine's idea of a name. This is display only: matching, rules and the
+ * duplicate fingerprint all keep working on the raw text, because changing
+ * what is matched would change which category a transaction lands in.
+ *
+ * Short all-caps runs are left alone, since they are usually real: ALDI, CVS,
+ * BP, AMC, IKEA. Anything already mixed case is left alone too, on the grounds
+ * that whoever wrote it meant it.
+ */
+const KEEP_UPPER = new Set(['ATM', 'POS', 'ACH', 'DD', 'USA', 'US', 'UK', 'LLC', 'INC', 'LTD',
+  'CO', 'NYC', 'LA', 'SF', 'DC', 'TV', 'AI', 'IT', 'HR', 'DMV', 'IRS', 'CVS', 'BP', 'AMC',
+  'ALDI', 'IKEA', 'H-E-B', 'HEB', 'AT&T', 'NYT', 'HBO', 'PS5', 'XL', 'ID']);
+
+function merchantName(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return s;
+  if (s !== s.toUpperCase()) return s;            // already mixed case: leave it
+  // banks join names with slashes and stars, so those separate words too
+  return s.split(/(\s+|[/*|])/).map(w => {
+    if (/^(\s+|[/*|])$/.test(w)) return w;
+    const bare = w.replace(/[^A-Za-z&+.-]/g, '');
+    if (KEEP_UPPER.has(w) || KEEP_UPPER.has(bare)) return w;
+    if (bare.length <= 1) return w;               // initials and stray letters
+    return w.toLowerCase().replace(/(^|[^a-z'])([a-z])/g, (m0, pre, ch) => pre + ch.toUpperCase());
+  }).join('');
+}
+
 /** User rules win over the built-in list; longest match wins within each. */
 function autoCat(desc) {
   const d = ' ' + normDesc(desc) + ' ';
@@ -461,6 +491,18 @@ const memberColor = id => {
   return cssVar(MEMBER_COLORS[i < 0 ? 0 : i % 8]);
 };
 const accountName = id => (S.accounts.find(a => a.id === id) || {}).name || '-';
+
+/**
+ * A ledger date, as short as it can be without becoming ambiguous.
+ *
+ * "09-14" is fine while you are looking at September 2026. It is not fine on a
+ * filtered list that spans years, or on a month you have navigated back to, so
+ * the year comes back the moment the row is not obviously from the month on
+ * screen. A date that could be either of two years is worse than a long one.
+ */
+function ledgerDate(iso) {
+  return ym(iso) === thisMonth() ? String(iso).slice(5) : String(iso);
+}
 
 /**
  * A person's initials, from however many names they gave.

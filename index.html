@@ -48,7 +48,7 @@
 :root{
   color-scheme: light;
   --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f3f3f0; --surface-3:#eceae4;
-  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#6b6a65;
   --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10); --border-2:rgba(11,11,11,.16);
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
@@ -57,7 +57,7 @@
      nothing else, so adding a second one has to be a deliberate edit here. */
   --accent:#2470ce; --accent-ink:#1a4f92;
   --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
-  --good-ink:#006300; --crit-ink:#a32020; --warn-ink:#7a5600;
+  --good-ink:#006300; --crit-ink:#a32020; --warn-ink:#7a5600; --serious-ink:#8a3d12;
   --seq-100:#cde2fb; --seq-250:#86b6ef; --seq-400:#3987e5; --seq-550:#1c5cab; --seq-700:#0d366b;
   --shadow:0 1px 2px rgba(11,11,11,.04), 0 4px 12px rgba(11,11,11,.05);
   --r:10px; --r-sm:7px;
@@ -101,12 +101,12 @@
   :root:where(:not([data-theme="light"])){
     color-scheme: dark;
     --page:#0d0d0d; --surface:#1a1a19; --surface-2:#212120; --surface-3:#2a2a28;
-    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#98968e;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --border-2:rgba(255,255,255,.18);
     --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
     --accent:#5ea3f0; --accent-ink:#9ec5f4;
     --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
-    --good-ink:#0ca30c; --crit-ink:#e66767; --warn-ink:#fab219;
+    --good-ink:#0ca30c; --crit-ink:#e66767; --warn-ink:#fab219; --serious-ink:#ffa37a;
     --seq-100:#184f95; --seq-250:#1c5cab; --seq-400:#2a78d6; --seq-550:#5598e7; --seq-700:#9ec5f4;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
     --chart-ink:#9a988f; --chart-ink-2:#55534d; --chart-fill:rgba(154,152,143,.15);
@@ -116,12 +116,12 @@
 :root[data-theme="dark"]{
   color-scheme: dark;
   --page:#0d0d0d; --surface:#1a1a19; --surface-2:#212120; --surface-3:#2a2a28;
-  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#98968e;
   --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --border-2:rgba(255,255,255,.18);
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
     --accent:#5ea3f0; --accent-ink:#9ec5f4;
   --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
-  --good-ink:#0ca30c; --crit-ink:#e66767; --warn-ink:#fab219;
+  --good-ink:#0ca30c; --crit-ink:#e66767; --warn-ink:#fab219; --serious-ink:#ffa37a;
   --seq-100:#184f95; --seq-250:#1c5cab; --seq-400:#2a78d6; --seq-550:#5598e7; --seq-700:#9ec5f4;
   --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
   --chart-ink:#9a988f; --chart-ink-2:#55534d; --chart-fill:rgba(154,152,143,.15);
@@ -152,7 +152,7 @@ header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--p
 .brand:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .brand[aria-expanded="true"]{background:var(--surface-2);border-color:var(--border-2)}
 .brand-text{min-width:0}
-.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);flex:none;display:grid;place-items:center;color:var(--on-accent);font-weight:700;font-size:13px}
 .brand-name{display:block;font-size:14px;font-weight:620;letter-spacing:-.01em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand small{display:block;color:var(--muted);font-size:13px;font-weight:450;letter-spacing:0;
@@ -215,7 +215,7 @@ header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--p
 
 .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
   clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
-.skiplink{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:#fff;
+.skiplink{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:var(--on-accent);
   padding:8px 16px;border-radius:0 0 var(--r-sm) 0;font-weight:620}
 .skiplink:focus{left:0}
 
@@ -297,7 +297,7 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 /* ============================== CONTROLS ============================== */
 .btn{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:8px 12px;cursor:pointer;font-weight:520;font-size:13px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;transition:background .12s,border-color .12s}
 .btn:hover{background:var(--surface-2);border-color:var(--muted)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn.primary:hover{filter:brightness(1.08)}
 .btn.danger{color:var(--crit-ink);border-color:var(--border-2)}
 .btn.danger:hover{background:color-mix(in srgb,var(--crit) 12%,var(--surface))}
@@ -310,8 +310,15 @@ input[type=text],input[type=number],input[type=date],input[type=month],select,te
 input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 label.f{display:block;margin-bottom:8px}
 label.f > span{display:block;font-size:13px;color:var(--ink-2);margin-bottom:4px;font-weight:520}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+/* Fields side by side. Aligning on the bottom alone left the labels staggered
+   by a few pixels whenever one control was taller than its neighbour, so the
+   label starts at the top of the row and the control is pushed to the bottom:
+   both edges line up, whatever is in between. */
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
 .row > *{flex:1 1 150px;min-width:0}
+.row > label.f{display:flex;flex-direction:column;margin-bottom:8px}
+.row > label.f > span{margin-bottom:4px}
+.row > label.f > :not(span){margin-top:auto}
 .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:2px;gap:2px}
 .seg button{background:none;border:0;padding:4px 12px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:520;color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:620}
@@ -423,7 +430,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);font-size:13px;color:var(--ink-2);white-space:nowrap}
 .pill.tiny{padding:1px 8px;font-size:13px}
 .chip{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:99px;border:1px solid var(--border-2);background:var(--surface);font-size:13px;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:560}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:560}
 .chip[aria-pressed="true"] .dot{box-shadow:0 0 0 1.5px #fff}
 
 /* ============================== ADVISOR ============================== */
@@ -438,7 +445,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 .step:last-child{border-bottom:0}
 .step .n{width:26px;height:26px;border-radius:99px;flex:none;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--surface-3);color:var(--ink-2)}
 .step.done .n{background:var(--good);color:#fff}
-.step.now .n{background:var(--accent);color:#fff}
+.step.now .n{background:var(--accent);color:var(--on-accent)}
 .step .b{min-width:0;flex:1}
 .step .b h4{font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .step .b p{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
@@ -446,7 +453,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 .step.done{opacity:.72}
 .tag{font-size:13px;font-weight:640;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:4px}
 .tag.done{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good-ink)}
-.tag.now{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.tag.now{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent-ink)}
 .tag.next{background:var(--surface-3);color:var(--muted)}
 .insight{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--grid)}
 .insight:last-child{border-bottom:0}
@@ -588,7 +595,7 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
   animation:moment-in 320ms var(--ease) both}
 .moment + .moment{margin-top:var(--sp-2)}
 .moment-mark{flex:none;width:22px;height:22px;border-radius:99px;background:var(--accent);
-  color:#fff;display:grid;place-items:center;font-size:var(--t-xs);margin-top:1px}
+  color:var(--on-accent);display:grid;place-items:center;font-size:var(--t-xs);margin-top:1px}
 .moment-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .moment-b b{font-size:var(--t-md)}
 .moment-b span{color:var(--ink-2);font-size:var(--t-sm);max-width:var(--prose)}
