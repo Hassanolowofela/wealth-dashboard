@@ -93,7 +93,7 @@ function toggleHouseholdMenu(force) {
     <button data-act="run-setup"><span aria-hidden="true">&#9788;</span> Household and people</button>
     <div class="sep"></div>
     <button data-act="storage-info"><span aria-hidden="true">&#9974;</span> Storage and durability</button>
-    <button data-act="about-sharing"><span aria-hidden="true">&#8599;</span> Share this app</button>`;
+    <button data-act="about-sharing"><span aria-hidden="true">&#8599;</span> Share this dashboard</button>`;
   panel.hidden = false;
   btn.setAttribute('aria-expanded', 'true');
 
@@ -113,9 +113,14 @@ function toggleHouseholdMenu(force) {
 /* ------------------------------------------------------------- small parts */
 
 function tile(o) {
+  // `count` is the figure behind the formatted string. Given it, the value can
+  // run up to itself on arrival; without it the string is simply printed.
+  const cnt = o.count == null ? ''
+    : ` data-count="${o.count}" data-fmt="${o.fmt || 'money'}"` +
+      (o.countFrom == null ? '' : ` data-from="${o.countFrom}"`);
   return `<div class="tile">
     <div class="lbl">${esc(o.label)}${o.help ? helpButton(o.help) : ''}</div>
-    <div class="val${o.hero ? ' hero' : ''}"${o.tone ? ` style="color:${o.tone}"` : ''}>${o.value}</div>
+    <div class="val${o.hero ? ' hero' : ''}"${o.tone ? ` style="color:${o.tone}"` : ''}${cnt}>${o.value}</div>
     ${o.delta ? `<div class="delta">${o.delta}</div>` : ''}
     ${o.spark ? `<div class="spark">${o.spark}</div>` : ''}
   </div>`;
@@ -208,28 +213,33 @@ function viewOverview() {
 
   return `
   <div class="section-h"><h2>${esc(monthLabel(m))}</h2>
-    <span class="sub">${st.count} transaction${st.count === 1 ? '' : 's'}${UI.member !== 'all' ? ' · ' + esc(memberName(UI.member)) : ' · whole household'}</span>
+    <span class="sub">${plural(st.count, 'transaction')}${UI.member !== 'all' ? ' · ' + esc(memberName(UI.member)) : ' · whole household'}</span>
   </div>
 
   ${UI.member === 'all' ? `<p class="headline">${esc(headlineSentence(m))}</p>` : ''}
+
+  ${UI.member === 'all' ? momentsStrip() : ''}
+  ${UI.member === 'all' ? recapCard() : ''}
 
   ${UI.member === 'all' ? insightFeed(m) : ''}
 
   <div class="grid g-kpi">
     ${tile({
       label: 'Left over this month', hero: true, help: 'leftOver',
-      value: money(st.net),
+      value: money(st.net), count: st.net, countFrom: prevSt.count ? prevSt.net : null,
       tone: st.net >= 0 ? 'var(--good-ink)' : 'var(--crit-ink)',
       delta: deltaBit(st.net, prevSt.count ? prevSt.net : null, true),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.net), color: 'var(--chart-ink)' })
     })}
     ${tile({
       label: 'Income', value: money(st.income), help: 'income',
+      count: st.income, countFrom: prevSt.count ? prevSt.income : null,
       delta: deltaBit(st.income, prevSt.count ? prevSt.income : null, true),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.income), color: 'var(--chart-ink)' })
     })}
     ${tile({
       label: 'Spending', value: money(st.spend), help: 'spending',
+      count: st.spend, countFrom: prevSt.count ? prevSt.spend : null,
       delta: deltaBit(st.spend, prevSt.count ? prevSt.spend : null, false),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.spend), color: 'var(--chart-ink)' })
     })}
@@ -239,6 +249,7 @@ function viewOverview() {
       ? { label: 'Savings rate', value: '-', help: 'savingsRate',
           delta: 'no income recorded this month' }
       : { label: 'Savings rate', value: pct(K.savingsRate, 1), help: 'savingsRate',
+          count: K.savingsRate, fmt: 'pct',
           tone: K.savingsRate >= 20 ? 'var(--good-ink)' : K.savingsRate < 5 ? 'var(--crit-ink)' : '',
           delta: `<span class="${K.savingsRate >= 20 ? 'up' : 'flat'}">${K.savingsRate >= 20 ? 'at or above' : 'below'}</span> the 20% benchmark`,
           spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--chart-ink)' }) })}
@@ -304,7 +315,7 @@ function viewOverview() {
   <div class="panel">
     <h3>Biggest merchants this month</h3><div class="sub">Grouped by merchant name</div>
     ${merchants.length ? `<table><tbody>${merchants.map(x => `
-      <tr><td>${esc(x.name)}<div class="sub">${esc(catName(x.cat))} · ${x.n} charge${x.n === 1 ? '' : 's'}</div></td>
+      <tr><td>${esc(x.name)}<div class="sub">${esc(catName(x.cat))} · ${plural(x.n, 'charge')}</div></td>
       <td class="num"><b>${money(x.total)}</b></td></tr>`).join('')}</tbody></table>`
       : '<div class="sub">No spending recorded.</div>'}
   </div>
@@ -373,12 +384,43 @@ function headlineSentence(m) {
   if (due) {
     parts.push(due.daysToDue === 0
       ? `${due.card.name} is due today.`
-      : `${due.card.name} is due in ${due.daysToDue} day${due.daysToDue === 1 ? '' : 's'}.`);
+      : `${due.card.name} is due in ${plural(due.daysToDue, 'day')}.`);
   }
   return parts.join(' ');
 }
 
 const insightKey = t => 'i:' + String(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 48);
+
+/**
+ * An offer to look back at the month that just ended. It appears for the first
+ * week of a new month and disappears the moment it is read or waved off, so it
+ * is an invitation rather than a thing to get past.
+ */
+function recapCard() {
+  const m = recapAvailable();
+  if (!m) return '';
+  return `<div class="card recap-offer">
+    <div>
+      <b>${esc(monthLabel(m))} is done</b>
+      <div class="sub">A one-screen look at how the month went, then it is off your plate.</div>
+    </div>
+    <div class="recap-offer-a">
+      <button class="btn ghost sm" data-act="skip-recap" data-m="${m}">Not now</button>
+      <button class="btn primary sm" data-act="recap" data-m="${m}">See the recap</button>
+    </div>
+  </div>`;
+}
+
+/**
+ * A paragraph that teaches rather than reports.
+ *
+ * The screen states what is true; this holds the reasoning for anyone who wants
+ * it. Native <details> so it is keyboard-reachable and announced as expandable
+ * without a line of script.
+ */
+function why(label, body) {
+  return `<details class="disclosure"><summary>${esc(label)}</summary><div>${body}</div></details>`;
+}
 
 /** Insights, capped at three, each dismissible and remembered for the month. */
 function insightFeed(m) {
@@ -423,7 +465,7 @@ function viewMoney() {
   const audit = subscriptionAudit();
   return `
   <div class="section-h"><h2>Money &middot; ${esc(monthLabel(UI.month))}</h2>
-    <span class="sub">${st.count} transaction${st.count === 1 ? '' : 's'}</span></div>
+    <span class="sub">${plural(st.count, 'transaction')}</span></div>
 
   ${section('tx', 'Transactions',
     `${st.count} this month &middot; ${money(st.spend)} out, ${money(st.income)} in`,
@@ -470,7 +512,7 @@ function spendingBody() {
       <div style="flex:0 0 auto"><button class="btn" data-act="export-csv">Export CSV</button></div>
     </div>
     ${rows.some(t => t.cat === 'misc') ? `<div class="sub" style="margin-top:4px">
-      ${rows.filter(t => t.cat === 'misc').length} uncategorised item(s) this month.
+      ${plural(rows.filter(t => t.cat === 'misc').length, 'uncategorised item')} this month.
       <button class="btn sm" data-act="fix-uncat">Review them</button></div>` : ''}
   </div>
 
@@ -487,7 +529,7 @@ function spendingBody() {
       <td class="c-desc">${esc(t.desc)}</td>
       <td class="c-cat"><select class="tcat" data-id="${t.id}" aria-label="Category for ${esc(t.desc)}"
         style="padding:4px 8px;font-size:13px">${catOptions(t.cat)}</select></td>
-      <td class="c-who">${t.member ? `<span class="pill tiny"><span class="dot" style="background:${memberColor(t.member)}"></span>${esc(memberName(t.member))}</span>` : '<span class="sub">-</span>'}</td>
+      <td class="c-who">${t.member ? memberBadge(t.member) : '<span class="sub">-</span>'}</td>
       <td class="sub c-acct">${esc(accountName(t.account))}</td>
       <td class="num c-amt ${t.amount < 0 ? 'neg' : 'pos'}">${money2(t.amount)}</td>
       <td class="c-edit"><button class="btn sm ghost" data-act="edit-tx" data-id="${t.id}"
@@ -697,11 +739,11 @@ function viewCards() {
 
   return `
   <div class="section-h"><h2>Cards &amp; credit</h2>
-    <span class="sub">${cards.length} card${cards.length === 1 ? '' : 's'} ·
+    <span class="sub">${plural(cards.length, 'card')} ·
       ${money(totalReported())} reported of ${money(totalLimit())} in limits</span></div>
 
   ${convertible.length ? `<div class="disclaim" style="border-left-color:var(--accent);margin:0 0 16px">
-    <b>${convertible.length} item${convertible.length === 1 ? '' : 's'} in your loan list look like credit cards.</b>
+    <b>${plural(convertible.length, 'item')} in your loan list look like credit cards.</b>
     Converting them lets this tab track utilisation and statement timing.
     ${convertible.map(d => `<button class="btn sm" style="margin:8px 8px 0 0"
       data-act="convert-debt" data-id="${d.id}">Convert &ldquo;${esc(d.name)}&rdquo;</button>`).join('')}
@@ -726,7 +768,7 @@ function viewCards() {
       label: 'Next payment due',
       value: next ? money(next.autopay === 'min' ? next.amountMin : next.amountFull) : '-',
       delta: next
-        ? `${esc(next.card.name)} in <b>${next.daysToDue}</b> day${next.daysToDue === 1 ? '' : 's'}`
+        ? `${esc(next.card.name)} in <b>${next.daysToDue}</b> ${pluralWord(next.daysToDue, 'day')}`
         : 'nothing due in the next 45 days'
     })}
     ${tile({
@@ -785,7 +827,7 @@ function viewCards() {
           <p class="sub" style="margin:8px 0 0">
             ${cs.reported ? `Your last reported score was <b>${cs.reported}</b>. ` : ''}
             This is a model of the factor weights, not your score. Lenders use several scoring versions and
-            see data this app never will.
+            see data this dashboard never will.
           </p>
         </div>
       </div>
@@ -838,8 +880,8 @@ function viewCards() {
           <span class="mono" style="font-weight:620">${money(d.amountFull)}</span>
         </div>
         <div class="sub" style="margin-top:4px">
-          Due in <b>${d.daysToDue} day${d.daysToDue === 1 ? '' : 's'}</b> (${d.card.dueDay}${ordinal(d.card.dueDay)})
-          · statement closes in <b>${d.daysToClose} day${d.daysToClose === 1 ? '' : 's'}</b> (${d.card.statementDay}${ordinal(d.card.statementDay)})
+          Due in <b>${plural(d.daysToDue, 'day')}</b> (${d.card.dueDay}${ordinal(d.card.dueDay)})
+          · statement closes in <b>${plural(d.daysToClose, 'day')}</b> (${d.card.statementDay}${ordinal(d.card.statementDay)})
         </div>
         <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <span class="pill tiny" ${d.autopay === 'none' ? 'style="color:var(--crit-ink);border-color:var(--crit)"' : ''}>
@@ -979,13 +1021,12 @@ function viewCards() {
     </div>
   </div>
 
-  <div class="disclaim">
-    <b>This is a model of the score, not the score.</b> Credit bureaus hold payment records, balances and
-    account details this dashboard never sees, lenders use several different scoring versions, and the exact
-    formulas are not published. Treat the number as a way to see which factor has the most slack, not as a
-    prediction. Your real scores are free from most card issuers and your statutory reports are free at
-    annualcreditreport.com. Check those for the actual figures and to dispute anything wrong.
-  </div>
+  ${why('Why this is a model of your score, not your score', `
+    <p>The bureaus hold payment records, balances and account details this dashboard never sees. Lenders
+    use several different scoring versions, and the exact formulas are not published. So treat the number
+    as a way to see which factor has the most slack in it, not as a prediction.</p>
+    <p>Your real scores are free from most card issuers, and your statutory reports are free at
+    annualcreditreport.com. Check those for the actual figures, and to dispute anything wrong.</p>`)}
   `;
 }
 
@@ -1274,28 +1315,27 @@ function viewPlan() {
     </div>
 
     <div class="panel">
-      <h3>Principles this plan applies</h3>
-      <div class="sub" style="margin-bottom:8px">Frameworks, not picks - no security is ever named here</div>
-      ${[
+      <h3>Why the plan says what it says</h3>
+      <div class="sub" style="margin-bottom:8px">Frameworks, not picks. No security is ever named here.</div>
+      ${why('The six ideas behind every recommendation on this page', [
         ['Pay the guaranteed return first', 'Clearing a 20% balance beats an uncertain 7% market return. Debt above roughly 8% outranks investing.'],
-        ['Automate before you optimise', 'A transfer that happens on payday beats a better strategy you have to remember. Automation is why savings rate beats stock selection for most households.'],
+        ['Automate before you optimise', 'A transfer that happens on payday beats a better strategy you have to remember. What you set aside matters more than what you pick to put it in, and automation is what keeps you setting it aside.'],
         ['Cost and diversification are the two levers you control', 'You cannot control returns. You can control fees and how concentrated you are. A 1% annual fee compounds against you exactly the way returns compound for you.'],
         ['Time in the market is the engine', `Of the ${compact(futureValue(500, 30, r))} a ${money(500)}/mo habit reaches in 30 years, only ${compact(500 * 360)} is yours - the rest is time.`],
         ['Match the horizon to the risk', 'Money needed within about five years belongs in cash or short-term instruments; a market drop should never force a sale at the wrong moment.'],
         ['Lower fixed costs twice', 'Cutting a recurring cost raises the surplus and lowers the FI target at the same time. One-off cuts do only the first.']
       ].map(([t, d]) => `<div class="insight">
         <div class="ic" style="background:var(--accent)">•</div>
-        <div class="tx"><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('')}
+        <div class="tx"><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join(''))}
     </div>
   </div>
 
   <div class="disclaim">
-    <b>Read this as a model, not as advice.</b> This tab applies published, general personal-finance
-    frameworks to the numbers you entered. It does not know your tax situation, employment terms,
-    health, insurance, dependants or risk tolerance, and it never recommends a specific investment,
-    fund or security. Contribution limits and tax rules change every year - verify current figures
-    before acting. For decisions that depend on your full circumstances, speak to a licensed financial
-    advisor or a CPA; nothing here is a substitute for one.
+    <b>Read this as a model, not as advice.</b> It works from the figures you entered and nothing else.
+    It does not know your taxes, your job, your health, your insurance, who depends on you, or how much
+    risk you can live with, and it will never name an investment to buy. Tax rules and contribution
+    limits change every year, so check the current ones before you act. For anything that turns on your
+    whole situation, talk to a licensed financial advisor or a CPA.
   </div>
   `;
 }
@@ -1331,7 +1371,7 @@ function viewImport() {
       <h3>How aggregation works here</h3>
       <div class="sub" style="margin-bottom:8px">One ledger, many sources</div>
       ${[
-        ['Every source lands in one place', 'Checking, credit cards, cash wallets and transfer apps all become rows in the same ledger, so a category total is the household total rather than one bank’s view.'],
+        ['Every source lands in one place', 'Checking, credit cards, cash wallets and transfer apps all become rows in the same ledger, so a category total is what your household actually spent, not what one bank happened to see.'],
         ['Each row is tagged to a person and an account', 'That is what makes the per-member breakdown and the fairness check possible.'],
         ['Duplicates are skipped automatically', 'Rows are fingerprinted on date, amount and merchant, so re-importing an overlapping statement will not double-count.'],
         ['Column layouts are remembered', 'Save the mapping once per bank and the next import from that source needs no setup.'],
@@ -1375,7 +1415,7 @@ function viewSettings() {
       <h3>Household members</h3>
       <div class="sub" style="margin-bottom:8px">Each person gets a fixed colour used across every chart</div>
       ${S.members.length ? S.members.map(m => `<div class="budrow">
-        <div class="nm"><span class="dot" style="background:${memberColor(m.id)}"></span>${esc(m.name)}
+        <div class="nm">${memberBadge(m.id)}
           <span class="pill tiny">${esc(m.role || 'Member')}</span></div>
         <div class="amt">${m.annualIncome ? money(m.annualIncome) + '/yr' : '<span class="sub">no income set</span>'}
           <button class="btn sm ghost" data-act="edit-member" data-id="${m.id}">edit</button></div>
@@ -1464,7 +1504,7 @@ function viewSettings() {
       : (navigator.serviceWorker && navigator.serviceWorker.controller) ? 'available offline in this browser'
       : 'running in a browser';
     return `<div class="panel">
-    <h3>This app</h3>
+    <h3>This dashboard</h3>
     <div class="sub" style="margin-bottom:12px">Version ${APP_VERSION} &middot; ${state}</div>
 
     ${P.standalone ? `<div class="insight" style="border-bottom:0;padding-top:0">
@@ -1514,7 +1554,7 @@ function render(updateUrl = true) {
   $('#hhInitial').textContent = (name.replace(/^The\s+/i, '').trim()[0] || 'W').toUpperCase();
   const nw = netWorth();
   $('#hhSub').textContent = S.txns.length
-    ? `${S.members.length} member${S.members.length === 1 ? '' : 's'} · net worth ${money(nw)}`
+    ? `${plural(S.members.length, 'member')} · net worth ${money(nw)}`
     : 'Private · stored on this device only';
   $('#mLabel').textContent = monthLabel(UI.month);
 
@@ -1535,7 +1575,7 @@ function render(updateUrl = true) {
     mb.innerHTML = `<span class="sub" style="margin-right:2px">View:</span>
       <button class="chip" data-member="all" aria-pressed="${UI.member === 'all'}">Everyone</button>` +
       S.members.map(m => `<button class="chip" data-member="${m.id}" aria-pressed="${UI.member === m.id}">
-        <span class="dot" style="background:${memberColor(m.id)}"></span>${esc(m.name)}</button>`).join('');
+        ${memberBadge(m.id)}</button>`).join('');
   }
 
   CHARTS.clear();
@@ -1545,9 +1585,18 @@ function render(updateUrl = true) {
     import: viewImport, settings: viewSettings
   }[UI.tab] || viewOverview;
 
+  // An arrival is a new destination or a new month. Everything else is a
+  // refresh in place: filters, a category change, a row deleted. Only an
+  // arrival gets the count-up, because a number that restarts while you type
+  // in a filter box is a distraction rather than a flourish.
+  const here = UI.tab + '/' + UI.month + '/' + UI.member;
+  const arrived = here !== render._at;
+  render._at = here;
+
   $('#view').innerHTML = v();
   mountCharts();
   wireView();
+  if (arrived) animateValues($('#view'));
 }
 
 /* ================================================================ MODALS === */
@@ -1840,7 +1889,7 @@ function cardForm(id) {
           <ul style="margin:0;padding-left:16px;font-size:13px;color:var(--ink-2);line-height:1.7">
             <li>Its ${money(c.limit)} limit stops counting towards your utilisation</li>
             ${(+c.balance || 0) > 0 ? `<li>Its ${money(c.balance)} balance leaves your debt total</li>` : ''}
-            ${pays ? `<li>${pays} logged payment${pays === 1 ? '' : 's'} stay in your history</li>` : ''}
+            ${pays ? `<li>${plural(pays, 'logged payment')} stay in your history</li>` : ''}
           </ul>`,
         confirmLabel: 'Remove card',
         onConfirm: () => undoable(`Removed ${c.name}`, () => {
@@ -2013,7 +2062,7 @@ function budgetForm(cat) {
       amt.value = S.budgets[c] || '';
       const hist = activeMonths().slice(-6).map(m => monthStats(m, 'all').byCat[c] || 0).filter(x => x > 0);
       hint.textContent = hist.length
-        ? `You have averaged ${money(sum(hist) / hist.length)} a month here over ${hist.length} month(s); the median is ${money(median(hist))}.`
+        ? `You have averaged ${money(sum(hist) / hist.length)} a month here over ${plural(hist.length, 'month')}; the median is ${money(median(hist))}.`
         : 'No history in this category yet.';
     };
     sel.onchange = sync; sync();
@@ -2094,7 +2143,7 @@ function fixUncategorised() {
         }
       });
       save(); closeModal(); render();
-      toast(`${n} categorised${r ? `, ${r} rule(s) added` : ''}`);
+      toast(`${plural(n, 'transaction')} categorised${r ? `, ${plural(r, 'rule')} added` : ''}`);
     };
   }, true);
 }
@@ -2252,7 +2301,7 @@ function importModal() {
       const months = [...new Set(pv.fresh.map(t => ym(t.date)))].sort();
       if (months.length) UI.month = months[months.length - 1];
       UI.tab = 'home'; render();
-      toast(`${pv.fresh.length} added, ${pv.dupes.length} duplicate(s) skipped`);
+      toast(`${plural(pv.fresh.length, 'transaction')} added, ${plural(pv.dupes.length, 'duplicate')} skipped`);
     };
   }, true);
 }
@@ -2334,13 +2383,7 @@ function wireView() {
     sel.onchange = () => {
       const t = S.txns.find(x => x.id === sel.dataset.id);
       if (!t) return;
-      const old = t.cat;
-      t.cat = sel.value; save();
-      const key = normDesc(t.desc).split(' ').slice(0, 2).join(' ');
-      if (key && old === 'misc' && !S.rules.some(r => r.match === key)) {
-        toast(`Categorised. Add a rule for "${key}"? Use Settings → rules.`);
-      }
-      render();
+      undoable(`Moved to ${catName(sel.value)}`, () => { t.cat = sel.value; });
     };
   });
 
@@ -2553,7 +2596,7 @@ function statementReview() {
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px">
       <span class="pill">${esc(doc.name || STMT.file.name)}</span>
       <span class="pill">${esc(kindLabel)}</span>
-      ${doc.pages ? `<span class="pill">${doc.pages} page${doc.pages === 1 ? '' : 's'}</span>` : ''}
+      ${doc.pages ? `<span class="pill">${plural(doc.pages, 'page')}</span>` : ''}
       ${a.fields.issuer ? `<span class="pill">${esc(a.fields.issuer)}</span>` : ''}
       ${a.fields.accountLast4 ? `<span class="pill">ending ${esc(a.fields.accountLast4)}</span>` : ''}
     </div>
@@ -2563,7 +2606,7 @@ function statementReview() {
       carefully. Saving the file as .docx or PDF and importing that gives a cleaner result.</div>` : ''}
 
     ${a.txns.some(t => t.transfer) ? `<div class="disclaim" style="border-left-color:var(--accent);margin-top:0">
-      <b>${a.txns.filter(t => t.transfer).length} payment row(s) to this card have been left out.</b>
+      <b>${plural(a.txns.filter(t => t.transfer).length, 'payment row')} to this card ${a.txns.filter(t => t.transfer).length === 1 ? 'has' : 'have'} been left out.</b>
       Paying a card moves money between your own accounts, so counting it would look like income and
       would double-count the spending once you import the account that paid it. Include them below if
       you want them anyway.</div>` : ''}
@@ -2648,7 +2691,7 @@ function statementReview() {
         background:var(--surface-2);padding:8px;border-radius:7px;margin-top:8px">${esc((doc.text || '').slice(0, 6000))}</pre>
     </details>
   `, `<button class="btn" data-close>Cancel</button>
-      <button class="btn primary" id="stApply">Apply${fresh.length ? ' ' + fresh.length + ' transaction' + (fresh.length === 1 ? '' : 's') : ''}</button>`,
+      <button class="btn primary" id="stApply">Apply${fresh.length ? ' ' + plural(fresh.length, 'transaction') : ''}</button>`,
   root => {
     root.querySelector('#stAcc').onchange = e => { STMT.account = e.target.value; };
     root.querySelector('#stMem').onchange = e => { STMT.member = e.target.value; };
@@ -2724,7 +2767,7 @@ function applyStatement() {
           if (!STMT.applyFields[u.key]) continue;
           c[u.key] = u.value; n++;
         }
-        if (n) cardMsg = `, ${n} card field${n === 1 ? '' : 's'} updated`;
+        if (n) cardMsg = `, ${plural(n, 'card field')} updated`;
       }
     }
     snapshotUtilisation();
@@ -2737,7 +2780,7 @@ function applyStatement() {
   UI.tab = added ? 'home' : 'cards';
   STMT = null;
   render();
-  toast(`${added} added${skipped ? `, ${skipped} duplicate${skipped === 1 ? '' : 's'} skipped` : ''}${cardMsg}`);
+  toast(`${added} added${skipped ? `, ${plural(skipped, 'duplicate')} skipped` : ''}${cardMsg}`);
 }
 
 /* --------------------------------------------------------------- delegation */
@@ -2811,10 +2854,20 @@ document.addEventListener('click', e => {
       break;
     }
     case 'go-tab': go(a.dataset.tab); break;
+    case 'go-month': go('money', a.dataset.m); break;
+    case 'recap': monthRecap(a.dataset.m); break;
+    case 'skip-recap':
+      S.settings.recapSeen = a.dataset.m; save(); render();
+      break;
+    case 'clear-moment':
+      MOMENTS_QUEUE = MOMENTS_QUEUE.filter(x => x.key !== a.dataset.key);
+      render(false);
+      break;
     case 'dismiss-insight': {
-      const d = (S.settings.dismissed = S.settings.dismissed || {});
-      d[a.dataset.k] = UI.month;          // gone for this month, back next month
-      save(); render(false);
+      undoable('Hidden until next month', () => {
+        const d = (S.settings.dismissed = S.settings.dismissed || {});
+        d[a.dataset.k] = UI.month;        // gone for this month, back next month
+      });
       break;
     }
     case 'run-setup': WIZ = null; setupWizard(0); break;
@@ -2822,25 +2875,24 @@ document.addEventListener('click', e => {
     case 'dismiss-backup': { const w = $('#backupWarn'); if (w) w.remove(); break; }
     case 'about-sharing':
       openModal('Sharing this dashboard', `
-        <p style="margin-top:0;font-size:13px">Anyone can run their own copy. Nothing is shared between
-        copies. Each person's figures stay in their own browser, on their own device.</p>
-        <h4 style="font-size:13px;margin:16px 0 8px">Send them the single file</h4>
-        <p class="sub" style="margin:0">Email or message them <b>wealth-dashboard.html</b> from the
-        <code>dist</code> folder. It is the entire app in one file: they save it anywhere and double-click it.
-        No install, no folder, no internet needed.</p>
-        <h4 style="font-size:13px">Or give them the folder</h4>
-        <p class="sub" style="margin:0">Copy the whole <code>finance-dashboard</code> folder to a shared
-        drive or a USB stick. They open <code>index.html</code> inside it. Same result, and it keeps the
-        separate files if they ever want to change something.</p>
-        <h4 style="font-size:13px;margin:16px 0 8px">For a phone or tablet, send a link</h4>
-        <p class="sub" style="margin:0">Phones have no good way to open a downloaded HTML file, so put
-        the folder on any static host and send the address. They open it once, add it to their home
-        screen, and it works offline from then on. <b>DEPLOY.md</b> has the steps.</p>
-        <h4 style="font-size:13px;margin:16px 0 8px">What they will see</h4>
-        <p class="sub" style="margin:0">A setup screen asking for their own household members and accounts.
-        Your data is never part of what you send. It lives only in your browser's storage, not in the
-        files.</p>
-        <div class="disclaim" style="margin-top:16px">Remind them to take backups. There is no account to
+        <p style="margin-top:0">Anyone can run their own copy. Nothing is shared between copies:
+        their figures stay in their browser, yours stay in yours.</p>
+
+        <h4>The easiest way: send them the address</h4>
+        <p class="sub">If you opened this dashboard at a web address, send that same address. They open
+        it, add it to their home screen or bookmarks, and it works offline from then on. This is the
+        only option that works well on a phone.</p>
+
+        <h4>Or send them the one-file copy</h4>
+        <p class="sub">There is a version of this dashboard that is a single file, named
+        <b>wealth-dashboard.html</b>. Email or message it to them. They save it anywhere on a computer
+        and open it. Nothing to install, and it works with no internet at all.</p>
+
+        <h4>What they will see</h4>
+        <p class="sub">A setup screen asking for their own household and accounts. Your figures are
+        never part of what you send. They live in your browser's storage, not in the file.</p>
+
+        <div class="disclaim" style="margin-top:16px">Tell them to take backups. There is no account to
         recover from, so a cleared browser means starting over.</div>
       `, `<button class="btn primary" data-close>Got it</button>`);
       break;
@@ -2885,19 +2937,20 @@ document.addEventListener('click', e => {
       root => root.querySelector('#rAdd').onclick = () => {
         const m = root.querySelector('#rMatch').value.trim().toLowerCase();
         if (!m) return toast('Enter some text to match.');
-        S.rules.push({ match: m, cat: root.querySelector('#rCat').value });
-        save(); closeModal(); render(); toast('Rule added');
+        closeModal();
+        undoable(`Anything containing "${m}" is now ${catName(root.querySelector('#rCat').value)}`,
+          () => S.rules.push({ match: m, cat: root.querySelector('#rCat').value }));
       });
       break;
     }
     case 'recat-all': {
-      let n = 0;
-      for (const t of S.txns) {
-        if (t.amount > 0) continue;
-        const g = autoCat(t.desc);
-        if (g !== 'misc' && g !== t.cat) { t.cat = g; n++; }
-      }
-      save(); render(); toast(`${n} transaction(s) re-categorised`); break;
+      // counted first so the message can say what actually happened
+      const hits = S.txns.filter(t => t.amount < 0 &&
+        autoCat(t.desc) !== 'misc' && autoCat(t.desc) !== t.cat);
+      if (!hits.length) { toast('Your rules already match everything here'); break; }
+      undoable(`${plural(hits.length, 'transaction')} re-categorised`,
+        () => hits.forEach(t => { t.cat = autoCat(t.desc); }), 10);
+      break;
     }
     case 'save-settings': {
       S.household.name = $('#setName').value.trim() || 'My Household';
@@ -3014,11 +3067,11 @@ function showStorageWarning() {
   if ($('#storageWarn')) return;
   $('#view').insertAdjacentHTML('beforebegin', `<div id="storageWarn" class="disclaim"
     style="border-left-color:var(--crit);margin:16px 0 0">
-    <b>This browser is not saving your data.</b> Storage is blocked for this page, so anything you
-    enter will disappear when you close the tab. This usually happens when a browser restricts
-    local files. Two fixes: open <code>index.html</code> in Chrome, Edge or Firefox instead, or serve
-    the folder over <code>http://localhost</code> (see the README). Use <b>Download backup</b> before
-    closing this tab.
+    <b>This browser is not saving your work.</b> Storage is blocked on this page, so anything you
+    enter will disappear when you close the tab. This usually happens when a file is opened straight
+    from a folder rather than from a web address. Two things that fix it: open this dashboard in
+    Chrome, Edge or Firefox, or use the web address if you were given one. Either way, press
+    <b>Download backup</b> before you close this tab.
   </div>`);
 }
 
@@ -3059,7 +3112,7 @@ async function storageInfo() {
       <b>${esc(location.hostname)}</b> uses one storage area, no matter which folder it is in,
       because browsers separate data by domain and not by path. Any other project published on
       this same domain can read what this dashboard has saved. That is a property of the hosting,
-      not of this app. For real figures, use a copy on its own address, or the single-file version
+      not of this dashboard. For real figures, use a copy on its own address, or the single-file version
       on your own computer.
     </div>` : ''}
 
@@ -3076,7 +3129,7 @@ async function storageInfo() {
         ? `Your browser has marked this data as persistent, so it will not be cleared automatically
            to reclaim space. It is still removed if you clear site data by hand, and it does not exist
            on any other device or browser.`
-        : `Your browser may clear this data automatically if it needs space. Installing the app makes
+        : `Your browser may clear this data automatically if it needs space. Installing the dashboard makes
            that much less likely. Either way it does not exist on any other device or browser.`}
     </div>`}
 
@@ -3085,7 +3138,7 @@ async function storageInfo() {
       <li>Clearing browsing data or site data for this page</li>
       <li>Private or incognito windows, where nothing is kept at all</li>
       <li>Opening it in a different browser, a different device, or another Windows user account</li>
-      <li>Uninstalling the app, on some platforms</li>
+      <li>Uninstalling the dashboard, on some platforms</li>
     </ul>
     <p class="sub" style="margin-top:12px">A backup file restores all of it, anywhere, in one click.
     There is no account behind this and no way for anyone to recover it for you.</p>
@@ -3117,10 +3170,11 @@ function setupWizard(step) {
   const body = [
     // ---------- step 1: who lives here ----------
     () => `
-      <p style="margin-top:0;font-size:13px">This dashboard tracks what a household spends across every
-      account and person, then uses those numbers to model savings, debt payoff, credit and long-term growth.</p>
-      <p style="font-size:13px"><b>Nothing leaves this device.</b> There is no server, no account and no
-      sign-in. Everything is stored in this browser, which is also why backups matter.</p>
+      <p style="margin-top:0">This dashboard tracks what you and the people you live with spend, across
+      every account, then uses those figures to work out your savings, your debt payoff, your credit and
+      what it all grows into.</p>
+      <p><b>Nothing you enter leaves this device.</b> There is no server, no account and nothing to sign
+      in to. It is all stored in this browser, which is also why your backups matter.</p>
       <label class="f"><span>What should we call this household?</span>
         <input type="text" id="wzName" value="${esc(WIZ.name)}" placeholder="e.g. The Smith Household"></label>
       <h4 style="font-size:13px;margin:16px 0 8px">Who lives here?</h4>
@@ -3142,9 +3196,9 @@ function setupWizard(step) {
     // ---------- step 3: get some data in ----------
     () => `
       <p style="margin-top:0;font-size:13px"><b>${esc(WIZ.name || 'Your household')}</b> is set up with
-      ${WIZ.people.filter(p => p.name.trim()).length} member(s)
-      and ${WIZ.accounts.filter(a => a.name.trim()).length} account(s).</p>
-      <p style="font-size:13px">The dashboard needs transactions before it can tell you anything. Pick how
+      ${plural(WIZ.people.filter(p => p.name.trim()).length, 'member')}
+      and ${plural(WIZ.accounts.filter(a => a.name.trim()).length, 'account')}.</p>
+      <p>You need some transactions in here before any of this can tell you anything. Pick how
       you'd like to begin:</p>
       <div style="display:grid;gap:8px;margin-top:16px">
         <button class="btn" id="wzImport" style="justify-content:flex-start;padding:16px;height:auto;text-align:left">
@@ -3404,6 +3458,9 @@ window.addEventListener('appinstalled', () => { deferredInstall = null; render()
   const route = readRoute();
   if (route.tab) UI.tab = route.tab;
   if (route.month) UI.month = route.month;
+
+  // milestones are worked out once per session, before anything is drawn
+  loadMoments();
 
   render();
   if (!canStore) showStorageWarning(); else maybeNudgeBackup();

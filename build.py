@@ -27,7 +27,7 @@ DIST = ROOT / "dist"
 WEB = DIST / "web"
 
 SCRIPTS = ["app.js", "charts.js", "metrics.js", "advisor.js", "credit.js",
-           "docparse.js", "extract.js", "views.js"]
+           "docparse.js", "extract.js", "moments.js", "views.js"]
 WEB_FILES = SCRIPTS + ["index.html", "manifest.webmanifest", "sw.js",
                        "README.md", "RUN-THIS-APP.md", "SECURITY.md", "LICENSE",
                        "_headers"]

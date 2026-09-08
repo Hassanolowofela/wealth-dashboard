@@ -81,6 +81,11 @@
   --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
   --prose: 72ch;
 
+  /* Motion is short enough to be felt rather than watched. Nothing that
+     confirms an action is allowed to make the user wait for it. */
+  --mo-fast: 140ms; --mo: 220ms; --mo-slow: 380ms;
+  --ease: cubic-bezier(.2,.8,.3,1);
+
   /* Charts. A single series is not an identity, so it is drawn in ink and the
      accent is spent on the one point worth looking at: the latest value.
      The eight-hue palette below stays, but only for comparing people. */
@@ -208,6 +213,8 @@ header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--p
 .sect-caret{color:var(--muted);font-size:13px;flex:none}
 .sect-b{padding-bottom:24px}
 
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 .skiplink{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:#fff;
   padding:8px 16px;border-radius:0 0 var(--r-sm) 0;font-weight:620}
 .skiplink:focus{left:0}
@@ -456,6 +463,12 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 .modal-h{padding:16px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
 .modal-h h3{font-size:14px;margin-right:auto}
 .modal-b{padding:16px;overflow:auto}
+/* Explanatory copy in a dialog is prose, so it gets prose rules: a measure, a
+   rhythm, and subheads that separate without shouting. */
+.modal-b > p, .modal-b > .sub{max-width:var(--prose);margin:0 0 var(--sp-3)}
+.modal-b > p:first-child{margin-top:0}
+.modal-b > h4{font-size:var(--t-md);margin:var(--sp-5) 0 var(--sp-2)}
+.modal-b > h4:first-child{margin-top:0}
 .modal-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .x{background:none;border:0;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);padding:2px 8px;border-radius:6px}
 .x:hover{background:var(--surface-2);color:var(--ink)}
@@ -538,6 +551,76 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
 .modal,.modal-b,.modal-h,.modal-f{min-width:0}
 .modal-b .tbl-wrap,.modal-b table{max-width:100%}
 .modal-b pre{overflow-wrap:anywhere;word-break:break-word}
+
+/* ------------------------------------------------------------- disclosure */
+/* Reasoning, folded away. A native <details> so it is keyboard-reachable and
+   announced as expandable without a line of script. */
+.disclosure{margin-top:var(--sp-3)}
+.disclosure > summary{cursor:pointer;color:var(--accent);font-weight:520;font-size:var(--t-sm);
+  list-style:none;display:inline-flex;align-items:center;gap:6px;
+  padding:var(--sp-1) 0;border-radius:var(--r-sm)}
+.disclosure > summary::-webkit-details-marker{display:none}
+.disclosure > summary::before{content:"›";display:inline-block;font-size:var(--t-md);line-height:1;
+  transition:transform var(--mo-fast) var(--ease)}
+.disclosure[open] > summary::before{transform:rotate(90deg)}
+.disclosure > summary:hover{color:var(--accent-ink)}
+.disclosure > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.disclosure > div{padding-top:var(--sp-2);max-width:var(--prose);color:var(--ink-2);font-size:var(--t-sm)}
+.disclosure > div > p{margin:0 0 var(--sp-2);max-width:var(--prose)}
+.disclosure > div > p:last-child{margin-bottom:0}
+
+/* -------------------------------------------------------------- who badge */
+/* A person is their initials in their own colour, which is the same colour
+   they carry on every chart. A bare dot said only "somebody". */
+.who{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.who-i{flex:none;width:25px;height:25px;border-radius:99px;color:#fff;
+  display:grid;place-items:center;font-size:var(--t-xs);font-weight:700;
+  font-family:var(--sans);line-height:1}
+.chip .who-i{width:22px;height:22px;margin-left:-3px}
+
+/* ---------------------------------------------------------------- moments */
+/* A milestone is acknowledged, not celebrated at. It arrives once, in the
+   accent, and it can be waved away. The entrance is 320ms and it moves 6px,
+   which is enough to catch the eye on a screen you are already looking at. */
+.moment{display:flex;align-items:flex-start;gap:var(--sp-3);margin:var(--sp-4) 0 0;
+  padding:var(--sp-3) var(--sp-4);border:1px solid var(--accent);border-radius:var(--r);
+  background:color-mix(in srgb,var(--accent) 7%,var(--surface));
+  animation:moment-in 320ms var(--ease) both}
+.moment + .moment{margin-top:var(--sp-2)}
+.moment-mark{flex:none;width:22px;height:22px;border-radius:99px;background:var(--accent);
+  color:#fff;display:grid;place-items:center;font-size:var(--t-xs);margin-top:1px}
+.moment-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.moment-b b{font-size:var(--t-md)}
+.moment-b span{color:var(--ink-2);font-size:var(--t-sm);max-width:var(--prose)}
+.moment-x{flex:none;color:var(--muted)}
+@keyframes moment-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ------------------------------------------------------------------ recap */
+.recap-offer{display:flex;align-items:center;justify-content:space-between;
+  gap:var(--sp-4);flex-wrap:wrap;margin-top:var(--sp-4)}
+.recap-offer b{font-size:var(--t-md)}
+.recap-offer-a{display:flex;gap:var(--sp-2);flex-wrap:wrap}
+.recap-hero{text-align:center;padding:var(--sp-2) 0 var(--sp-5)}
+.recap-n{font-family:var(--display);font-size:var(--t-2xl);font-weight:640;letter-spacing:-.03em;
+  line-height:1.05;color:var(--ink)}
+.recap-hero .sub{max-width:46ch;margin:var(--sp-2) auto 0}
+.recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:var(--sp-4);padding:var(--sp-4) 0;border-top:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+.recap-grid > div{display:flex;flex-direction:column;gap:2px}
+.recap-grid b{font-family:var(--display);font-size:var(--t-lg);font-weight:620}
+.recap-lines{margin:var(--sp-4) 0 0;padding-left:20px;max-width:var(--prose)}
+.recap-lines li{margin-bottom:var(--sp-2);color:var(--ink-2)}
+
+/* Someone who has asked their system for less motion has asked every app on
+   it, including this one. Durations collapse rather than the rules being
+   duplicated, so nothing can be added later that quietly ignores the setting. */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important}
+}
 </style>
 </head>
 <body>
@@ -577,6 +660,9 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
 <nav class="bottomnav noprint" id="bottomNav" aria-label="Sections"></nav>
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
+<!-- Announcements. Always present and never hidden, because a live region
+     that is added or unhidden at the moment it changes is not announced. -->
+<p id="live" class="sr-only" role="status" aria-live="polite"></p>
 <script src="app.js"></script>
 <script src="charts.js"></script>
 <script src="metrics.js"></script>
@@ -584,6 +670,7 @@ input.invalid:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 22%,trans
 <script src="credit.js"></script>
 <script src="docparse.js"></script>
 <script src="extract.js"></script>
+<script src="moments.js"></script>
 <script src="views.js"></script>
 </body>
 </html>

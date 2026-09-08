@@ -5,7 +5,7 @@
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.8.0';
+const APP_VERSION = '1.9.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
@@ -162,22 +162,63 @@ const median = arr => {
 };
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
+/**
+ * "1 transaction", "4 transactions". English pluralisation is irregular often
+ * enough that "(s)" was appearing in the interface, which reads as a form
+ * rather than a sentence.
+ */
+const IRREGULAR = { is: 'are', has: 'have', was: 'were', this: 'these', it: 'they' };
+function plural(n, word, pluralForm) {
+  const many = pluralForm || IRREGULAR[word] ||
+    (/(s|x|z|ch|sh)$/.test(word) ? word + 'es'
+      : /[^aeiou]y$/.test(word) ? word.slice(0, -1) + 'ies'
+        : word + 's');
+  return `${(Number(n) || 0).toLocaleString('en-US')} ${n === 1 ? word : many}`;
+}
+/** The word alone, with no count in front of it. */
+const pluralWord = (n, word, pluralForm) => plural(n, word, pluralForm).replace(/^\S+\s/, '');
+
+/** Whether the reader has asked their system for less movement. */
+const REDUCED_MOTION = window.matchMedia
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : { matches: false };
+
+/**
+ * Say something out loud to a screen reader.
+ *
+ * The toast cannot carry this by itself. It is visibility:hidden while idle,
+ * which takes it out of the accessibility tree, and a live region that appears
+ * at the moment its text changes is not announced. So the announcement goes to
+ * a region that is always present and never hidden.
+ */
+function announce(msg) {
+  const live = $('#live');
+  if (!live) return;
+  // the same message twice in a row is only re-announced if the node changes
+  live.textContent = '';
+  setTimeout(() => { live.textContent = msg; }, 30);
+}
+
 function toast(msg) {
   const t = $('#toast');
   t.textContent = msg;
   t.className = 'toast on';
-  t.setAttribute('role', 'status');
   clearTimeout(toast._t);
   toast._t = setTimeout(() => t.classList.remove('on'), 2400);
+  announce(msg);
 }
 
 /**
- * Destructive changes apply and persist straight away, but keep a snapshot of
- * the whole document so one press puts it back.
+ * Changes apply and persist straight away, but keep a snapshot of the whole
+ * document so one press puts it back.
  *
  * Persisting immediately rather than deferring the commit is deliberate: a
  * pending change that only lands after a timer is lost if the tab closes in
- * between, which is a worse failure than a delete the user can reverse.
+ * between, which is a worse failure than a change the user can reverse.
+ *
+ * This is not only for deletions. Anything a user might not have meant, or
+ * might want a moment to reconsider, belongs here: dismissing an insight,
+ * adding a rule that recategorises history, changing a category in a row.
  */
 function undoable(message, mutate, seconds = 6) {
   const snapshot = JSON.stringify(S);
@@ -187,17 +228,17 @@ function undoable(message, mutate, seconds = 6) {
 
   const t = $('#toast');
   t.className = 'toast on with-action';
-  t.setAttribute('role', 'status');
   t.innerHTML = `<span>${esc(message)}</span><button class="btn sm" id="undoBtn">Undo</button>`;
   clearTimeout(toast._t);
   toast._t = setTimeout(() => t.classList.remove('on'), seconds * 1000);
+  announce(`${message}. Undo is available.`);
 
   $('#undoBtn').onclick = () => {
     clearTimeout(toast._t);
     S = migrate(JSON.parse(snapshot));
     save();
     render();
-    toast('Restored');
+    toast('Put back');
   };
 }
 
@@ -420,6 +461,25 @@ const memberColor = id => {
   return cssVar(MEMBER_COLORS[i < 0 ? 0 : i % 8]);
 };
 const accountName = id => (S.accounts.find(a => a.id === id) || {}).name || '-';
+
+/**
+ * A person's initials, from however many names they gave.
+ * "Sam" is S, "Sam Carter" is SC. A blank name falls back to a dash
+ * rather than an empty circle, which would look like a rendering failure.
+ */
+const initials = name => String(name || '').trim().split(/\s+/)
+  .filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '-';
+
+/**
+ * A person, shown as who they are rather than as an anonymous coloured dot.
+ * The colour is the same one they carry on every chart, so the badge and the
+ * bar are recognisably the same person.
+ */
+function memberBadge(id, withName = true) {
+  const nm = memberName(id);
+  return `<span class="who"><span class="who-i" style="background:${memberColor(id)}"
+    aria-hidden="true">${esc(initials(nm))}</span>${withName ? esc(nm) : ''}</span>`;
+}
 
 /** Stable fingerprint used to skip duplicate rows across repeated imports. */
 function txHash(t) {

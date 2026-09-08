@@ -217,7 +217,7 @@ function ladder() {
   add('Know where the money goes',
     S.txns.length >= 40 && activeMonths().length >= 2,
     'A plan built on guessed numbers fails quietly. Two or more months of categorised transactions is the minimum base for everything below.',
-    `${S.txns.length} transactions across ${activeMonths().length} month${activeMonths().length === 1 ? '' : 's'} loaded.`,
+    `${S.txns.length} transactions across ${plural(activeMonths().length, 'month')} loaded.`,
     'Import another statement on the Import tab.');
 
   add('Starter cash buffer of $2,000',
@@ -225,7 +225,7 @@ function ladder() {
     'A small buffer stops an unexpected car repair from becoming credit-card debt at 20%+. This comes before investing because it protects everything after it.',
     cash >= 2000 ? `Cash on hand ${money(cash)} - buffer covered.`
       : `Cash on hand ${money(cash)}. ${money(2000 - cash)} to go.`,
-    cash < 2000 && surplus > 0 ? `At your current ${money(surplus)}/mo surplus that is about ${Math.ceil((2000 - cash) / surplus)} month(s).` : '');
+    cash < 2000 && surplus > 0 ? `At your current ${money(surplus)}/mo surplus that is about ${plural(Math.ceil((2000 - cash) / surplus), 'month')} away.` : '');
 
   add('Capture the full employer retirement match',
     st.matchCaptured,
@@ -239,7 +239,7 @@ function ladder() {
     highRateBal === 0,
     'Paying down a 22% balance is a guaranteed 22% return. No ordinary investment offers that with certainty, which is why high-rate debt outranks investing here.',
     highRateBal > 0
-      ? `${highRate.length} debt(s) above 8%, ${money(highRateBal)} total. Highest: ${highRate.sort((a, b) => b.apr - a.apr)[0].name} at ${highRate[0].apr}%.`
+      ? `${plural(highRate.length, 'debt')} above 8%, ${money(highRateBal)} total. Highest: ${highRate.sort((a, b) => b.apr - a.apr)[0].name} at ${highRate[0].apr}%.`
       : 'No debt above 8% APR. ',
     highRateBal > 0 ? 'Use the avalanche order on the Wealth tab - it minimises total interest.' : '');
 
@@ -249,7 +249,7 @@ function ladder() {
     ess > 0
       ? `${h.ef.toFixed(1)} months covered. Essentials run ${money(ess)}/mo, so 3 months is ${money(ess * 3)} and 6 months is ${money(ess * 6)}.`
       : 'Add cash accounts under Net Worth to measure this.',
-    h.ef < 3 && surplus > 0 ? `About ${Math.ceil((ess * 3 - cash) / surplus)} month(s) at your current surplus.` : '');
+    h.ef < 3 && surplus > 0 ? `About ${plural(Math.ceil((ess * 3 - cash) / surplus), 'month')} at your current surplus.` : '');
 
   add('Fund tax-advantaged accounts',
     h.invRate >= 10,
@@ -269,7 +269,7 @@ function ladder() {
   add('Direct surplus at named goals',
     S.goals.length > 0 && S.goals.some(g => g.saved > 0),
     'Money with a name attached gets spent on purpose. House deposit, education, a sabbatical - each goal gets its own target date and horizon.',
-    S.goals.length ? `${S.goals.length} goal(s) tracked, ${money(sum(S.goals.map(g => +g.saved || 0)))} set aside.`
+    S.goals.length ? `${plural(S.goals.length, 'goal')} tracked, ${money(sum(S.goals.map(g => +g.saved || 0)))} set aside.`
       : 'No goals defined yet.',
     'Add goals on the Wealth tab.');
 

@@ -156,7 +156,7 @@ const METRIC_HELP = {
     'which are counted as money kept rather than money spent.'],
   savingsRate: ['Savings rate',
     'Money kept divided by income. Money kept is what you moved into savings and ' +
-    'investments, plus anything left unspent, because that stayed in the household too. ' +
+    'investments, plus anything you simply did not spend, because that stayed with you too. ' +
     'With no income for the month there is nothing to divide by, so no rate is shown.'],
   investingRate: ['Investing rate',
     'Transfers into the Investing category, divided by income. This is the line that ' +

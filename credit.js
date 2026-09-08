@@ -429,7 +429,7 @@ function creditInsights() {
       `you can still pay more by hand.`);
   }
   if (pay.recentLate.length) {
-    add('crit', `${pay.recentLate.length} late payment${pay.recentLate.length === 1 ? '' : 's'} in the last 24 months`,
+    add('crit', `${plural(pay.recentLate.length, 'late payment')} in the last 24 months`,
       `Recent lates weigh more than old ones and their effect fades with time. Consistent on-time payments from here ` +
       `are the only fix; a goodwill adjustment request to the issuer is sometimes granted for an isolated miss.`);
   } else if (pay.streak >= 6) {
@@ -470,7 +470,7 @@ function creditInsights() {
     .sort((a, b) => a.t.daysToClose - b.t.daysToClose);
   if (soon.length) {
     const x = soon[0];
-    add('warn', `${x.c.name} reports its balance in ${x.t.daysToClose} day${x.t.daysToClose === 1 ? '' : 's'}`,
+    add('warn', `${x.c.name} reports its balance in ${plural(x.t.daysToClose, 'day')}`,
       `The balance sent to the bureaus is whatever sits on the card when the statement closes on the ${x.c.statementDay}${ordinal(x.c.statementDay)} - ` +
       `not what is left after you pay on the ${x.c.dueDay}${ordinal(x.c.dueDay)}. Paying before the close date is what lowers reported utilisation. ` +
       `Paying by the due date only protects your payment history.`);
@@ -482,7 +482,7 @@ function creditInsights() {
     const mo = cardInterestMonthly();
     const worst = [...carrying].sort((a, b) => (+b.apr) - (+a.apr))[0];
     add('crit', `Carrying a balance costs about ${money(mo)} a month in interest`,
-      `${money(mo * 12)} a year on ${carrying.length} card${carrying.length === 1 ? '' : 's'}. ` +
+      `${money(mo * 12)} a year on ${plural(carrying.length, 'card')}. ` +
       `${worst.name} at ${worst.apr}% is the most expensive. Carrying a balance does not help your score - ` +
       `that is a persistent myth. Paying the statement balance in full each month reports the same activity with zero interest.`);
   }
