@@ -5,7 +5,7 @@
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.4.0';
+const APP_VERSION = '1.5.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
@@ -109,6 +109,9 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10);
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const sum = a => a.reduce((x, y) => x + y, 0);
+/** Money is stored to the cent. Float arithmetic otherwise leaks 0.30000000000000004. */
+const round2 = n => Math.round((+n || 0) * 100) / 100;
+
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 

@@ -26,7 +26,8 @@ ROOT = Path(__file__).parent
 DIST = ROOT / "dist"
 WEB = DIST / "web"
 
-SCRIPTS = ["app.js", "charts.js", "advisor.js", "credit.js", "docparse.js", "extract.js", "views.js"]
+SCRIPTS = ["app.js", "charts.js", "metrics.js", "advisor.js", "credit.js",
+           "docparse.js", "extract.js", "views.js"]
 WEB_FILES = SCRIPTS + ["index.html", "manifest.webmanifest", "sw.js",
                        "README.md", "RUN-THIS-APP.md", "SECURITY.md", "LICENSE",
                        "_headers"]

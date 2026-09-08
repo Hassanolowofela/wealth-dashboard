@@ -12,7 +12,7 @@
   frame-ancestors is deliberately absent: browsers ignore it in a meta tag, so
   claiming it here would be false comfort. Set it as a header if your host can.
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-EVtMtHvllRHRoXPSXr3yiHPI4T7+RmO4Bdkz/7mAEPY=' 'sha256-2IMRorplZ+lMPMpHJ2NqU0CPQ3s5ISOka8culWm6DQk=' 'sha256-OwfkNNnpCj2j0ayPtngkOjwZ87+pH2y5fmu90uVoV4I=' 'sha256-22mz6GZ0luQnAtpqKzFz6U/QC7SOV/duTs7No2hg2qg=' 'sha256-xOBc298furZED/Oflxp0981fRGucM6ZqJV3oJ6QBafI=' 'sha256-k5MXG8xbVQLcTPLPQa15Uz6lHHt0jgOdCRu8lNT/+qU=' 'sha256-J9oodjTe0BwOUtLYuc6PFPqucRrb4v1AW0wCCPkndiw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-l9fzxjyrFaM0M0lE1RPLnYCKCqbZwEqVX1KalnYi9Y8=' 'sha256-2IMRorplZ+lMPMpHJ2NqU0CPQ3s5ISOka8culWm6DQk=' 'sha256-xwz4tc6W1wzM2dKTLWLhYMekFlNd3LKJ28ESqvP9+Os=' 'sha256-OwfkNNnpCj2j0ayPtngkOjwZ87+pH2y5fmu90uVoV4I=' 'sha256-22mz6GZ0luQnAtpqKzFz6U/QC7SOV/duTs7No2hg2qg=' 'sha256-xOBc298furZED/Oflxp0981fRGucM6ZqJV3oJ6QBafI=' 'sha256-k5MXG8xbVQLcTPLPQa15Uz6lHHt0jgOdCRu8lNT/+qU=' 'sha256-HAxPeZGic43H3oGnXNY7yhE16MzyRBuuPTWhRkKnBHo='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Household Wealth Dashboard</title>
 <meta name="description" content="Private, offline household spending tracker, credit card manager and financial planner. All data stays on your device.">
 <meta name="theme-color" content="#2a78d6" media="(prefers-color-scheme: light)">
@@ -131,7 +131,15 @@ label.f > span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px
 
 /* ============================== STAT TILES ============================== */
 .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;position:relative;overflow:hidden}
-.tile .lbl{font-size:12px;color:var(--ink-2);font-weight:520}
+.tile .lbl{font-size:12px;color:var(--ink-2);font-weight:520;display:flex;align-items:center;gap:5px}
+.helpbtn{width:16px;height:16px;flex:none;border-radius:99px;border:1px solid var(--border-2);
+  background:transparent;color:var(--muted);font-size:10.5px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;padding:0;font-weight:700}
+.helpbtn:hover{background:var(--surface-2);color:var(--ink);border-color:var(--muted)}
+.helpbtn:focus-visible{outline:2px solid var(--s1);outline-offset:1px}
+.quiet-note{margin-top:14px;padding:11px 14px;border-left:3px solid var(--border-2);
+  background:var(--surface-2);border-radius:0 var(--r-sm) var(--r-sm) 0;
+  font-size:13px;color:var(--ink-2);max-width:72ch}
 .tile .val{font-size:26px;font-weight:640;letter-spacing:-.02em;line-height:1.15}
 .tile .val.hero{font-size:clamp(26px,3.1vw + 12px,40px)}
 /* Flowing text, not flex: as flex items the coloured span and the trailing
@@ -355,7 +363,7 @@ header.top{padding-top:env(safe-area-inset-top,0px)}
    ========================================================================== */
 'use strict';
 
-const APP_VERSION = '1.4.0';
+const APP_VERSION = '1.5.0';
 const KEY = 'hwd.v1';
 const THEME_KEY = 'hwd.theme';
 
@@ -459,6 +467,9 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10);
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const sum = a => a.reduce((x, y) => x + y, 0);
+/** Money is stored to the cent. Float arithmetic otherwise leaks 0.30000000000000004. */
+const round2 = n => Math.round((+n || 0) * 100) / 100;
+
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -1425,6 +1436,203 @@ function legend(items, kind = 'sw') {
   return `<div class="legend">` + items.map(i =>
     `<span class="li"><span class="${kind}" style="background:${i.color}"></span>${esc(i.name)}</span>`
   ).join('') + `</div>`;
+}
+
+</script>
+<script>
+/* ===== metrics.js ===== */
+/* ==========================================================================
+   One definition per number.
+
+   Every view reads its KPIs from here, so a figure cannot mean one thing on
+   Overview and another on Plan. Each metric also carries whether it is
+   available at all: a savings rate with no income, or a projection on the
+   third of the month, are not small numbers but absent ones, and showing a
+   confident 0.0% in their place is worse than showing nothing.
+   ========================================================================== */
+'use strict';
+
+/* ------------------------------------------------------------- availability */
+
+const hasMonthData = m => monthStats(m, 'all').count > 0;
+
+/**
+ * The month's headline figures, each with an explicit availability flag.
+ * `null` means "cannot be computed", which callers must render as absent
+ * rather than as zero.
+ */
+function monthKpis(m, member = UI.member) {
+  const st = monthStats(m, member);
+  const prevMonth = addMonths(m, -1);
+  const prev = monthStats(prevMonth, member);
+
+  const hasData = st.count > 0;
+  const hasPrev = prev.count > 0;
+  // a delta is only meaningful when both months actually contain something
+  const canCompare = hasData && hasPrev;
+
+  return {
+    month: m, st, prev, hasData, hasPrev, canCompare,
+    hasIncome: st.income > 0,
+
+    leftOver: hasData ? st.net : null,
+    income: hasData ? st.income : null,
+    spending: hasData ? st.spend : null,
+    saved: hasData ? st.totalSaved : null,
+    // a savings rate needs income to be a rate of something
+    savingsRate: st.income > 0 ? st.rate : null,
+    investingRate: st.income > 0 ? (st.invested / st.income) * 100 : null,
+    essentials: hasData ? st.needs : null,
+
+    delta: key => {
+      if (!canCompare) return null;
+      const now = { leftOver: st.net, income: st.income, spending: st.spend,
+                    saved: st.totalSaved }[key];
+      const was = { leftOver: prev.net, income: prev.income, spending: prev.spend,
+                    saved: prev.totalSaved }[key];
+      if (now == null || was == null) return null;
+      return now - was;
+    }
+  };
+}
+
+/* --------------------------------------------------------------- budgeting */
+
+/**
+ * Budgeted spending is compared against budgets. Spending in categories with
+ * no budget is reported separately rather than folded into the same ratio,
+ * which previously made a household look 181% over when it was at 91%.
+ */
+function budgetSummary(m) {
+  const st = monthStats(m, 'all');
+  const rows = CATS
+    .filter(c => c.bucket !== 'income' && c.bucket !== 'save')
+    .map(c => ({ c, spent: st.byCat[c.id] || 0, budget: +S.budgets[c.id] || 0 }))
+    .filter(r => r.budget > 0 || r.spent > 0);
+
+  const budgeted = rows.filter(r => r.budget > 0);
+  const unbudgeted = rows.filter(r => r.budget <= 0 && r.spent > 0);
+  const totalBudget = sum(budgeted.map(r => r.budget));
+  const budgetedSpend = sum(budgeted.map(r => r.spent));
+
+  return {
+    rows, budgeted, unbudgeted,
+    totalBudget,
+    budgetedSpend,
+    unbudgetedSpend: sum(unbudgeted.map(r => r.spent)),
+    totalSpend: st.spend,
+    over: budgeted.filter(r => r.spent > r.budget),
+    usedPct: totalBudget > 0 ? (budgetedSpend / totalBudget) * 100 : null,
+    anyBudgets: budgeted.length > 0
+  };
+}
+
+/* -------------------------------------------------------------- projection */
+
+/**
+ * Month-end spending, projected honestly.
+ *
+ * The naive version extrapolates everything by how much of the month has
+ * passed. That is badly wrong, because rent and the other declared bills are
+ * paid in full early and are not a "pace". On the third of a month it produced
+ * $55,369 against a real month of about $5,500.
+ *
+ * So: declared recurring items count at their known amounts exactly once, and
+ * only the remaining variable spending is extrapolated. The result is a range,
+ * because the honest answer is a range: the low end assumes nothing more is
+ * spent, the expected end assumes the current variable pace continues.
+ */
+function monthProjection(m) {
+  const dim = daysInMonth(m);
+  const isCurrent = ym(todayISO()) === m;
+  const dayNow = isCurrent ? +todayISO().slice(8, 10) : dim;
+  const st = monthStats(m, 'all');
+
+  const rec = (S.recurring || []).filter(r => r.active !== false);
+  const declaredTotal = sum(rec.map(r => +r.amount || 0));
+  const declaredDue = sum(rec.filter(r => (+r.day || 1) <= dayNow).map(r => +r.amount || 0));
+
+  // Only spending that has actually happened can inform a pace. A ledger may
+  // hold entries dated later in the month, and extrapolating those would count
+  // them twice: once as recorded, once as predicted.
+  const elapsedSpend = sum(
+    txForMonth(m, 'all')
+      .filter(t => t.amount < 0 && bucketOf(t.cat) !== 'save' && (+t.date.slice(8, 10)) <= dayNow)
+      .map(t => -t.amount));
+
+  // whatever has been spent beyond the bills already due is the variable part
+  const variableSoFar = Math.max(0, elapsedSpend - declaredDue);
+  const pace = dim > 0 ? dayNow / dim : 1;
+  const variableProjected = pace > 0 ? variableSoFar / pace : variableSoFar;
+
+  const low = declaredTotal + variableSoFar;
+  const expected = declaredTotal + variableProjected;
+
+  return {
+    // too little of the month has passed for a pace to mean anything
+    available: isCurrent && dayNow >= 10,
+    reason: !isCurrent ? 'past' : dayNow < 10 ? 'early' : null,
+    dayNow, dim, pace,
+    declaredTotal, declaredDue, variableSoFar,
+    low, expected,
+    spentSoFar: elapsedSpend,
+    monthTotalRecorded: st.spend,
+    actual: isCurrent ? null : st.spend
+  };
+}
+
+/* ------------------------------------------------------------ explanations */
+
+/**
+ * The "why" layer. Kept next to the maths so an explanation cannot drift away
+ * from the calculation it describes.
+ */
+const METRIC_HELP = {
+  leftOver: ['Left over this month',
+    'Income minus everything spent, minus anything moved to savings or investments. ' +
+    'It is what is still sitting in your accounts from this month, not a running balance.'],
+  income: ['Income',
+    'Every transaction categorised as Income, for the month shown. Refunds and ' +
+    'reimbursements count here too, which is why it can differ from your salary.'],
+  spending: ['Spending',
+    'Everything that left your accounts except transfers into savings or investments, ' +
+    'which are counted as money kept rather than money spent.'],
+  savingsRate: ['Savings rate',
+    'Money kept divided by income. Money kept is what you moved into savings and ' +
+    'investments, plus anything left unspent, because that stayed in the household too. ' +
+    'With no income for the month there is nothing to divide by, so no rate is shown.'],
+  investingRate: ['Investing rate',
+    'Transfers into the Investing category, divided by income. This is the line that ' +
+    'builds long-term wealth, as distinct from cash savings.'],
+  essentials: ['Essential spending',
+    'Spending in the categories marked as needs: housing, utilities, groceries, transport, ' +
+    'insurance, healthcare, childcare and debt payments. The emergency fund and ' +
+    'financial independence targets are both multiples of this figure.'],
+  projection: ['Projected month end',
+    'Your declared recurring bills at their known amounts, counted once, plus the rest ' +
+    'of your spending extrapolated from the pace so far. It is shown as a range because ' +
+    'the low end assumes you spend nothing more and the upper end assumes the current ' +
+    'pace continues. It appears from the tenth of the month, before which a pace is ' +
+    'too noisy to mean anything.'],
+  budgetUsed: ['Budget used',
+    'Spending in categories that have a budget, divided by the total of those budgets. ' +
+    'Categories with no budget are excluded from this ratio and reported separately, ' +
+    'so an unbudgeted category cannot make you appear over budget.'],
+  utilisation: ['Credit utilisation',
+    'The balance reported to the credit bureaus divided by your credit limit, for each ' +
+    'card and across all of them. The reported balance is the one on your statement, ' +
+    'not the one showing today.'],
+  healthScore: ['Financial health score',
+    'Six weighted components: savings rate, emergency fund, debt burden, investing rate, ' +
+    'budget adherence and spending stability. Each is scored against a published ' +
+    'benchmark and the weights are shown beside them.']
+};
+
+/** Markup for the small "how is this calculated" affordance beside a KPI. */
+function helpButton(key) {
+  if (!METRIC_HELP[key]) return '';
+  return `<button class="helpbtn" data-act="explain" data-key="${key}"
+    aria-label="How is ${esc(METRIC_HELP[key][0])} calculated?" title="How is this calculated?">?</button>`;
 }
 
 </script>
@@ -3635,7 +3843,7 @@ const TABS = [
 
 function tile(o) {
   return `<div class="tile">
-    <div class="lbl">${esc(o.label)}</div>
+    <div class="lbl">${esc(o.label)}${o.help ? helpButton(o.help) : ''}</div>
     <div class="val${o.hero ? ' hero' : ''}"${o.tone ? ` style="color:${o.tone}"` : ''}>${o.value}</div>
     ${o.delta ? `<div class="delta">${o.delta}</div>` : ''}
     ${o.spark ? `<div class="spark">${o.spark}</div>` : ''}
@@ -3672,9 +3880,24 @@ function emptyCard(title, body, btn) {
 function viewOverview() {
   const m = UI.month;
   const st = monthStats(m);
+  const K = monthKpis(m);
   const prevSt = monthStats(addMonths(m, -1));
   const hist = histMonths(m, 12);
   const histStats = hist.map(x => monthStats(x));
+
+  // A month with nothing in it is an empty month, not a month of zeroes. Four
+  // confident $0 tiles read as a report on the household rather than a gap.
+  if (S.txns.length && !K.hasData) {
+    const nearest = activeMonths();
+    return `
+    <div class="section-h"><h2>${esc(monthLabel(m))}</h2></div>
+    ${emptyCard('Nothing recorded in ' + esc(monthLabel(m)),
+      'No transactions fall in this month, so there is nothing to report. Use the arrows beside the month to move to one that has data.',
+      nearest.length
+        ? `<button class="btn primary" data-act="goto-month" data-m="${nearest[nearest.length - 1]}">Go to ${esc(monthLabel(nearest[nearest.length - 1]))}</button>
+           <button class="btn" data-act="add-tx" style="margin-left:8px">Add a transaction</button>`
+        : `<button class="btn primary" data-act="add-tx">Add a transaction</button>`)}`;
+  }
 
   if (!S.txns.length) {
     return emptyCard('No transactions yet',
@@ -3719,28 +3942,31 @@ function viewOverview() {
 
   <div class="grid g-kpi">
     ${tile({
-      label: 'Left over this month', hero: true,
+      label: 'Left over this month', hero: true, help: 'leftOver',
       value: money(st.net),
       tone: st.net >= 0 ? 'var(--good-ink)' : 'var(--crit-ink)',
       delta: deltaBit(st.net, prevSt.count ? prevSt.net : null, true),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.net), color: 'var(--s1)' })
     })}
     ${tile({
-      label: 'Income', value: money(st.income),
+      label: 'Income', value: money(st.income), help: 'income',
       delta: deltaBit(st.income, prevSt.count ? prevSt.income : null, true),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.income), color: 'var(--s1)' })
     })}
     ${tile({
-      label: 'Spending', value: money(st.spend),
+      label: 'Spending', value: money(st.spend), help: 'spending',
       delta: deltaBit(st.spend, prevSt.count ? prevSt.spend : null, false),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.spend), color: 'var(--s2)' })
     })}
-    ${tile({
-      label: 'Savings rate', value: pct(st.rate, 1),
-      tone: st.rate >= 20 ? 'var(--good-ink)' : st.rate < 5 ? 'var(--crit-ink)' : '',
-      delta: `<span class="${st.rate >= 20 ? 'up' : 'flat'}">${st.rate >= 20 ? 'at or above' : 'below'}</span> the 20% benchmark`,
-      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--s3)' })
-    })}
+    ${tile(K.savingsRate == null
+      // no income means there is nothing to be a rate of, and "0.0%, below the
+      // benchmark" would read as a verdict on a month that cannot have one
+      ? { label: 'Savings rate', value: '-', help: 'savingsRate',
+          delta: 'no income recorded this month' }
+      : { label: 'Savings rate', value: pct(K.savingsRate, 1), help: 'savingsRate',
+          tone: K.savingsRate >= 20 ? 'var(--good-ink)' : K.savingsRate < 5 ? 'var(--crit-ink)' : '',
+          delta: `<span class="${K.savingsRate >= 20 ? 'up' : 'flat'}">${K.savingsRate >= 20 ? 'at or above' : 'below'}</span> the 20% benchmark`,
+          spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--s3)' }) })}
   </div>
 
   <div class="grid g-2" style="margin-top:14px">
@@ -3908,37 +4134,50 @@ function viewBudget() {
   const dayNow = ym(today) === m ? +today.slice(8, 10) : dim;
   const pace = dayNow / dim;
 
-  const cats = CATS.filter(c => c.bucket !== 'income' && c.bucket !== 'save');
-  const rows = cats.map(c => {
-    const spent = st.byCat[c.id] || 0;
-    const budget = +S.budgets[c.id] || 0;
-    return { c, spent, budget };
-  }).filter(r => r.budget > 0 || r.spent > 0)
-    .sort((a, b) => (b.budget ? b.spent / b.budget : 0) - (a.budget ? a.spent / a.budget : 0) || b.spent - a.spent);
+  const bs = budgetSummary(m);
+  const proj = monthProjection(m);
+  const rows = [...bs.rows].sort((a, b) =>
+    (b.budget ? b.spent / b.budget : 0) - (a.budget ? a.spent / a.budget : 0) || b.spent - a.spent);
+  const totalBudget = bs.totalBudget;
+  const over = bs.over;
 
-  const totalBudget = sum(rows.map(r => r.budget));
-  const totalSpent = sum(rows.map(r => r.spent));
-  const over = rows.filter(r => r.budget > 0 && r.spent > r.budget);
-  const projected = pace > 0 ? totalSpent / pace : totalSpent;
+  // The projection tile says what it can honestly say, and nothing when it cannot.
+  const projTile = proj.available
+    ? tile({ label: 'Projected month end', value: money(proj.expected), help: 'projection',
+        tone: totalBudget && proj.expected > totalBudget ? 'var(--crit-ink)' : 'var(--good-ink)',
+        delta: `between <b>${money(proj.low)}</b> and <b>${money(proj.expected)}</b>` +
+          (totalBudget ? (proj.expected > totalBudget
+            ? `, <span class="down">${money(proj.expected - totalBudget)} over budget</span>`
+            : `, <span class="up">${money(totalBudget - proj.expected)} under budget</span>`) : '') })
+    : tile({ label: 'Projected month end', value: '&mdash;'.replace('&mdash;', '-'), help: 'projection',
+        delta: proj.reason === 'early'
+          ? `available from the 10th, day ${proj.dayNow} today`
+          : 'this month has already ended' });
 
   return `
-  <div class="section-h"><h2>Budget · ${esc(monthLabel(m))}</h2>
+  <div class="section-h"><h2>Budget &middot; ${esc(monthLabel(m))}</h2>
     <span class="sub">Day ${dayNow} of ${dim}</span></div>
 
   <div class="grid g-kpi">
-    ${tile({ label: 'Budgeted', value: money(totalBudget) })}
-    ${tile({ label: 'Spent so far', value: money(totalSpent),
-      tone: totalBudget && totalSpent > totalBudget ? 'var(--crit-ink)' : '',
-      delta: totalBudget ? `${pct(totalSpent / totalBudget * 100)} of budget used, ${pct(pace * 100)} of the month gone` : '' })}
-    ${tile({ label: 'Projected month end', value: money(projected),
-      tone: totalBudget && projected > totalBudget ? 'var(--crit-ink)' : 'var(--good-ink)',
-      delta: totalBudget ? (projected > totalBudget
-        ? `<span class="down">${money(projected - totalBudget)} over</span> at this pace`
-        : `<span class="up">${money(totalBudget - projected)} under</span> at this pace`) : '' })}
+    ${tile({ label: 'Budgeted', value: money(totalBudget),
+      delta: bs.anyBudgets ? `across ${bs.budgeted.length} categories` : 'no budgets set yet' })}
+    ${tile({ label: 'Spent against budget', value: money(bs.budgetedSpend), help: 'budgetUsed',
+      tone: bs.usedPct != null && bs.usedPct > 100 ? 'var(--crit-ink)' : '',
+      delta: bs.usedPct != null
+        ? `${pct(bs.usedPct)} of budget used, ${pct(pace * 100)} of the month gone`
+        : 'set a budget to track this' })}
+    ${projTile}
     ${tile({ label: 'Categories over', value: String(over.length),
       tone: over.length ? 'var(--crit-ink)' : 'var(--good-ink)',
       delta: over.length ? esc(over.map(o => catName(o.c.id)).join(', ')) : 'all within budget' })}
   </div>
+
+  ${bs.unbudgetedSpend > 0 ? `<div class="quiet-note">
+    <b>${money(bs.unbudgetedSpend)}</b> was spent in
+    ${bs.unbudgeted.length} categor${bs.unbudgeted.length === 1 ? 'y' : 'ies'} with no budget
+    (${esc(bs.unbudgeted.map(r => catName(r.c.id)).join(', '))}).
+    That is counted separately, so it cannot make the figures above look over budget.
+  </div>` : ''}
 
   <div class="card" style="margin-top:14px">
     <h3>Category budgets</h3>
@@ -4989,7 +5228,7 @@ function txForm(id) {
       if (g && g !== 'misc') root.querySelector('#tCat').value = g;
     });
     root.querySelector('#tSave').onclick = () => {
-      const amt = parseFloat(root.querySelector('#tAmt').value);
+      const amt = round2(parseFloat(root.querySelector('#tAmt').value));
       if (!isFinite(amt) || amt === 0) return toast('Enter an amount.');
       const dir = root.querySelector('#tDir').value;
       const rec = {
@@ -5247,7 +5486,7 @@ function logPaymentForm(cardId) {
   root => {
     root.querySelector('#p_save').onclick = () => {
       const cid = root.querySelector('#p_card').value;
-      const amt = parseFloat(root.querySelector('#p_amt').value) || 0;
+      const amt = round2(parseFloat(root.querySelector('#p_amt').value) || 0);
       if (amt <= 0) return toast('Enter the amount paid.');
       S.cardPayments.push({
         id: uid(), cardId: cid, date: root.querySelector('#p_date').value || todayISO(),
@@ -5372,7 +5611,7 @@ function budgetForm(cat) {
     };
     sel.onchange = sync; sync();
     root.querySelector('#bSave').onclick = () => {
-      const v = parseFloat(amt.value);
+      const v = round2(parseFloat(amt.value));
       if (!isFinite(v) || v <= 0) delete S.budgets[sel.value]; else S.budgets[sel.value] = v;
       save(); closeModal(); render(); toast('Budget saved');
     };
@@ -6136,6 +6375,13 @@ document.addEventListener('click', e => {
       break;
     }
     case 'go-cards': UI.tab = 'cards'; window.scrollTo(0, 0); render(); break;
+    case 'goto-month': UI.month = a.dataset.m; render(); break;
+    case 'explain': {
+      const h = METRIC_HELP[a.dataset.key];
+      if (h) openModal(h[0], `<p style="margin:0;font-size:13.5px;max-width:66ch">${esc(h[1])}</p>`,
+        `<button class="btn primary" data-close>Got it</button>`);
+      break;
+    }
     case 'run-setup': WIZ = null; setupWizard(0); break;
     case 'storage-info': storageInfo(); break;
     case 'dismiss-backup': { const w = $('#backupWarn'); if (w) w.remove(); break; }

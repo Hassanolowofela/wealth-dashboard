@@ -6,7 +6,7 @@
    ========================================================================== */
 'use strict';
 
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
 const CACHE = 'hwd-' + VERSION;
 
 const ASSETS = [
@@ -14,6 +14,7 @@ const ASSETS = [
   './index.html',
   './app.js',
   './charts.js',
+  './metrics.js',
   './advisor.js',
   './credit.js',
   './docparse.js',

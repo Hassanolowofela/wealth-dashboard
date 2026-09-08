@@ -19,7 +19,7 @@ const TABS = [
 
 function tile(o) {
   return `<div class="tile">
-    <div class="lbl">${esc(o.label)}</div>
+    <div class="lbl">${esc(o.label)}${o.help ? helpButton(o.help) : ''}</div>
     <div class="val${o.hero ? ' hero' : ''}"${o.tone ? ` style="color:${o.tone}"` : ''}>${o.value}</div>
     ${o.delta ? `<div class="delta">${o.delta}</div>` : ''}
     ${o.spark ? `<div class="spark">${o.spark}</div>` : ''}
@@ -56,9 +56,24 @@ function emptyCard(title, body, btn) {
 function viewOverview() {
   const m = UI.month;
   const st = monthStats(m);
+  const K = monthKpis(m);
   const prevSt = monthStats(addMonths(m, -1));
   const hist = histMonths(m, 12);
   const histStats = hist.map(x => monthStats(x));
+
+  // A month with nothing in it is an empty month, not a month of zeroes. Four
+  // confident $0 tiles read as a report on the household rather than a gap.
+  if (S.txns.length && !K.hasData) {
+    const nearest = activeMonths();
+    return `
+    <div class="section-h"><h2>${esc(monthLabel(m))}</h2></div>
+    ${emptyCard('Nothing recorded in ' + esc(monthLabel(m)),
+      'No transactions fall in this month, so there is nothing to report. Use the arrows beside the month to move to one that has data.',
+      nearest.length
+        ? `<button class="btn primary" data-act="goto-month" data-m="${nearest[nearest.length - 1]}">Go to ${esc(monthLabel(nearest[nearest.length - 1]))}</button>
+           <button class="btn" data-act="add-tx" style="margin-left:8px">Add a transaction</button>`
+        : `<button class="btn primary" data-act="add-tx">Add a transaction</button>`)}`;
+  }
 
   if (!S.txns.length) {
     return emptyCard('No transactions yet',
@@ -103,28 +118,31 @@ function viewOverview() {
 
   <div class="grid g-kpi">
     ${tile({
-      label: 'Left over this month', hero: true,
+      label: 'Left over this month', hero: true, help: 'leftOver',
       value: money(st.net),
       tone: st.net >= 0 ? 'var(--good-ink)' : 'var(--crit-ink)',
       delta: deltaBit(st.net, prevSt.count ? prevSt.net : null, true),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.net), color: 'var(--s1)' })
     })}
     ${tile({
-      label: 'Income', value: money(st.income),
+      label: 'Income', value: money(st.income), help: 'income',
       delta: deltaBit(st.income, prevSt.count ? prevSt.income : null, true),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.income), color: 'var(--s1)' })
     })}
     ${tile({
-      label: 'Spending', value: money(st.spend),
+      label: 'Spending', value: money(st.spend), help: 'spending',
       delta: deltaBit(st.spend, prevSt.count ? prevSt.spend : null, false),
       spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.spend), color: 'var(--s2)' })
     })}
-    ${tile({
-      label: 'Savings rate', value: pct(st.rate, 1),
-      tone: st.rate >= 20 ? 'var(--good-ink)' : st.rate < 5 ? 'var(--crit-ink)' : '',
-      delta: `<span class="${st.rate >= 20 ? 'up' : 'flat'}">${st.rate >= 20 ? 'at or above' : 'below'}</span> the 20% benchmark`,
-      spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--s3)' })
-    })}
+    ${tile(K.savingsRate == null
+      // no income means there is nothing to be a rate of, and "0.0%, below the
+      // benchmark" would read as a verdict on a month that cannot have one
+      ? { label: 'Savings rate', value: '-', help: 'savingsRate',
+          delta: 'no income recorded this month' }
+      : { label: 'Savings rate', value: pct(K.savingsRate, 1), help: 'savingsRate',
+          tone: K.savingsRate >= 20 ? 'var(--good-ink)' : K.savingsRate < 5 ? 'var(--crit-ink)' : '',
+          delta: `<span class="${K.savingsRate >= 20 ? 'up' : 'flat'}">${K.savingsRate >= 20 ? 'at or above' : 'below'}</span> the 20% benchmark`,
+          spark: chart({ type: 'spark', h: 34, values: histStats.map(s => s.rate), color: 'var(--s3)' }) })}
   </div>
 
   <div class="grid g-2" style="margin-top:14px">
@@ -292,37 +310,50 @@ function viewBudget() {
   const dayNow = ym(today) === m ? +today.slice(8, 10) : dim;
   const pace = dayNow / dim;
 
-  const cats = CATS.filter(c => c.bucket !== 'income' && c.bucket !== 'save');
-  const rows = cats.map(c => {
-    const spent = st.byCat[c.id] || 0;
-    const budget = +S.budgets[c.id] || 0;
-    return { c, spent, budget };
-  }).filter(r => r.budget > 0 || r.spent > 0)
-    .sort((a, b) => (b.budget ? b.spent / b.budget : 0) - (a.budget ? a.spent / a.budget : 0) || b.spent - a.spent);
+  const bs = budgetSummary(m);
+  const proj = monthProjection(m);
+  const rows = [...bs.rows].sort((a, b) =>
+    (b.budget ? b.spent / b.budget : 0) - (a.budget ? a.spent / a.budget : 0) || b.spent - a.spent);
+  const totalBudget = bs.totalBudget;
+  const over = bs.over;
 
-  const totalBudget = sum(rows.map(r => r.budget));
-  const totalSpent = sum(rows.map(r => r.spent));
-  const over = rows.filter(r => r.budget > 0 && r.spent > r.budget);
-  const projected = pace > 0 ? totalSpent / pace : totalSpent;
+  // The projection tile says what it can honestly say, and nothing when it cannot.
+  const projTile = proj.available
+    ? tile({ label: 'Projected month end', value: money(proj.expected), help: 'projection',
+        tone: totalBudget && proj.expected > totalBudget ? 'var(--crit-ink)' : 'var(--good-ink)',
+        delta: `between <b>${money(proj.low)}</b> and <b>${money(proj.expected)}</b>` +
+          (totalBudget ? (proj.expected > totalBudget
+            ? `, <span class="down">${money(proj.expected - totalBudget)} over budget</span>`
+            : `, <span class="up">${money(totalBudget - proj.expected)} under budget</span>`) : '') })
+    : tile({ label: 'Projected month end', value: '&mdash;'.replace('&mdash;', '-'), help: 'projection',
+        delta: proj.reason === 'early'
+          ? `available from the 10th, day ${proj.dayNow} today`
+          : 'this month has already ended' });
 
   return `
-  <div class="section-h"><h2>Budget · ${esc(monthLabel(m))}</h2>
+  <div class="section-h"><h2>Budget &middot; ${esc(monthLabel(m))}</h2>
     <span class="sub">Day ${dayNow} of ${dim}</span></div>
 
   <div class="grid g-kpi">
-    ${tile({ label: 'Budgeted', value: money(totalBudget) })}
-    ${tile({ label: 'Spent so far', value: money(totalSpent),
-      tone: totalBudget && totalSpent > totalBudget ? 'var(--crit-ink)' : '',
-      delta: totalBudget ? `${pct(totalSpent / totalBudget * 100)} of budget used, ${pct(pace * 100)} of the month gone` : '' })}
-    ${tile({ label: 'Projected month end', value: money(projected),
-      tone: totalBudget && projected > totalBudget ? 'var(--crit-ink)' : 'var(--good-ink)',
-      delta: totalBudget ? (projected > totalBudget
-        ? `<span class="down">${money(projected - totalBudget)} over</span> at this pace`
-        : `<span class="up">${money(totalBudget - projected)} under</span> at this pace`) : '' })}
+    ${tile({ label: 'Budgeted', value: money(totalBudget),
+      delta: bs.anyBudgets ? `across ${bs.budgeted.length} categories` : 'no budgets set yet' })}
+    ${tile({ label: 'Spent against budget', value: money(bs.budgetedSpend), help: 'budgetUsed',
+      tone: bs.usedPct != null && bs.usedPct > 100 ? 'var(--crit-ink)' : '',
+      delta: bs.usedPct != null
+        ? `${pct(bs.usedPct)} of budget used, ${pct(pace * 100)} of the month gone`
+        : 'set a budget to track this' })}
+    ${projTile}
     ${tile({ label: 'Categories over', value: String(over.length),
       tone: over.length ? 'var(--crit-ink)' : 'var(--good-ink)',
       delta: over.length ? esc(over.map(o => catName(o.c.id)).join(', ')) : 'all within budget' })}
   </div>
+
+  ${bs.unbudgetedSpend > 0 ? `<div class="quiet-note">
+    <b>${money(bs.unbudgetedSpend)}</b> was spent in
+    ${bs.unbudgeted.length} categor${bs.unbudgeted.length === 1 ? 'y' : 'ies'} with no budget
+    (${esc(bs.unbudgeted.map(r => catName(r.c.id)).join(', '))}).
+    That is counted separately, so it cannot make the figures above look over budget.
+  </div>` : ''}
 
   <div class="card" style="margin-top:14px">
     <h3>Category budgets</h3>
@@ -1373,7 +1404,7 @@ function txForm(id) {
       if (g && g !== 'misc') root.querySelector('#tCat').value = g;
     });
     root.querySelector('#tSave').onclick = () => {
-      const amt = parseFloat(root.querySelector('#tAmt').value);
+      const amt = round2(parseFloat(root.querySelector('#tAmt').value));
       if (!isFinite(amt) || amt === 0) return toast('Enter an amount.');
       const dir = root.querySelector('#tDir').value;
       const rec = {
@@ -1631,7 +1662,7 @@ function logPaymentForm(cardId) {
   root => {
     root.querySelector('#p_save').onclick = () => {
       const cid = root.querySelector('#p_card').value;
-      const amt = parseFloat(root.querySelector('#p_amt').value) || 0;
+      const amt = round2(parseFloat(root.querySelector('#p_amt').value) || 0);
       if (amt <= 0) return toast('Enter the amount paid.');
       S.cardPayments.push({
         id: uid(), cardId: cid, date: root.querySelector('#p_date').value || todayISO(),
@@ -1756,7 +1787,7 @@ function budgetForm(cat) {
     };
     sel.onchange = sync; sync();
     root.querySelector('#bSave').onclick = () => {
-      const v = parseFloat(amt.value);
+      const v = round2(parseFloat(amt.value));
       if (!isFinite(v) || v <= 0) delete S.budgets[sel.value]; else S.budgets[sel.value] = v;
       save(); closeModal(); render(); toast('Budget saved');
     };
@@ -2520,6 +2551,13 @@ document.addEventListener('click', e => {
       break;
     }
     case 'go-cards': UI.tab = 'cards'; window.scrollTo(0, 0); render(); break;
+    case 'goto-month': UI.month = a.dataset.m; render(); break;
+    case 'explain': {
+      const h = METRIC_HELP[a.dataset.key];
+      if (h) openModal(h[0], `<p style="margin:0;font-size:13.5px;max-width:66ch">${esc(h[1])}</p>`,
+        `<button class="btn primary" data-close>Got it</button>`);
+      break;
+    }
     case 'run-setup': WIZ = null; setupWizard(0); break;
     case 'storage-info': storageInfo(); break;
     case 'dismiss-backup': { const w = $('#backupWarn'); if (w) w.remove(); break; }

@@ -132,7 +132,15 @@ label.f > span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px
 
 /* ============================== STAT TILES ============================== */
 .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;position:relative;overflow:hidden}
-.tile .lbl{font-size:12px;color:var(--ink-2);font-weight:520}
+.tile .lbl{font-size:12px;color:var(--ink-2);font-weight:520;display:flex;align-items:center;gap:5px}
+.helpbtn{width:16px;height:16px;flex:none;border-radius:99px;border:1px solid var(--border-2);
+  background:transparent;color:var(--muted);font-size:10.5px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;padding:0;font-weight:700}
+.helpbtn:hover{background:var(--surface-2);color:var(--ink);border-color:var(--muted)}
+.helpbtn:focus-visible{outline:2px solid var(--s1);outline-offset:1px}
+.quiet-note{margin-top:14px;padding:11px 14px;border-left:3px solid var(--border-2);
+  background:var(--surface-2);border-radius:0 var(--r-sm) var(--r-sm) 0;
+  font-size:13px;color:var(--ink-2);max-width:72ch}
 .tile .val{font-size:26px;font-weight:640;letter-spacing:-.02em;line-height:1.15}
 .tile .val.hero{font-size:clamp(26px,3.1vw + 12px,40px)}
 /* Flowing text, not flex: as flex items the coloured span and the trailing
@@ -349,6 +357,7 @@ header.top{padding-top:env(safe-area-inset-top,0px)}
 <div class="toast" id="toast"></div>
 <script src="app.js"></script>
 <script src="charts.js"></script>
+<script src="metrics.js"></script>
 <script src="advisor.js"></script>
 <script src="credit.js"></script>
 <script src="docparse.js"></script>
